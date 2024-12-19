@@ -5,6 +5,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import ShopListing from './pages/ShopListing';
 import ShopDetail from './pages/ShopDetail';
 import OrderDetailsScreen from './pages/OrderDetailsScreen';
+// import Navbar from './components/Navbar';
 
 function App() {
   return (
