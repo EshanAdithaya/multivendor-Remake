@@ -1,5 +1,6 @@
 import React from 'react';
-import { Search, MapPin, Menu, Home, ShoppingBag, User } from 'lucide-react';
+import { Search, MapPin } from 'lucide-react';
+import Navbar from '../components/Navbar'; // Adjust the path if needed
 
 const ShopListing = () => {
   const categories = [
@@ -60,12 +61,7 @@ const ShopListing = () => {
       </div>
 
       {/* Bottom Navigation */}
-      <nav className="bg-white border-t py-4 px-6 flex items-center justify-between">
-        <Menu className="w-6 h-6 text-gray-500" />
-        <Home className="w-6 h-6 text-gray-500" />
-        <ShoppingBag className="w-6 h-6 text-gray-500" />
-        <User className="w-6 h-6 text-gray-500" />
-      </nav>
+      <Navbar />
     </div>
   );
 };
