@@ -146,7 +146,7 @@ const NavigationWithMenus = () => {
         >
           <Menu className="w-6 h-6" />
         </button>
-        <button onClick={() => handleNavigation('/home')}>
+        <button onClick={() => handleNavigation('/')}>
           <Home className="w-6 h-6 text-gray-500 hover:text-blue-500" />
         </button>
         <button onClick={() => handleNavigation('/shop')}>

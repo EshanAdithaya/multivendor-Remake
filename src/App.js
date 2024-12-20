@@ -13,6 +13,7 @@ import RefundPolicyPage from './pages/RefundPolicyPage';
 import TermsAndConditionsPage from './pages/TermsAndConditionsPage';
 import ProfilePage from './pages/ProfilePage';
 import MyOrdersScreen from './pages/MyOrdersScreen';
+import WishlistPage from './pages/WishlistPage';
 
 function App() {
   return (
@@ -33,6 +34,7 @@ function App() {
           {/* right side nav bar */}
           <Route path='/Profile' element={<ProfilePage />} />
           <Route path='/my-order' element={<MyOrdersScreen />} />
+          <Route path='/my-order' element={<WishlistPage />} />
         </Routes>
       </Layout>
     </Router>
