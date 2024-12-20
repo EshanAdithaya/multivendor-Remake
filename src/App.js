@@ -18,6 +18,8 @@ import ContactPage from './pages/ContactPage';
 import ShopsPage from './pages/ShopsPage';
 import ManufacturersPage from './pages/ManufacturersPage';
 import AuthorsPage from './pages/AuthorsPage';
+import ReportsScreen from './pages/ReportsScreen';
+import RefundsScreen from './pages/RefundsScreen';
 
 function App() {
   return (
@@ -41,7 +43,9 @@ function App() {
           {/* <Route path="/shops" element={<ShopsPage />} /> */}
           <Route path="/manufacturers" element={<ManufacturersPage />} />
           <Route path="/authors" element={<AuthorsPage />} />
-
+          <Route path="/reports" element={<ReportsScreen />} />
+          <Route path="/refunds" element={<RefundsScreen />} />
+          
 
           {/* right side nav bar */}
           <Route path='/Profile' element={<ProfilePage />} />
