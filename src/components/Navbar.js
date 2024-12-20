@@ -1,40 +1,47 @@
 import React, { useState } from 'react';
 import { Menu, Home, ShoppingBag, User } from 'lucide-react';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 const NavigationWithSidebar = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const menuItems = [
-    'Shops',
-    'Offers',
-    'Contact',
-    'Flash Sale',
-    'Manufacturers/Publishers',
-    'Authors',
-    'FAQ',
-    'Terms & Conditions',
-    'Customer Refund Policy',
-    'Vendor Refund Policy'
+    { name: 'Shops', path: '/shops' },
+    { name: 'Offers', path: '/offers' },
+    { name: 'Contact', path: '/contact' },
+    { name: 'Flash Sale', path: '/flash-sale' },
+    { name: 'Manufacturers/Publishers', path: '/manufacturers' },
+    { name: 'Authors', path: '/authors' },
+    { name: 'FAQ', path: '/faq' },
+    { name: 'Terms & Conditions', path: '/terms' },
+    { name: 'Refund Policy', path: '/refund-policy' }
   ];
 
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
   };
 
+  const handleNavigation = (path) => {
+    navigate(path);
+    setIsSidebarOpen(false); // Close sidebar after navigation
+  };
+
   return (
     <div className="min-h-screen bg-white relative overflow-hidden">
       {/* Sliding Sidebar */}
-      <div 
-        className={`fixed top-0 left-0 h-full w-64 bg-white transform transition-transform duration-300 ease-in-out ${
+      <div
+        className={`fixed top-0 left-0 h-full w-64 bg-white transform transition-transform duration-300 ease-in-out z-30 ${
           isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
         {/* Logo Header */}
         <div className="border-b border-gray-200 p-4">
           <div className="flex items-center">
-            <img 
-              src="/api/placeholder/40/40" 
-              alt="PetDoc Logo" 
+            <img
+              src="/api/placeholder/40/40"
+              alt="PetDoc Logo"
               className="h-10"
             />
           </div>
@@ -46,9 +53,14 @@ const NavigationWithSidebar = () => {
             {menuItems.map((item, index) => (
               <button
                 key={index}
-                className="w-full text-left py-3 text-gray-800 font-medium hover:bg-gray-50 focus:outline-none"
+                className={`w-full text-left py-3 px-2 rounded-lg font-medium transition-colors duration-200 ${
+                  location.pathname === item.path
+                    ? 'bg-blue-50 text-blue-600'
+                    : 'text-gray-800 hover:bg-gray-50'
+                }`}
+                onClick={() => handleNavigation(item.path)}
               >
-                {item}
+                {item.name}
               </button>
             ))}
           </nav>
@@ -56,8 +68,8 @@ const NavigationWithSidebar = () => {
       </div>
 
       {/* Bottom Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t py-4 px-6 flex items-center justify-between">
-        <button 
+      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t py-4 px-6 flex items-center justify-between z-20">
+        <button
           onClick={toggleSidebar}
           className={`transform transition-colors duration-200 ${
             isSidebarOpen ? 'text-blue-500' : 'text-gray-500'
@@ -65,15 +77,21 @@ const NavigationWithSidebar = () => {
         >
           <Menu className="w-6 h-6" />
         </button>
-        <Home className="w-6 h-6 text-gray-500" />
-        <ShoppingBag className="w-6 h-6 text-gray-500" />
-        <User className="w-6 h-6 text-gray-500" />
+        <button onClick={() => handleNavigation('/home')}>
+          <Home className="w-6 h-6 text-gray-500 hover:text-blue-500" />
+        </button>
+        <button onClick={() => handleNavigation('/shop')}>
+          <ShoppingBag className="w-6 h-6 text-gray-500 hover:text-blue-500" />
+        </button>
+        <button onClick={() => handleNavigation('/profile')}>
+          <User className="w-6 h-6 text-gray-500 hover:text-blue-500" />
+        </button>
       </nav>
 
       {/* Overlay */}
       {isSidebarOpen && (
-        <div 
-        //   className="fixed inset-0 bg-black bg-opacity-50 transition-opacity duration-300"
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 transition-opacity duration-300 z-20"
           onClick={toggleSidebar}
         />
       )}
