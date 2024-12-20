@@ -130,7 +130,7 @@ const ProductDetail = () => {
           </p>
         </div>
       </div>
-      <Navbar />
+      {/* <Navbar /> */}
     </div>
   );
 };

@@ -61,7 +61,7 @@ const ShopListing = () => {
       </div>
 
       {/* Bottom Navigation */}
-      <Navbar />
+      {/* <Navbar /> */}
     </div>
   );
 };

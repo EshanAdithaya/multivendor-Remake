@@ -71,7 +71,7 @@ const MyOrdersScreen = () => {
         <OrderCard />
         <OrderCard />
       </div>
-      <Navbar />
+      {/* <Navbar /> */}
     </div>
   );
 };

@@ -95,7 +95,7 @@ const ShopDetail = () => {
           </div>
         ))}
       </div>
-      <Navbar />
+      {/* <Navbar /> */}
     </div>
   );
 };

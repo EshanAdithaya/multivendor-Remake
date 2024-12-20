@@ -100,7 +100,7 @@ const ShoppingCart = () => {
           </span>
         </button>
       </div>
-      <Navbar />
+      {/* <Navbar /> */}
     </div>
   );
 };

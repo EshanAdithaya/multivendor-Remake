@@ -46,7 +46,7 @@ const MyCardsScreen = () => {
           </div>
         </div>
       </div>
-      <Navbar />
+      {/* <Navbar /> */}
     </div>
   );
 };
