@@ -14,12 +14,15 @@ import TermsAndConditionsPage from './pages/TermsAndConditionsPage';
 import ProfilePage from './pages/ProfilePage';
 import MyOrdersScreen from './pages/MyOrdersScreen';
 import WishlistPage from './pages/WishlistPage';
+import ContactPage from './pages/ContactPage';
 
 function App() {
   return (
     <Router>
       <Layout>
         <Routes>
+          
+          
           <Route path="/" element={<ShopListing />} />
           <Route path="/test" element={<ShopListing />} />
           <Route path="/aa" element={<OrderDetailsScreen />} />
@@ -30,6 +33,9 @@ function App() {
           <Route path='/refund-policy' element={<RefundPolicyPage />} />
           <Route path='/terms' element={<TermsAndConditionsPage />} />
           
+          {/* left side nav bar ? */}
+          <Route path="/contact" element={<ContactPage />} />
+
 
           {/* right side nav bar */}
           <Route path='/Profile' element={<ProfilePage />} />
