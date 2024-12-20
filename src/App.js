@@ -3,7 +3,7 @@ import React from 'react';
 import './App.css';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import ShopListing from './pages/ShopListing';
-// import ShopDetail from './pages/ShopDetail';
+import ShopDetail from './pages/ShopDetail';
 import OrderDetailsScreen from './pages/OrderDetailsScreen';
 import Layout from './components/Layout';
 import PromotionsPage from './pages/PromotionsPage';
@@ -28,7 +28,7 @@ function App() {
           <Route path="/" element={<ShopListing />} />
           <Route path="/test" element={<ShopListing />} />
           <Route path="/aa" element={<OrderDetailsScreen />} />
-          {/* <Route path="/shops" element={<ShopDetail />} /> */}
+          <Route path="/shops" element={<ShopDetail />} />
           <Route path='/offers' element={<PromotionsPage />} />
           <Route path='/flash-sale' element={<FlashSalesPage />} />
           <Route path='/faq' element={<FAQPage />} />
@@ -37,7 +37,7 @@ function App() {
           
           {/* left side nav bar ? */}
           <Route path="/contact" element={<ContactPage />} />
-          <Route path="/shops" element={<ShopsPage />} />
+          {/* <Route path="/shops" element={<ShopsPage />} /> */}
           <Route path="/manufacturers" element={<ManufacturersPage />} />
 
 
