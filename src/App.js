@@ -17,6 +17,7 @@ import WishlistPage from './pages/WishlistPage';
 import ContactPage from './pages/ContactPage';
 import ShopsPage from './pages/ShopsPage';
 import ManufacturersPage from './pages/ManufacturersPage';
+import AuthorsPage from './pages/AuthorsPage';
 
 function App() {
   return (
@@ -39,6 +40,7 @@ function App() {
           <Route path="/contact" element={<ContactPage />} />
           {/* <Route path="/shops" element={<ShopsPage />} /> */}
           <Route path="/manufacturers" element={<ManufacturersPage />} />
+          <Route path="/authors" element={<AuthorsPage />} />
 
 
           {/* right side nav bar */}
