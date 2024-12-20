@@ -20,6 +20,19 @@ const NavigationWithMenus = () => {
     { name: 'Refund Policy', path: '/refund-policy' }
   ];
 
+  const rightMenuItems = [
+    { name: 'Profile', path: '/profile' },
+    { name: 'My Orders', path: '/orders' },
+    { name: 'My Cards', path: '/cards' },
+    { name: 'My Wishlists', path: '/wishlists' },
+    { name: 'My Questions', path: '/questions' },
+    { name: 'My Refunds', path: '/refunds' },
+    { name: 'My Reports', path: '/reports' },
+    { name: 'Checkout', path: '/checkout' },
+    { name: 'Change Password', path: '/change-password' },
+    { name: 'Logout', path: '/logout' }
+  ];
+
   const toggleLeftSidebar = () => {
     setLeftSidebarOpen(!isLeftSidebarOpen);
     if (isRightSidebarOpen) setRightSidebarOpen(false);
@@ -106,25 +119,18 @@ const NavigationWithMenus = () => {
           </div>
         </div>
 
-        <nav className="space-y-1">
-          {[
-            'Profile',
-            'My Orders',
-            'My Cards',
-            'My Wishlists',
-            'My Questions',
-            'My Refunds',
-            'My Reports',
-            'Checkout',
-            'Change Password',
-            'Logout'
-          ].map((item) => (
+        <nav className="px-4 py-6">
+          {rightMenuItems.map((item, index) => (
             <button
-              key={item}
-              className="w-full px-6 py-3 text-left text-gray-700 hover:bg-gray-50 focus:outline-none"
-              onClick={() => handleNavigation(`/${item.toLowerCase().replace(' ', '-')}`)}
+              key={index}
+              className={`w-full text-left py-3 px-2 rounded-lg font-medium transition-colors duration-200 ${
+                location.pathname === item.path
+                  ? 'bg-blue-50 text-blue-600'
+                  : 'text-gray-800 hover:bg-gray-50'
+              }`}
+              onClick={() => handleNavigation(item.path)}
             >
-              {item}
+              {item.name}
             </button>
           ))}
         </nav>
