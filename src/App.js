@@ -10,6 +10,8 @@ import PromotionsPage from './pages/PromotionsPage';
 import FlashSalesPage from './pages/FlashSalesPage';
 import FAQPage from './pages/FAQPage';
 import RefundPolicyPage from './pages/RefundPolicyPage';
+import TermsAndConditionsPage from './pages/TermsAndConditionsPage';
+import ProfilePage from './pages/ProfilePage';
 
 function App() {
   return (
@@ -24,6 +26,8 @@ function App() {
           <Route path='/flash-sale' element={<FlashSalesPage />} />
           <Route path='/faq' element={<FAQPage />} />
           <Route path='/refund-policy' element={<RefundPolicyPage />} />
+          <Route path='/terms' element={<TermsAndConditionsPage />} />
+          <Route path='/Profile' element={<ProfilePage />} />
         </Routes>
       </Layout>
     </Router>
