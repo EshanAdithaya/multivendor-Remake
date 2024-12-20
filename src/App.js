@@ -12,6 +12,7 @@ import FAQPage from './pages/FAQPage';
 import RefundPolicyPage from './pages/RefundPolicyPage';
 import TermsAndConditionsPage from './pages/TermsAndConditionsPage';
 import ProfilePage from './pages/ProfilePage';
+import MyOrdersScreen from './pages/MyOrdersScreen';
 
 function App() {
   return (
@@ -27,7 +28,11 @@ function App() {
           <Route path='/faq' element={<FAQPage />} />
           <Route path='/refund-policy' element={<RefundPolicyPage />} />
           <Route path='/terms' element={<TermsAndConditionsPage />} />
+          
+
+          {/* right side nav bar */}
           <Route path='/Profile' element={<ProfilePage />} />
+          <Route path='/my-order' element={<MyOrdersScreen />} />
         </Routes>
       </Layout>
     </Router>

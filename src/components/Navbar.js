@@ -22,7 +22,7 @@ const NavigationWithMenus = () => {
 
   const rightMenuItems = [
     { name: 'Profile', path: '/profile' },
-    { name: 'My Orders', path: '/orders' },
+    { name: 'My Orders', path: '/my-order' },
     { name: 'My Cards', path: '/cards' },
     { name: 'My Wishlists', path: '/wishlists' },
     { name: 'My Questions', path: '/questions' },
