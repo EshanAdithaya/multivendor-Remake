@@ -34,7 +34,7 @@ function App() {
           {/* right side nav bar */}
           <Route path='/Profile' element={<ProfilePage />} />
           <Route path='/my-order' element={<MyOrdersScreen />} />
-          <Route path='/my-order' element={<WishlistPage />} />
+          <Route path='/wishlists' element={<WishlistPage />} />
         </Routes>
       </Layout>
     </Router>
