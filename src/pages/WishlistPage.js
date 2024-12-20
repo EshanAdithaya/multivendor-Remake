@@ -1,6 +1,5 @@
 import React from 'react';
 import { Star } from 'lucide-react';
-import { Card } from '@/components/ui/card';
 
 const WishlistPage = () => {
   const wishlistItems = [
@@ -45,7 +44,10 @@ const WishlistPage = () => {
       {/* Wishlist Items */}
       <div className="px-4 space-y-4">
         {wishlistItems.map((item) => (
-          <Card key={item.id} className="p-4 rounded-xl shadow-sm">
+          <div 
+            key={item.id} 
+            className="bg-white p-4 rounded-xl shadow-sm border border-gray-100"
+          >
             <div className="flex items-start space-x-4">
               {/* Product Image */}
               <div className="border rounded-lg p-2 w-20 h-20 flex-shrink-0">
@@ -68,13 +70,17 @@ const WishlistPage = () => {
 
                 {/* Action Buttons */}
                 <div className="flex mt-2 space-x-4">
-                  <button className="text-yellow-400 font-semibold">Add to Cart</button>
+                  <button className="text-yellow-400 font-semibold hover:text-yellow-500 transition-colors">
+                    Add to Cart
+                  </button>
                   <div className="w-px bg-gray-200"></div>
-                  <button className="text-red-500 font-semibold">Remove</button>
+                  <button className="text-red-500 font-semibold hover:text-red-600 transition-colors">
+                    Remove
+                  </button>
                 </div>
               </div>
             </div>
-          </Card>
+          </div>
         ))}
       </div>
     </div>
