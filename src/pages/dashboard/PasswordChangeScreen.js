@@ -22,6 +22,7 @@ const PasswordChangeScreen = () => {
         </div>
       </div>
 
+
       {/* Main Content */}
       <div className="px-6 pt-12">
         <div className="bg-white rounded-xl shadow-sm p-6">
