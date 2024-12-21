@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Heart, ChevronRight, Minus, Plus } from 'lucide-react';
-import Navbar from '../components/Navbar';
+import Header from '../components/Header';
+// import Navbar from '../components/Navbar';
 
 const ProductDetail = () => {
   const [quantity, setQuantity] = useState(1);
@@ -15,12 +16,13 @@ const ProductDetail = () => {
   return (
     <div className="flex flex-col min-h-screen bg-white">
       {/* Header Logo */}
-      <div className="p-4 flex justify-between items-center">
+      {/* <div className="p-4 flex justify-between items-center">
         <img src="/api/placeholder/40/40" alt="PetDoc" className="h-10" />
         <div className="bg-yellow-500 text-white px-2 py-1 rounded-full text-sm">
           20%
         </div>
-      </div>
+      </div> */}
+      <Header />
 
       {/* Main Product Image */}
       <div className="relative px-4 mb-4">
