@@ -36,12 +36,12 @@ function App() {
           <Route path="/" element={<LandingPage />} />
           <Route path="/test" element={<ShopListing />} />
           <Route path="/aa" element={<OrderDetailsScreen />} />
-          <Route path="/shops" element={<ShopDetail />} />
+          
           <Route path='/offers' element={<PromotionsPage />} />
-          <Route path='/flash-sale' element={<FlashSalesPage />} />
-          <Route path='/faq' element={<FAQPage />} />
+          
+          
           <Route path='/refund-policy' element={<RefundPolicyPage />} />
-          <Route path='/terms' element={<TermsAndConditionsPage />} />
+          
           
           {/* left side nav bar ? */}
           <Route path="/contact" element={<ContactPage />} />
@@ -50,6 +50,10 @@ function App() {
           <Route path="/authors" element={<AuthorsPage />} />
           <Route path="/reports" element={<ReportsScreen />} />
           <Route path="/refunds" element={<RefundsScreen />} />
+          <Route path="/shops" element={<ShopDetail />} />
+          <Route path='/flash-sale' element={<FlashSalesPage />} />
+          <Route path='/faq' element={<FAQPage />} />
+          <Route path='/terms' element={<TermsAndConditionsPage />} />
           
 
           {/* right side nav bar */}

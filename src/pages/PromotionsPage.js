@@ -1,4 +1,5 @@
 import React from 'react';
+import Header from '../components/Header';
 
 const PromotionsPage = () => {
   const coupons = [
@@ -14,6 +15,7 @@ const PromotionsPage = () => {
   return (
     <div className="min-h-screen bg-white px-4 pt-8 pb-20">
       {/* Header */}
+      <Header />
       <h1 className="text-[32px] font-bold text-[#1a1a1a] mb-8">
         Promotions
       </h1>

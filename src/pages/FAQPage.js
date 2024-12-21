@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import Header from '../components/Header';
 
 const FAQPage = () => {
   const [openIndex, setOpenIndex] = useState(0);
@@ -41,6 +42,7 @@ const FAQPage = () => {
   return (
     <div className="min-h-screen bg-[#F8F9FA] px-4 pt-8 pb-20">
       {/* Header */}
+      <Header />
       <h1 className="text-[32px] font-bold text-[#1a1a1a] mb-8">
         FAQs
       </h1>

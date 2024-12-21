@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Mail, Phone, MapPin, Send, MessageSquare } from 'lucide-react';
+import Header from '../components/Header';
 
 const ContactPage = () => {
   const [formData, setFormData] = useState({
@@ -52,9 +53,7 @@ const ContactPage = () => {
   return (
     <div className="min-h-screen bg-white">
       {/* Header with Logo */}
-      <div className="p-4 border-b">
-        <img src="/api/placeholder/40/40" alt="PetDoc Logo" className="w-10 h-10" />
-      </div>
+      <Header />
 
       {/* Contact Title */}
       <div className="p-6">

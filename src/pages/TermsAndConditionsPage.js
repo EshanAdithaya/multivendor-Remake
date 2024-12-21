@@ -1,4 +1,5 @@
 import React from 'react';
+import Header from '../components/Header';
 
 const TermsAndConditionsPage = () => {
   const policies = [
@@ -27,6 +28,7 @@ const TermsAndConditionsPage = () => {
   return (
     <div className="min-h-screen bg-white px-4 pt-8 pb-20">
       {/* Main Header */}
+      <Header />
       <h1 className="text-[32px] font-bold text-[#1a1a1a] mb-12">
         Terms and Conditions
       </h1>

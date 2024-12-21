@@ -1,5 +1,6 @@
 import React from 'react';
 import { Github, Linkedin, Mail, Globe, Twitter, FileCode, Coffee, Heart, MessageCircle } from 'lucide-react';
+import Header from '../components/Header';
 
 const AuthorsPage = () => {
   const teamMembers = [
@@ -54,9 +55,7 @@ const AuthorsPage = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header with Logo */}
-      <div className="bg-white p-4 border-b">
-        <img src="/api/placeholder/40/40" alt="PetDoc Logo" className="w-10 h-10" />
-      </div>
+      <Header />
 
       {/* Hero Section */}
       <div className="bg-yellow-400 text-white py-16 px-4">

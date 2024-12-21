@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Star, MapPin, Globe, Mail, Building2, Search, Filter } from 'lucide-react';
+import Header from '../components/Header';
 
 const ManufacturersPage = () => {
   const [activeTab, setActiveTab] = useState('all');
@@ -58,9 +59,7 @@ const ManufacturersPage = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header with Logo */}
-      <div className="bg-white p-4 border-b sticky top-0 z-10">
-        <img src="/api/placeholder/40/40" alt="PetDoc Logo" className="w-10 h-10" />
-      </div>
+      <Header />
 
       {/* Search and Filter Section */}
       <div className="bg-white border-b">

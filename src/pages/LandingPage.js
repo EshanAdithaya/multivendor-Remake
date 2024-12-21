@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Search, Heart, Star, ArrowRight, TrendingUp, Percent, Award, Menu, Truck, Gift, Clock, Shield, Package, Trophy } from 'lucide-react';
+import Header from '../components/Header';
 
 const LandingPage = () => {
   const [showAllCategories, setShowAllCategories] = useState(false);
@@ -134,28 +135,15 @@ const LandingPage = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <header className="bg-white shadow-sm sticky top-0 z-10">
-        <div className="px-4 py-3">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-3">
-              <Menu className="w-5 h-5 text-gray-600" />
-              <h1 className="text-lg font-bold text-gray-800">PetDoc</h1>
-            </div>
-            <button className="p-2 hover:bg-gray-100 rounded-full">
-              <Search className="w-5 h-5 text-gray-500" />
-            </button>
-          </div>
-          <div className="relative">
-            <input
-              type="text"
-              placeholder="Search products..."
-              className="w-full px-4 py-2 text-sm bg-gray-100 rounded-lg pl-10 focus:outline-none focus:ring-2 focus:ring-yellow-400"
-            />
-            <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
-          </div>
+      <Header />
+      <div className="relative">
+          <input
+            type="text"
+            placeholder="Search products..."
+            className="w-full px-4 py-2 text-sm bg-gray-100 rounded-lg pl-10 focus:outline-none focus:ring-2 focus:ring-yellow-400"
+          />
+          <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
         </div>
-      </header>
-
       <main className="px-4 py-4">
         {/* Welcome Banner */}
         <section className="mb-6">
