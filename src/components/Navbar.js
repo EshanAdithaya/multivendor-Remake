@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
-import { Menu, Home, ShoppingBag, User } from 'lucide-react';
+import { Menu, Home, ShoppingBag, User, X } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import ShoppingCart from '../pages/ShoppingCart';
 
 const NavigationWithMenus = () => {
   const [isLeftSidebarOpen, setLeftSidebarOpen] = useState(false);
   const [isRightSidebarOpen, setRightSidebarOpen] = useState(false);
+  const [isShoppingCartOpen, setShoppingCartOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -36,17 +38,26 @@ const NavigationWithMenus = () => {
   const toggleLeftSidebar = () => {
     setLeftSidebarOpen(!isLeftSidebarOpen);
     if (isRightSidebarOpen) setRightSidebarOpen(false);
+    if (isShoppingCartOpen) setShoppingCartOpen(false);
   };
 
   const toggleRightSidebar = () => {
     setRightSidebarOpen(!isRightSidebarOpen);
     if (isLeftSidebarOpen) setLeftSidebarOpen(false);
+    if (isShoppingCartOpen) setShoppingCartOpen(false);
+  };
+
+  const toggleShoppingCart = () => {
+    setShoppingCartOpen(!isShoppingCartOpen);
+    if (isLeftSidebarOpen) setLeftSidebarOpen(false);
+    if (isRightSidebarOpen) setRightSidebarOpen(false);
   };
 
   const handleNavigation = (path) => {
     navigate(path);
     setLeftSidebarOpen(false);
     setRightSidebarOpen(false);
+    setShoppingCartOpen(false);
   };
 
   return (
@@ -136,6 +147,37 @@ const NavigationWithMenus = () => {
         </nav>
       </div>
 
+      {/* Full Screen Shopping Cart */}
+      <div
+        className={`fixed inset-0 bg-white transform transition-transform duration-300 ease-in-out z-40 ${
+          isShoppingCartOpen ? 'translate-y-0' : 'translate-y-full'
+        }`}
+      >
+        {isShoppingCartOpen && (
+          <div className="h-full flex flex-col">
+            <div className="border-b border-gray-200 p-4 flex justify-between items-center">
+              <div className="flex items-center">
+                <img
+                  src="/api/placeholder/40/40"
+                  alt="PetDoc Logo"
+                  className="h-10"
+                />
+                <span className="ml-3 text-xl font-semibold">Shopping Cart</span>
+              </div>
+              <button 
+                onClick={toggleShoppingCart}
+                className="p-2 hover:bg-gray-100 rounded-full transition-colors duration-200"
+              >
+                <X className="w-6 h-6 text-gray-500" />
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto">
+              <ShoppingCart />
+            </div>
+          </div>
+        )}
+      </div>
+
       {/* Bottom Navigation */}
       <nav className="fixed bottom-0 left-0 right-0 bg-white border-t py-4 px-6 flex items-center justify-between z-20">
         <button
@@ -149,8 +191,13 @@ const NavigationWithMenus = () => {
         <button onClick={() => handleNavigation('/')}>
           <Home className="w-6 h-6 text-gray-500 hover:text-blue-500" />
         </button>
-        <button onClick={() => handleNavigation('/shop')}>
-          <ShoppingBag className="w-6 h-6 text-gray-500 hover:text-blue-500" />
+        <button 
+          onClick={toggleShoppingCart}
+          className={`transform transition-colors duration-200 ${
+            isShoppingCartOpen ? 'text-blue-500' : 'text-gray-500'
+          }`}
+        >
+          <ShoppingBag className="w-6 h-6" />
         </button>
         <button 
           onClick={toggleRightSidebar}
@@ -162,7 +209,7 @@ const NavigationWithMenus = () => {
         </button>
       </nav>
 
-      {/* Overlay */}
+      {/* Overlay (only for sidebars, not for shopping cart) */}
       {(isLeftSidebarOpen || isRightSidebarOpen) && (
         <div
           className="fixed inset-0 bg-black bg-opacity-50 transition-opacity duration-300 z-20"

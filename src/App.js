@@ -20,6 +20,9 @@ import ManufacturersPage from './pages/ManufacturersPage';
 import AuthorsPage from './pages/AuthorsPage';
 import ReportsScreen from './pages/ReportsScreen';
 import RefundsScreen from './pages/RefundsScreen';
+import PasswordChangeScreen from './pages/dashboard/PasswordChangeScreen';
+import MyCardScreen from './pages/dashboard/MyCardsScreen';
+import QuestionsPage from './pages/QuestionsPage';
 
 function App() {
   return (
@@ -51,6 +54,9 @@ function App() {
           <Route path='/Profile' element={<ProfilePage />} />
           <Route path='/my-order' element={<MyOrdersScreen />} />
           <Route path='/wishlists' element={<WishlistPage />} />
+          <Route path='/change-password' element={<PasswordChangeScreen />} />
+          <Route path='/cards' element={<MyCardScreen />} />
+          <Route path='/questions' element={<QuestionsPage />} />
         </Routes>
       </Layout>
     </Router>

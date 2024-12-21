@@ -1,6 +1,5 @@
 import React from 'react';
 import { ThumbsUp, ThumbsDown } from 'lucide-react';
-import { Card } from '@/components/ui/card';
 
 const QuestionsPage = () => {
   const questions = [
@@ -38,7 +37,7 @@ const QuestionsPage = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white pb-16">
       {/* Header with Logo */}
       <div className="p-4 border-b">
         <div className="flex items-center">
@@ -55,7 +54,10 @@ const QuestionsPage = () => {
       {/* Questions List */}
       <div className="px-4 space-y-4">
         {questions.map((item) => (
-          <Card key={item.id} className="p-4 rounded-xl shadow-sm">
+          <div 
+            key={item.id} 
+            className="p-4 rounded-xl shadow-sm border border-gray-200 bg-white"
+          >
             <div className="flex space-x-4">
               {/* Product Image */}
               <div className="rounded-lg w-16 h-16 flex-shrink-0 overflow-hidden">
@@ -74,15 +76,15 @@ const QuestionsPage = () => {
                   <div className="mt-4 bg-gray-50 p-4 rounded-lg">
                     <p className="font-semibold text-gray-900">Q: {item.question}</p>
                     <p className="mt-2 text-gray-700">A: {item.answer}</p>
-                    
+
                     <div className="mt-4 flex items-center justify-between">
                       <span className="text-gray-400">Date: {item.date}</span>
                       <div className="flex items-center space-x-4">
-                        <button className="flex items-center text-gray-400">
+                        <button className="flex items-center text-gray-400 hover:text-gray-600 transition-colors">
                           <ThumbsUp className="w-5 h-5 mr-1" />
                           <span>{item.likes}</span>
                         </button>
-                        <button className="flex items-center text-gray-400">
+                        <button className="flex items-center text-gray-400 hover:text-gray-600 transition-colors">
                           <ThumbsDown className="w-5 h-5 mr-1" />
                           <span>{item.dislikes}</span>
                         </button>
@@ -92,7 +94,7 @@ const QuestionsPage = () => {
                 )}
               </div>
             </div>
-          </Card>
+          </div>
         ))}
       </div>
 

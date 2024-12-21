@@ -35,9 +35,9 @@ const ShoppingCart = () => {
           <ShoppingBag className="w-6 h-6 text-yellow-600" />
           <span className="text-lg font-medium">{totalItems} Items</span>
         </div>
-        <button className="p-2 rounded-full bg-gray-100">
+        {/* <button className="p-2 rounded-full bg-gray-100">
           <X className="w-5 h-5 text-gray-500" />
-        </button>
+        </button> */}
       </div>
 
       {/* Cart Items */}
@@ -92,7 +92,7 @@ const ShoppingCart = () => {
       </div>
 
       {/* Checkout Button */}
-      <div className="p-4">
+      <div className="p-4 fixed bottom-0 left-0 right-0 bg-white border-t">
         <button className="w-full bg-yellow-400 text-white py-4 rounded-full flex items-center justify-between px-6">
           <span className="text-lg font-medium">Checkout</span>
           <span className="bg-white text-yellow-400 px-4 py-2 rounded-full font-medium">
