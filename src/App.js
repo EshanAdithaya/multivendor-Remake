@@ -24,6 +24,7 @@ import PasswordChangeScreen from './pages/dashboard/PasswordChangeScreen';
 import MyCardScreen from './pages/dashboard/MyCardsScreen';
 import QuestionsPage from './pages/QuestionsPage';
 import CheckoutPage from './pages/CheckoutPage';
+import LandingPage from './pages/LandingPage';
 
 function App() {
   return (
@@ -32,7 +33,7 @@ function App() {
         <Routes>
           
           
-          <Route path="/" element={<ShopListing />} />
+          <Route path="/" element={<LandingPage />} />
           <Route path="/test" element={<ShopListing />} />
           <Route path="/aa" element={<OrderDetailsScreen />} />
           <Route path="/shops" element={<ShopDetail />} />
