@@ -23,6 +23,7 @@ import RefundsScreen from './pages/RefundsScreen';
 import PasswordChangeScreen from './pages/dashboard/PasswordChangeScreen';
 import MyCardScreen from './pages/dashboard/MyCardsScreen';
 import QuestionsPage from './pages/QuestionsPage';
+import CheckoutPage from './pages/CheckoutPage';
 
 function App() {
   return (
@@ -57,6 +58,7 @@ function App() {
           <Route path='/change-password' element={<PasswordChangeScreen />} />
           <Route path='/cards' element={<MyCardScreen />} />
           <Route path='/questions' element={<QuestionsPage />} />
+          <Route path='/checkout' element={<CheckoutPage />} />
         </Routes>
       </Layout>
     </Router>
