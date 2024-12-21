@@ -25,6 +25,7 @@ import MyCardScreen from './pages/dashboard/MyCardsScreen';
 import QuestionsPage from './pages/QuestionsPage';
 import CheckoutPage from './pages/CheckoutPage';
 import LandingPage from './pages/LandingPage';
+import ShopsList from './pages/ShopsList';
 
 function App() {
   return (
@@ -33,6 +34,7 @@ function App() {
         <Routes>
           
           
+          {/* <Route path="/" element={<LandingPage />} /> */}
           <Route path="/" element={<LandingPage />} />
           <Route path="/test" element={<ShopListing />} />
           <Route path="/aa" element={<OrderDetailsScreen />} />
@@ -48,9 +50,8 @@ function App() {
           {/* <Route path="/shops" element={<ShopsPage />} /> */}
           <Route path="/manufacturers" element={<ManufacturersPage />} />
           <Route path="/authors" element={<AuthorsPage />} />
-          
-          
-          <Route path="/shops" element={<ShopDetail />} />
+          <Route path="/shops" element={<ShopsList />} />
+          {/* <Route path="/shops" element={<ShopDetail />} /> */}
           <Route path='/flash-sale' element={<FlashSalesPage />} />
           <Route path='/faq' element={<FAQPage />} />
           <Route path='/terms' element={<TermsAndConditionsPage />} />
