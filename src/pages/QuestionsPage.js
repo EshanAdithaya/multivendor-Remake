@@ -1,5 +1,6 @@
 import React from 'react';
 import { ThumbsUp, ThumbsDown } from 'lucide-react';
+import Header from '../components/Header';
 
 const QuestionsPage = () => {
   const questions = [
@@ -39,12 +40,13 @@ const QuestionsPage = () => {
   return (
     <div className="min-h-screen bg-white pb-16">
       {/* Header with Logo */}
-      <div className="p-4 border-b">
+      {/* <div className="p-4 border-b">
         <div className="flex items-center">
           <img src="/api/placeholder/40/40" alt="PetDoc Logo" className="w-10 h-10" />
           <span className="ml-2 text-xl font-semibold text-gray-700">PetDoc</span>
         </div>
-      </div>
+      </div> */}
+      <Header />
 
       {/* Questions Title */}
       <div className="p-6">

@@ -48,8 +48,8 @@ function App() {
           {/* <Route path="/shops" element={<ShopsPage />} /> */}
           <Route path="/manufacturers" element={<ManufacturersPage />} />
           <Route path="/authors" element={<AuthorsPage />} />
-          <Route path="/reports" element={<ReportsScreen />} />
-          <Route path="/refunds" element={<RefundsScreen />} />
+          
+          
           <Route path="/shops" element={<ShopDetail />} />
           <Route path='/flash-sale' element={<FlashSalesPage />} />
           <Route path='/faq' element={<FAQPage />} />
@@ -64,6 +64,8 @@ function App() {
           <Route path='/cards' element={<MyCardScreen />} />
           <Route path='/questions' element={<QuestionsPage />} />
           <Route path='/checkout' element={<CheckoutPage />} />
+          <Route path="/refunds" element={<RefundsScreen />} />
+          <Route path="/reports" element={<ReportsScreen />} />
         </Routes>
       </Layout>
     </Router>

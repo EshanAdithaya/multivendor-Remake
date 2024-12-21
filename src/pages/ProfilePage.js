@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Upload, Plus } from 'lucide-react';
 import Navbar from '../components/Navbar';
+import Header from '../components/Header';
 
 const ProfilePage = () => {
   const [profile, setProfile] = useState({
@@ -17,9 +18,7 @@ const ProfilePage = () => {
   return (
     <div className="flex flex-col min-h-screen bg-white">
       {/* Header Logo */}
-      <div className="p-4 border-b">
-        <img src="/api/placeholder/40/40" alt="PetDoc" className="h-10" />
-      </div>
+      <Header />
 
       <div className="p-4 space-y-6">
         {/* Image Upload */}

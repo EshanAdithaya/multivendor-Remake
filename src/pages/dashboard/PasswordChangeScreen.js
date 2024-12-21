@@ -1,11 +1,12 @@
 import React from 'react';
 import { Eye } from 'lucide-react';
+import Header from '../../components/Header';
 
 const PasswordChangeScreen = () => {
   return (
     <div className="min-h-screen bg-white">
       {/* Header with Logo */}
-      <div className="w-full border-b border-gray-100 px-4 py-3">
+      {/* <div className="w-full border-b border-gray-100 px-4 py-3">
         <div className="flex items-center">
           <div className="relative w-24">
             <div className="w-10 h-10 bg-orange-400 rounded-full flex items-center justify-center">
@@ -20,7 +21,8 @@ const PasswordChangeScreen = () => {
             <span className="absolute bottom-0 left-11 text-sm font-medium text-gray-700">PetDoc</span>
           </div>
         </div>
-      </div>
+      </div> */}
+      <Header />
 
 
       {/* Main Content */}

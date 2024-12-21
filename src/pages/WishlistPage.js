@@ -1,5 +1,6 @@
 import React from 'react';
 import { Star } from 'lucide-react';
+import Header from '../components/Header';
 
 const WishlistPage = () => {
   const wishlistItems = [
@@ -32,9 +33,10 @@ const WishlistPage = () => {
   return (
     <div className="min-h-screen bg-white">
       {/* Header with Logo */}
-      <div className="p-4 border-b">
+      {/* <div className="p-4 border-b">
         <img src="/api/placeholder/40/40" alt="PetDoc Logo" className="w-10 h-10" />
-      </div>
+      </div> */}
+      <Header />
 
       {/* Wishlist Title */}
       <div className="p-6">
