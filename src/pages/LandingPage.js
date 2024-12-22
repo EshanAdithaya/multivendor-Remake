@@ -32,16 +32,16 @@ const LandingPage = () => {
 
   // Featured Products Data
   const featuredProducts = [
-    { id: 1, name: 'Premium Dog Food', price: 49.99, rating: 4.8, reviews: 235, discount: 20, image: '/api/placeholder/200/200' },
-    { id: 2, name: 'Cat Play Tower', price: 89.99, rating: 4.9, reviews: 189, image: '/api/placeholder/200/200' },
-    { id: 3, name: 'Pet Grooming Kit', price: 34.99, rating: 4.7, reviews: 156, discount: 15, image: '/api/placeholder/200/200' },
+    { id: 1, name: 'Premium Dog Food', price: 49.99, rating: 4.8, reviews: 235, discount: 20, image: 'https://static-01.daraz.lk/p/9074bd6bf698b978b7fce776eaedcfcb.jpg' },
+    { id: 2, name: 'Cat Play Tower', price: 89.99, rating: 4.9, reviews: 189, image: 'https://m.media-amazon.com/images/I/814n-amtw9L.jpg' },
+    { id: 3, name: 'Pet Grooming Kit', price: 34.99, rating: 4.7, reviews: 156, discount: 15, image: 'https://images-cdn.ubuy.co.in/65c74419b05ff420574f2439-pet-union-professional-dog-grooming-kit.jpg' },
   ];
 
   // Trending Products Data
   const trendingProducts = [
-    { id: 4, name: 'Interactive Pet Toy', price: 19.99, rating: 4.6, reviews: 142, image: '/api/placeholder/200/200' },
-    { id: 5, name: 'Organic Cat Food', price: 29.99, rating: 4.8, reviews: 198, discount: 10, image: '/api/placeholder/200/200' },
-    { id: 6, name: 'Pet Carrier', price: 45.99, rating: 4.7, reviews: 167, image: '/api/placeholder/200/200' },
+    { id: 4, name: 'Interactive Pet Toy', price: 19.99, rating: 4.6, reviews: 142, image: 'https://m.media-amazon.com/images/I/71blhDs90dL._AC_SL1500_.jpg' },
+    { id: 5, name: 'Organic Cat Food', price: 29.99, rating: 4.8, reviews: 198, discount: 10, image: 'https://www.tenderandtruepet.com/cdn/shop/files/jaxandlouie2.jpg?v=1719948123' },
+    { id: 6, name: 'Pet Carrier', price: 45.99, rating: 4.7, reviews: 167, image: 'https://allforpets.lk/wp-content/uploads/2023/03/Pet-Carrier-Foldable-Large-1200x1200.jpg' },
   ];
 
   // Benefit Card Component
