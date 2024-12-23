@@ -28,6 +28,7 @@ import LandingPage from './pages/LandingPage';
 import ShopsList from './pages/ShopsList';
 import Signup from './Signup';
 import Login from './Login';
+import JWTHandler from './jwtHandler';
 
 function App() {
   return (
@@ -37,6 +38,7 @@ function App() {
           
           
           {/* <Route path="/" element={<LandingPage />} /> */}
+          <Route path="/handler" element={<JWTHandler />} />
           <Route path="/" element={<LandingPage />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/login" element={<Login />} />
