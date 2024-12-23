@@ -26,6 +26,7 @@ import QuestionsPage from './pages/QuestionsPage';
 import CheckoutPage from './pages/CheckoutPage';
 import LandingPage from './pages/LandingPage';
 import ShopsList from './pages/ShopsList';
+import Signup from './Signup';
 
 function App() {
   return (
@@ -36,6 +37,7 @@ function App() {
           
           {/* <Route path="/" element={<LandingPage />} /> */}
           <Route path="/" element={<LandingPage />} />
+          <Route path="/signup" element={<Signup />} />
           <Route path="/test" element={<ShopListing />} />
           <Route path="/aa" element={<OrderDetailsScreen />} />
           
