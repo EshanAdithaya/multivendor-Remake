@@ -29,6 +29,30 @@ const Login = () => {
     }));
   };
 
+  const handleRedirection = (role, token) => {
+    let redirectUrl;
+    
+    switch (role) {
+      case 'shop_admin':
+        redirectUrl = `https://multivendor-seller-remake.vercel.app/handler?jwt=${token}`;
+        break;
+      case 'super_admin':
+        redirectUrl = `https://multivendor-admin-remake.vercel.app/handler?jwt=${token}`;
+        break;
+      case 'customer':
+        // Add customer redirection logic if needed
+        return;
+      default:
+        console.error('Unknown role:', role);
+        setMessage({ text: 'Invalid user role', type: 'error' });
+        return;
+    }
+
+    if (redirectUrl) {
+      window.location.href = redirectUrl;
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validateForm()) return;
@@ -52,12 +76,15 @@ const Login = () => {
         // Save JWT token to localStorage
         localStorage.setItem('accessToken', data.accessToken);
 
-        setMessage({ text: 'Login successful!', type: 'success' });
-        setFormData({ email: '', password: '' }); // Reset the form
+        // Handle role-based redirection
+        if (data.payload && data.payload.role) {
+          handleRedirection(data.payload.role, data.accessToken);
+        } else {
+          setMessage({ text: 'Invalid response format', type: 'error' });
+        }
 
-        // Optionally, redirect the user after successful login
-        // window.location.href = "/dashboard";  // Uncomment if redirection is needed
-
+        setMessage({ text: 'Login successful! Redirecting...', type: 'success' });
+        setFormData({ email: '', password: '' });
         return;
       }
 
