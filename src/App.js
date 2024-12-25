@@ -30,6 +30,7 @@ import ShopsList from './pages/ShopsList';
 import Signup from './Signup';
 import Login from './Login';
 import JWTHandler from './jwtHandler';
+import ShopDetails from './pages/ShopDetails';
 
 function App() {
   return (
@@ -47,7 +48,8 @@ function App() {
           <Route path="/test" element={<ShopListing />} />
           <Route path="/aa" element={<OrderDetailsScreen />} />
           <Route path="/productDetails" element={<ProductDetail />} />
-          
+          <Route path="/shopShow" element={<ShopDetails />} />
+
           <Route path='/offers' element={<PromotionsPage />} />
           
           
@@ -76,6 +78,12 @@ function App() {
           <Route path='/checkout' element={<CheckoutPage />} />
           <Route path="/refunds" element={<RefundsScreen />} />
           <Route path="/reports" element={<ReportsScreen />} />
+
+
+
+
+
+          <Route path="*" element={<div>page not foud</div>} />
         </Routes>
       </Layout>
     </Router>

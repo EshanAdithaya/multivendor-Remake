@@ -178,11 +178,14 @@ const LandingPage = () => {
             }
           ]
         };
+
   
+        const token = localStorage.getItem('accessToken');
         const response = await fetch('https://ppabanckend.adaptable.app/api/carts', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
           },
           body: JSON.stringify(cartData)
         });
