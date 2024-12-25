@@ -373,24 +373,12 @@ const LandingPage = () => {
           </div>
         </div>
 
-        <div className="mb-6">
-          <button 
-            onClick={() => setShowFilters(!showFilters)} 
-            className="flex items-center gap-2 px-4 py-2 bg-yellow-400 text-white rounded-lg hover:bg-yellow-500 transition-colors"
-          >
-            <Filter className="w-4 h-4" />
-            {showFilters ? 'Hide Filters' : 'Show Filters'}
-          </button>
-        </div>
-
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          {showFilters && (
-            <div className="md:col-span-1">
-              <FilterSection />
-            </div>
-          )}
+          <div className="md:col-span-1">
+            <FilterSection />
+          </div>
           
-          <div className={showFilters ? "md:col-span-3" : "md:col-span-4"}>
+          <div className="md:col-span-3">
             {loading ? (
               <div className="text-center py-8">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-400 mx-auto"></div>
