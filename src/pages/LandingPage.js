@@ -93,7 +93,7 @@ const LandingPage = () => {
   }, [filters]);
 
   const FilterSection = () => (
-    <div className="sticky top-4">
+    <div className={`sticky top-4 ${showFilters ? '' : 'hidden'}`}>
       <div className="bg-white rounded-xl shadow-sm overflow-hidden">
         <div className="p-4 border-b border-gray-100">
           <div className="flex items-center justify-between">
@@ -360,8 +360,8 @@ const LandingPage = () => {
       <Header />
       
       <main className="container mx-auto px-4 py-6">
-        <div className="mb-6">
-          <div className="relative">
+        <div className="mb-6 flex items-center justify-between">
+          <div className="relative flex-grow">
             <input
               type="text"
               placeholder="Search products..."
@@ -371,6 +371,12 @@ const LandingPage = () => {
             />
             <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
           </div>
+          <button 
+            className="ml-4 p-2 bg-white rounded-full shadow-sm hover:shadow-md transition-shadow"
+            onClick={() => setShowFilters(!showFilters)}
+          >
+            <Filter className="w-5 h-5 text-gray-400" />
+          </button>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
