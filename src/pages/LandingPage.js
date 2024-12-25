@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom'; // Update this import
 import { Search, Heart, Star, ArrowRight, TrendingUp, Percent, Award, Menu, Truck, Gift, Clock, Shield, Package, Trophy } from 'lucide-react';
 import Header from '../components/Header';
 
@@ -146,48 +147,57 @@ const LandingPage = () => {
     </div>
   );
 
-  const ProductCard = ({ product }) => (
-    <div className="bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200">
-      <div className="relative">
-        <img 
-          src={product.imageUrl || '/api/placeholder/400/400'} 
-          alt={product.name}
-          className="w-full aspect-square object-cover rounded-t-xl"
-        />
-        <button 
-          className="absolute top-2 left-2 p-1.5 bg-white rounded-full shadow-sm hover:shadow-md transition-shadow"
-          aria-label="Add to favorites"
-        >
-          <Heart className="w-4 h-4 text-gray-400 hover:text-red-500" />
-        </button>
-      </div>
-      <div className="p-3">
-        <h3 className="font-semibold text-gray-800 text-sm mb-1 line-clamp-1">{product.name}</h3>
-        <p className="text-xs text-gray-500 mb-2 line-clamp-2">{product.description}</p>
-        <div className="flex items-center space-x-2 mb-2">
-          <span className="text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded">
-            Stock: {product.stockQuantity}
-          </span>
-          {product.category && (
-            <span className="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded">
-              {product.category.name}
-            </span>
-          )}
-        </div>
-        <div className="flex items-center justify-between">
-          <span className="text-sm font-bold text-gray-900">
-            ${Number(product.price).toFixed(2)}
-          </span>
+  const ProductCard = ({ product }) => {
+    const navigate = useNavigate(); // Update this line
+
+    const handleViewDetails = () => {
+      navigate(`/productDetails?key=${product.id}`); // Update this line
+    };
+
+    return (
+      <div className="bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200">
+        <div className="relative">
+          <img 
+            src={product.imageUrl || '/api/placeholder/400/400'} 
+            alt={product.name}
+            className="w-full aspect-square object-cover rounded-t-xl"
+          />
           <button 
-            className="p-1.5 bg-yellow-400 rounded-full text-white hover:bg-yellow-500 transition-colors"
-            aria-label="View product details"
+            className="absolute top-2 left-2 p-1.5 bg-white rounded-full shadow-sm hover:shadow-md transition-shadow"
+            aria-label="Add to favorites"
           >
-            <ArrowRight className="w-4 h-4" />
+            <Heart className="w-4 h-4 text-gray-400 hover:text-red-500" />
           </button>
         </div>
+        <div className="p-3">
+          <h3 className="font-semibold text-gray-800 text-sm mb-1 line-clamp-1">{product.name}</h3>
+          <p className="text-xs text-gray-500 mb-2 line-clamp-2">{product.description}</p>
+          <div className="flex items-center space-x-2 mb-2">
+            <span className="text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded">
+              Stock: {product.stockQuantity}
+            </span>
+            {product.category && (
+              <span className="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded">
+                {product.category.name}
+              </span>
+            )}
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-bold text-gray-900">
+              ${Number(product.price).toFixed(2)}
+            </span>
+            <button 
+              className="p-1.5 bg-yellow-400 rounded-full text-white hover:bg-yellow-500 transition-colors"
+              aria-label="View product details"
+              onClick={handleViewDetails} // Add this line
+            >
+              <ArrowRight className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
