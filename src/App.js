@@ -20,6 +20,7 @@ import ManufacturersPage from './pages/ManufacturersPage';
 import AuthorsPage from './pages/AuthorsPage';
 import ReportsScreen from './pages/ReportsScreen';
 import RefundsScreen from './pages/RefundsScreen';
+import ProductDetail from './pages/ProductDetail';
 import PasswordChangeScreen from './pages/dashboard/PasswordChangeScreen';
 import MyCardScreen from './pages/dashboard/MyCardsScreen';
 import QuestionsPage from './pages/QuestionsPage';
@@ -39,6 +40,7 @@ function App() {
           
           {/* <Route path="/" element={<LandingPage />} /> */}
           {/* <Route path="/handler" element={<JWTHandler />} /> */}
+          {/* <Route path="/" element={<ProductDetail />} /> */}
           <Route path="/" element={<LandingPage />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/login" element={<Login />} />
