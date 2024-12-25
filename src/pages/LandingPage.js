@@ -157,6 +157,8 @@ const LandingPage = () => {
     const handleAddToCart = async () => {
       setAddingToCart(true);
       try {
+        const variation = product.variations[0]; // Get first variation
+        
         const cartData = {
           productId: product.id,
           quantity: 1,
@@ -170,16 +172,15 @@ const LandingPage = () => {
           manufacturerId: product.manufacturer.id,
           productVariations: [
             {
-              variationId: product.id,
+              variationId: variation.id, // Use correct variation ID
               quantity: quantity,
-              price: product.price,
+              price: variation.price,
               name: product.name,
-              imageUrl: product.imageUrl
+              imageUrl: variation.imageUrl || product.imageUrl
             }
           ]
         };
-
-  
+    
         const token = localStorage.getItem('accessToken');
         const response = await fetch('https://ppabanckend.adaptable.app/api/carts', {
           method: 'POST',
@@ -189,12 +190,10 @@ const LandingPage = () => {
           },
           body: JSON.stringify(cartData)
         });
-  
-        if (!response.ok) {
-          throw new Error('Failed to add to cart');
-        }
-  
+    
+        if (!response.ok) throw new Error('Failed to add to cart');
         alert('Product added to cart successfully!');
+        
       } catch (error) {
         console.error('Error adding to cart:', error);
         alert('Failed to add product to cart. Please try again.');
