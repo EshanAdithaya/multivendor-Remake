@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom'; // Update this import
-import { Search, Heart, Star, ArrowRight, TrendingUp, Percent, Award, Menu, Truck, Gift, Clock, Shield, Package, Trophy } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Search, Heart, Star, ArrowRight, TrendingUp, Percent, Award, Menu, Truck, Gift, Clock, Shield, Package, Trophy, ShoppingCart } from 'lucide-react';
 import Header from '../components/Header';
 
 const LandingPage = () => {
@@ -17,13 +17,11 @@ const LandingPage = () => {
     manufacturerId: ''
   });
   
-  // Initial load of all products and filter data
   useEffect(() => {
     const fetchInitialData = async () => {
       setLoading(true);
       setError(null);
       try {
-        // Fetch all data in parallel
         const [productsRes, categoriesRes, groupsRes, manufacturersRes] = await Promise.all([
           fetch('https://ppabanckend.adaptable.app/api/products/get-all-with-filters'),
           fetch('https://ppabanckend.adaptable.app/api/categories'),
@@ -31,7 +29,6 @@ const LandingPage = () => {
           fetch('https://ppabanckend.adaptable.app/api/manufacturers')
         ]);
         
-        // Check each response individually for better error handling
         if (!productsRes.ok) throw new Error('Failed to fetch products');
         if (!categoriesRes.ok) throw new Error('Failed to fetch categories');
         if (!groupsRes.ok) throw new Error('Failed to fetch product groups');
@@ -60,17 +57,14 @@ const LandingPage = () => {
     fetchInitialData();
   }, []);
 
-  // Fetch filtered products when filters change
   useEffect(() => {
     const fetchFilteredProducts = async () => {
       setLoading(true);
       setError(null);
       
       try {
-        // Only create query parameters for non-empty filters
         const activeFilters = Object.entries(filters).filter(([_, value]) => value !== '');
         
-        // If no filters are active, use the base endpoint
         const endpoint = activeFilters.length === 0 
           ? 'https://ppabanckend.adaptable.app/api/products/get-all-with-filters'
           : `https://ppabanckend.adaptable.app/api/products/get-all-with-filters?${new URLSearchParams(
@@ -93,7 +87,6 @@ const LandingPage = () => {
       }
     };
 
-    // Debounce the filter requests
     const timeoutId = setTimeout(fetchFilteredProducts, 300);
     return () => clearTimeout(timeoutId);
   }, [filters]);
@@ -148,14 +141,67 @@ const LandingPage = () => {
   );
 
   const ProductCard = ({ product }) => {
-    const navigate = useNavigate(); // Update this line
+    const navigate = useNavigate();
+    const [addingToCart, setAddingToCart] = useState(false);
+    const [quantity, setQuantity] = useState(1);
+  
+    const handleQuantityChange = (value) => {
+      const newQty = Math.max(1, Math.min(product.stockQuantity, quantity + value));
+      setQuantity(newQty);
+    };
 
     const handleViewDetails = () => {
-      navigate(`/productDetails?key=${product.id}`); // Update this line
+      navigate(`/productDetails?key=${product.id}`);
+    };
+
+    const handleAddToCart = async () => {
+      setAddingToCart(true);
+      try {
+        const cartData = {
+          productId: product.id,
+          quantity: 1,
+          shopId: product.__shop__.id,
+          price: product.price,
+          name: product.name,
+          description: product.description,
+          imageUrl: product.imageUrl,
+          categoryId: product.category.id,
+          productGroupId: product.productGroup.id,
+          manufacturerId: product.manufacturer.id,
+          productVariations: [
+            {
+              variationId: product.id,
+              quantity: quantity,
+              price: product.price,
+              name: product.name,
+              imageUrl: product.imageUrl
+            }
+          ]
+        };
+  
+        const response = await fetch('https://ppabanckend.adaptable.app/api/carts', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(cartData)
+        });
+  
+        if (!response.ok) {
+          throw new Error('Failed to add to cart');
+        }
+  
+        alert('Product added to cart successfully!');
+      } catch (error) {
+        console.error('Error adding to cart:', error);
+        alert('Failed to add product to cart. Please try again.');
+      } finally {
+        setAddingToCart(false);
+      }
     };
 
     return (
-      <div className="bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200">
+      <div className="bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200 flex flex-col">
         <div className="relative">
           <img 
             src={product.imageUrl || '/api/placeholder/400/400'} 
@@ -169,10 +215,12 @@ const LandingPage = () => {
             <Heart className="w-4 h-4 text-gray-400 hover:text-red-500" />
           </button>
         </div>
-        <div className="p-3">
+        
+        <div className="p-3 flex-grow flex flex-col">
           <h3 className="font-semibold text-gray-800 text-sm mb-1 line-clamp-1">{product.name}</h3>
           <p className="text-xs text-gray-500 mb-2 line-clamp-2">{product.description}</p>
-          <div className="flex items-center space-x-2 mb-2">
+          
+          <div className="flex flex-wrap gap-2 mb-2">
             <span className="text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded">
               Stock: {product.stockQuantity}
             </span>
@@ -182,17 +230,50 @@ const LandingPage = () => {
               </span>
             )}
           </div>
-          <div className="flex items-center justify-between">
-            <span className="text-sm font-bold text-gray-900">
-              ${Number(product.price).toFixed(2)}
-            </span>
-            <button 
-              className="p-1.5 bg-yellow-400 rounded-full text-white hover:bg-yellow-500 transition-colors"
-              aria-label="View product details"
-              onClick={handleViewDetails} // Add this line
-            >
-              <ArrowRight className="w-4 h-4" />
-            </button>
+  
+          <div className="mt-auto">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm font-bold text-gray-900">
+                ${Number(product.price).toFixed(2)}
+              </span>
+              <div className="flex items-center space-x-2 bg-gray-100 rounded-lg">
+                <button 
+                  onClick={() => handleQuantityChange(-1)}
+                  className="px-2 py-1 text-gray-600 hover:text-gray-800"
+                  disabled={quantity <= 1}
+                >
+                  -
+                </button>
+                <span className="px-2 text-sm">{quantity}</span>
+                <button 
+                  onClick={() => handleQuantityChange(1)}
+                  className="px-2 py-1 text-gray-600 hover:text-gray-800"
+                  disabled={quantity >= product.stockQuantity}
+                >
+                  +
+                </button>
+              </div>
+            </div>
+  
+            <div className="flex space-x-2">
+              <button 
+                className="flex-1 py-2 bg-yellow-400 rounded-lg text-white hover:bg-yellow-500 transition-colors text-sm"
+                onClick={handleViewDetails}
+              >
+                Details
+              </button>
+              <button 
+                className={`flex-1 py-2 rounded-lg text-white text-sm transition-colors ${
+                  addingToCart 
+                    ? 'bg-gray-400 cursor-not-allowed' 
+                    : 'bg-green-400 hover:bg-green-500'
+                }`}
+                onClick={handleAddToCart}
+                disabled={addingToCart}
+              >
+                {addingToCart ? 'Adding...' : 'Add to Cart'}
+              </button>
+            </div>
           </div>
         </div>
       </div>
