@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Heart, Star, ArrowRight, TrendingUp, Percent, Award, Menu, Truck, Gift, Clock, Shield, Package, Trophy, ShoppingCart } from 'lucide-react';
+import { Search, Heart, Star, Paw, Package, Filter, X } from 'lucide-react';
 import Header from '../components/Header';
 
 const LandingPage = () => {
@@ -10,13 +10,14 @@ const LandingPage = () => {
   const [manufacturers, setManufacturers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [showFilters, setShowFilters] = useState(false);
   const [filters, setFilters] = useState({
     name: '',
     categoryId: '',
     productGroupId: '',
     manufacturerId: ''
   });
-  
+
   useEffect(() => {
     const fetchInitialData = async () => {
       setLoading(true);
@@ -92,49 +93,121 @@ const LandingPage = () => {
   }, [filters]);
 
   const FilterSection = () => (
-    <div className="mb-6 bg-white p-4 rounded-xl shadow-sm">
-      <h2 className="text-lg font-bold text-gray-800 mb-3">Filters</h2>
-      <div className="space-y-3">
-        <div>
-          <label className="text-sm font-medium text-gray-700">Category</label>
-          <select
-            className="mt-1 w-full rounded-lg border-gray-300 shadow-sm focus:border-yellow-500 focus:ring-yellow-500"
-            value={filters.categoryId}
-            onChange={(e) => setFilters(prev => ({ ...prev, categoryId: e.target.value }))}
-          >
-            <option value="">All Categories</option>
-            {categories.map(cat => (
-              <option key={cat.id} value={cat.id}>{cat.name}</option>
-            ))}
-          </select>
+    <div className="sticky top-4">
+      <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+        <div className="p-4 border-b border-gray-100">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-semibold text-gray-800">Filters</h2>
+            {Object.values(filters).some(v => v !== '') && (
+              <button
+                onClick={() => setFilters({
+                  name: '',
+                  categoryId: '',
+                  productGroupId: '',
+                  manufacturerId: ''
+                })}
+                className="text-xs text-gray-500 hover:text-gray-700 flex items-center gap-1"
+              >
+                <X className="w-3 h-3" />
+                Clear all
+              </button>
+            )}
+          </div>
         </div>
         
-        <div>
-          <label className="text-sm font-medium text-gray-700">Product Group</label>
-          <select
-            className="mt-1 w-full rounded-lg border-gray-300 shadow-sm focus:border-yellow-500 focus:ring-yellow-500"
-            value={filters.productGroupId}
-            onChange={(e) => setFilters(prev => ({ ...prev, productGroupId: e.target.value }))}
-          >
-            <option value="">All Groups</option>
-            {productGroups.map(group => (
-              <option key={group.id} value={group.id}>{group.name}</option>
-            ))}
-          </select>
-        </div>
-        
-        <div>
-          <label className="text-sm font-medium text-gray-700">Manufacturer</label>
-          <select
-            className="mt-1 w-full rounded-lg border-gray-300 shadow-sm focus:border-yellow-500 focus:ring-yellow-500"
-            value={filters.manufacturerId}
-            onChange={(e) => setFilters(prev => ({ ...prev, manufacturerId: e.target.value }))}
-          >
-            <option value="">All Manufacturers</option>
-            {manufacturers.map(mfr => (
-              <option key={mfr.id} value={mfr.id}>{mfr.name}</option>
-            ))}
-          </select>
+        <div className="divide-y divide-gray-100">
+          <div className="p-4">
+            <div className="space-y-2">
+              <h3 className="text-sm font-medium text-gray-700 mb-3">Category</h3>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  onClick={() => setFilters(prev => ({ ...prev, categoryId: '' }))}
+                  className={`px-3 py-1.5 rounded-lg text-sm transition-colors ${
+                    filters.categoryId === '' 
+                      ? 'bg-yellow-100 text-yellow-800' 
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
+                >
+                  All
+                </button>
+                {categories.map(cat => (
+                  <button
+                    key={cat.id}
+                    onClick={() => setFilters(prev => ({ ...prev, categoryId: cat.id }))}
+                    className={`px-3 py-1.5 rounded-lg text-sm transition-colors ${
+                      filters.categoryId === cat.id
+                        ? 'bg-yellow-100 text-yellow-800'
+                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    }`}
+                  >
+                    {cat.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div className="p-4">
+            <div className="space-y-2">
+              <h3 className="text-sm font-medium text-gray-700 mb-3">Product Group</h3>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  onClick={() => setFilters(prev => ({ ...prev, productGroupId: '' }))}
+                  className={`px-3 py-1.5 rounded-lg text-sm transition-colors ${
+                    filters.productGroupId === ''
+                      ? 'bg-yellow-100 text-yellow-800'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
+                >
+                  All
+                </button>
+                {productGroups.map(group => (
+                  <button
+                    key={group.id}
+                    onClick={() => setFilters(prev => ({ ...prev, productGroupId: group.id }))}
+                    className={`px-3 py-1.5 rounded-lg text-sm transition-colors ${
+                      filters.productGroupId === group.id
+                        ? 'bg-yellow-100 text-yellow-800'
+                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    }`}
+                  >
+                    {group.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div className="p-4">
+            <div className="space-y-2">
+              <h3 className="text-sm font-medium text-gray-700 mb-3">Manufacturer</h3>
+              <div className="max-h-40 overflow-y-auto pr-2 space-y-1">
+                <div
+                  onClick={() => setFilters(prev => ({ ...prev, manufacturerId: '' }))}
+                  className={`px-3 py-2 rounded-lg text-sm transition-colors cursor-pointer ${
+                    filters.manufacturerId === ''
+                      ? 'bg-yellow-100 text-yellow-800'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
+                >
+                  All Manufacturers
+                </div>
+                {manufacturers.map(mfr => (
+                  <div
+                    key={mfr.id}
+                    onClick={() => setFilters(prev => ({ ...prev, manufacturerId: mfr.id }))}
+                    className={`px-3 py-2 rounded-lg text-sm transition-colors cursor-pointer ${
+                      filters.manufacturerId === mfr.id
+                        ? 'bg-yellow-100 text-yellow-800'
+                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    }`}
+                  >
+                    {mfr.name}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -172,7 +245,7 @@ const LandingPage = () => {
           manufacturerId: product.manufacturer.id,
           productVariations: [
             {
-              variationId: variation.id, // Use correct variation ID
+              variationId: variation.id,
               quantity: quantity,
               price: variation.price,
               name: product.name,
@@ -300,12 +373,24 @@ const LandingPage = () => {
           </div>
         </div>
 
+        <div className="mb-6">
+          <button 
+            onClick={() => setShowFilters(!showFilters)} 
+            className="flex items-center gap-2 px-4 py-2 bg-yellow-400 text-white rounded-lg hover:bg-yellow-500 transition-colors"
+          >
+            <Filter className="w-4 h-4" />
+            {showFilters ? 'Hide Filters' : 'Show Filters'}
+          </button>
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <div className="md:col-span-1">
-            <FilterSection />
-          </div>
+          {showFilters && (
+            <div className="md:col-span-1">
+              <FilterSection />
+            </div>
+          )}
           
-          <div className="md:col-span-3">
+          <div className={showFilters ? "md:col-span-3" : "md:col-span-4"}>
             {loading ? (
               <div className="text-center py-8">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-400 mx-auto"></div>
