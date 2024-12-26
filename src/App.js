@@ -34,6 +34,7 @@ import ShopDetails from './pages/ShopDetails';
 import AddressManagement from './pages/AddressManagement';
 import ProtectedRoute from './components/ProtectedRoute';
 import ShoppingCart from './pages/ShoppingCart';
+import OrderSuccess from './pages/OrderSuccess';
 
 function App() {
   return (
@@ -55,6 +56,7 @@ function App() {
           <Route path='/flash-sale' element={<FlashSalesPage />} />
           <Route path='/faq' element={<FAQPage />} />
           <Route path='/terms' element={<TermsAndConditionsPage />} />
+          <Route path='/order-success' element={<OrderSuccess />} />
 
           {/* Protected routes (right side nav bar) */}
           <Route path='/Profile' element={
