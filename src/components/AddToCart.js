@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Package } from 'lucide-react';
+import { ShoppingCart } from 'lucide-react';
 import Cookies from 'js-cookie';
 
 // Enhanced auth checking utilities
@@ -43,6 +43,12 @@ export const saveCurrentUrl = () => {
   Cookies.set('redirectUrl', currentPath, { expires: 1 });
 };
 
+const informAndRedirectToLogin = (navigate) => {
+  alert('You are not authenticated. Redirecting to login page...');
+  saveCurrentUrl();
+  navigate('/login');
+};
+
 export const useAddToCart = () => {
   const [addingToCart, setAddingToCart] = useState(false);
   const navigate = useNavigate();
@@ -53,9 +59,8 @@ export const useAddToCart = () => {
     const isAuthenticated = checkAuth();
     
     if (!isAuthenticated) {
-      console.log('User not authenticated, redirecting to login');
-      saveCurrentUrl();
-      navigate('/login');
+      console.log('User not authenticated, informing user and redirecting to login');
+      informAndRedirectToLogin(navigate);
       return false;
     }
 
@@ -149,7 +154,7 @@ export const AddToCartButton = ({ product, className = "" }) => {
       disabled={addingToCart}
       className={`p-2 bg-yellow-400 rounded-full shadow-lg hover:bg-yellow-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${className}`}
     >
-      <Package className="w-5 h-5 text-white" />
+      <ShoppingCart className="w-5 h-5 text-white" />
     </button>
   );
 };
