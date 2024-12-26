@@ -4,7 +4,7 @@ import './App.css';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 // import ShopListing from './pages/ShopListing';
 // import ShopDetail from './pages/ShopDetail';
-// import OrderDetailsScreen from './pages/OrderDetailsScreen';
+import OrderDetailsScreen from './pages/OrderDetailsScreen';
 import Layout from './components/Layout';
 import PromotionsPage from './pages/PromotionsPage';
 import FlashSalesPage from './pages/FlashSalesPage';
@@ -107,6 +107,11 @@ function App() {
           <Route path="/address" element={
             <ProtectedRoute>
               <AddressManagement />
+            </ProtectedRoute>
+          } />
+          <Route path="/orderDetails" element={
+            <ProtectedRoute>
+              <OrderDetailsScreen />
             </ProtectedRoute>
           } />
           
