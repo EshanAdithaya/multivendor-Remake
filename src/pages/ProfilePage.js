@@ -1,23 +1,116 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Upload, Plus } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import Header from '../components/Header';
 
 const ProfilePage = () => {
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [profile, setProfile] = useState({
-    name: 'Jhon Doe',
+    name: '',
     bio: '',
-    email: 'admin@pawsome.com',
-    phone: '+1 (936) 514-1641',
+    email: '',
+    phone: '',
     addresses: {
-      billing: '2231 Kidd Avenue, AK, Kipnuk, 99614, United States',
-      shipping: '2148 Straford Park, KY, Winchester, 40391, United States'
+      billing: '',
+      shipping: ''
     }
   });
 
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      try {
+        const token = localStorage.getItem('accessToken'); // Assuming you store the JWT token in localStorage
+        if (!token) {
+          throw new Error('No authentication token found');
+        }
+
+        const response = await fetch('https://ppabanckend.adaptable.app/api/auth/me', {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'accept': '*/*'
+          }
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch profile data');
+        }
+
+        const userData = await response.json();
+        
+        // Map API data to profile state
+        setProfile(prevProfile => ({
+          ...prevProfile,
+          email: userData.email,
+          // Add other fields as they become available from the API
+          // For now, keeping some fields with placeholder data
+          name: userData.name || 'John Doe',
+          bio: userData.bio || '',
+          phone: userData.phone || '+1 (936) 514-1641',
+          addresses: {
+            billing: userData.billingAddress || '2231 Kidd Avenue, AK, Kipnuk, 99614, United States',
+            shipping: userData.shippingAddress || '2148 Straford Park, KY, Winchester, 40391, United States'
+          }
+        }));
+      } catch (err) {
+        setError(err.message);
+        console.error('Error fetching profile:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUserProfile();
+  }, []);
+
+  const handleSave = async (field, value) => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error('No authentication token found');
+      }
+
+      // Here you would typically make an API call to update the specific field
+      // For now, just updating the local state
+      setProfile(prev => ({
+        ...prev,
+        [field]: value
+      }));
+
+      // Show success message
+      alert(`${field} updated successfully`);
+    } catch (err) {
+      console.error(`Error updating ${field}:`, err);
+      alert(`Failed to update ${field}`);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-400"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-red-500 mb-4">{error}</p>
+          <button 
+            onClick={() => window.location.reload()} 
+            className="bg-yellow-400 text-white px-6 py-2 rounded-lg"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col min-h-screen bg-white">
-      {/* Header Logo */}
       <Header />
 
       <div className="p-4 space-y-6">
@@ -46,8 +139,17 @@ const ProfilePage = () => {
           <input
             type="text"
             value={profile.name}
+            onChange={(e) => setProfile(prev => ({ ...prev, name: e.target.value }))}
             className="w-full p-3 border rounded-lg"
           />
+          <div className="flex justify-end">
+            <button 
+              onClick={() => handleSave('name', profile.name)}
+              className="bg-yellow-400 text-white px-6 py-2 rounded-lg"
+            >
+              Save
+            </button>
+          </div>
         </div>
 
         {/* Bio Section */}
@@ -56,9 +158,13 @@ const ProfilePage = () => {
           <textarea
             className="w-full p-3 border rounded-lg h-24"
             value={profile.bio}
+            onChange={(e) => setProfile(prev => ({ ...prev, bio: e.target.value }))}
           />
           <div className="flex justify-end">
-            <button className="bg-yellow-400 text-white px-6 py-2 rounded-lg">
+            <button 
+              onClick={() => handleSave('bio', profile.bio)}
+              className="bg-yellow-400 text-white px-6 py-2 rounded-lg"
+            >
               Save
             </button>
           </div>
@@ -70,20 +176,21 @@ const ProfilePage = () => {
           <input
             type="email"
             value={profile.email}
-            className="w-full p-3 border rounded-lg"
+            readOnly
+            className="w-full p-3 border rounded-lg bg-gray-50"
           />
-          <div className="flex justify-end">
-            <button className="bg-yellow-400 text-white px-6 py-2 rounded-lg">
-              Update
-            </button>
-          </div>
         </div>
 
         {/* Contact Number */}
         <div className="space-y-2">
           <div className="flex justify-between items-center">
             <label className="block text-gray-700">Contact Number</label>
-            <button className="text-yellow-400">+ Update</button>
+            <button 
+              onClick={() => handleSave('phone', profile.phone)}
+              className="text-yellow-400"
+            >
+              + Update
+            </button>
           </div>
           <div className="flex border rounded-lg overflow-hidden">
             <div className="bg-white border-r px-3 py-3 flex items-center gap-2">
@@ -93,6 +200,7 @@ const ProfilePage = () => {
             <input
               type="tel"
               value={profile.phone}
+              onChange={(e) => setProfile(prev => ({ ...prev, phone: e.target.value }))}
               className="flex-1 p-3"
             />
           </div>
@@ -118,7 +226,6 @@ const ProfilePage = () => {
           </div>
         </div>
       </div>
-      {/* <Navbar /> */}
     </div>
   );
 };
