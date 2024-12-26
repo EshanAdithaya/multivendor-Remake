@@ -1,13 +1,22 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import Cookies from 'js-cookie';
+
+// Get environment variables
+const ADMIN_URL = process.env.REACT_APP_ADMIN_URL || 'https://multivendor-admin-remake.vercel.app/';
+const SELLER_URL = process.env.REACT_APP_SELLER_URL || 'https://multivendor-seller-remake.vercel.app/';
 
 const Login = () => {
   const [formData, setFormData] = useState({
     email: '',
     password: ''
   });
-
   const [message, setMessage] = useState({ text: '', type: '' });
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+  const [showDashboardPrompt, setShowDashboardPrompt] = useState(false);
+  const [userRole, setUserRole] = useState('');
+  const [token, setToken] = useState('');
 
   const validateForm = () => {
     if (!formData.email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
@@ -23,33 +32,34 @@ const Login = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
+    setFormData(prev => ({
       ...prev,
       [name]: value
     }));
   };
 
   const handleRedirection = (role, token) => {
-    let redirectUrl;
-    
+    const savedUrl = Cookies.get('redirectUrl');
+    Cookies.remove('redirectUrl');
+
+    if (role === 'super_admin' || role === 'shop_admin') {
+      setUserRole(role);
+      setToken(token);
+      setShowDashboardPrompt(true);
+      return;
+    }
+
     switch (role) {
-      case 'shop_admin':
-        redirectUrl = `https://multivendor-seller-remake.vercel.app/handler?jwt=${token}`;
-        break;
-      case 'super_admin':
-        redirectUrl = `https://multivendor-admin-remake.vercel.app/handler?jwt=${token}`;
-        break;
       case 'customer':
-        // Add customer redirection logic if needed
-        return;
+        if (savedUrl) {
+          navigate(savedUrl);
+        } else {
+          navigate('/');
+        }
+        break;
       default:
         console.error('Unknown role:', role);
         setMessage({ text: 'Invalid user role', type: 'error' });
-        return;
-    }
-
-    if (redirectUrl) {
-      window.location.href = redirectUrl;
     }
   };
 
@@ -71,19 +81,16 @@ const Login = () => {
 
       if (response.ok) {
         const data = await response.json();
-        console.log('Login successful:', data);
-
-        // Save JWT token to localStorage
         localStorage.setItem('accessToken', data.accessToken);
-
-        // Handle role-based redirection
+        
+        setMessage({ text: 'Login successful! Redirecting...', type: 'success' });
+        
         if (data.payload && data.payload.role) {
           handleRedirection(data.payload.role, data.accessToken);
         } else {
           setMessage({ text: 'Invalid response format', type: 'error' });
         }
 
-        setMessage({ text: 'Login successful! Redirecting...', type: 'success' });
         setFormData({ email: '', password: '' });
         return;
       }
@@ -92,7 +99,6 @@ const Login = () => {
         message: 'An unexpected error occurred'
       }));
       throw new Error(errorData.message || `Login failed with status: ${response.status}`);
-
     } catch (error) {
       console.error('Login error:', error);
       setMessage({
@@ -104,14 +110,54 @@ const Login = () => {
     }
   };
 
+  const handleDashboardChoice = (choice) => {
+    setShowDashboardPrompt(false);
+    if (choice === 'dashboard') {
+      if (userRole === 'super_admin') {
+        window.location.href = `${ADMIN_URL}/handler?jwt=${token}`;
+      } else if (userRole === 'shop_admin') {
+        window.location.href = `${SELLER_URL}/handler?jwt=${token}`;
+      }
+    } else {
+      navigate('/');
+    }
+  };
+
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
-      <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
-        <h2 className="text-2xl font-bold mb-4 text-center">Login</h2>
-        <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
+        <h2 className="text-2xl font-bold text-center mb-6 text-gray-800">Log In</h2>
+        
+        {message.text && (
+          <div className={`mb-4 p-3 rounded ${
+            message.type === 'error' ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'
+          }`}>
+            {message.text}
+          </div>
+        )}
+
+        {showDashboardPrompt && (
+          <div className="mb-4 p-3 rounded bg-blue-100 text-blue-700">
+            <p>Do you want to stay on the client side or navigate to the dashboard?</p>
+            <button
+              onClick={() => handleDashboardChoice('client')}
+              className="mr-2 py-1 px-3 bg-yellow-400 text-white rounded-md hover:bg-yellow-500"
+            >
+              Stay
+            </button>
+            <button
+              onClick={() => handleDashboardChoice('dashboard')}
+              className="py-1 px-3 bg-yellow-400 text-white rounded-md hover:bg-yellow-500"
+            >
+              Dashboard
+            </button>
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-              Email
+            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+              Email Address
             </label>
             <input
               type="email"
@@ -119,14 +165,14 @@ const Login = () => {
               name="email"
               value={formData.email}
               onChange={handleChange}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-400"
+              placeholder="Enter your email"
               required
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-              placeholder="user@example.com"
             />
           </div>
 
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
               Password
             </label>
             <input
@@ -135,31 +181,33 @@ const Login = () => {
               name="password"
               value={formData.password}
               onChange={handleChange}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-400"
+              placeholder="Enter your password"
               required
-              minLength={8}
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-              placeholder="Enter password (min. 8 characters)"
             />
           </div>
 
           <button
             type="submit"
             disabled={loading}
-            className={`w-full py-2 px-4 text-white font-bold rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 ${
-              loading ? 'bg-indigo-400 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-700 focus:ring-indigo-500'
+            className={`w-full py-2 px-4 bg-yellow-400 text-white rounded-md hover:bg-yellow-500 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:ring-offset-2 ${
+              loading ? 'opacity-50 cursor-not-allowed' : ''
             }`}
           >
-            {loading ? 'Logging in...' : 'Login'}
+            {loading ? 'Logging in...' : 'Log In'}
           </button>
-        </form>
 
-        {message.text && (
-          <p className={`mt-4 text-center text-sm ${
-            message.type === 'error' ? 'text-red-600' : 'text-green-600'
-          }`}>
-            {message.text}
-          </p>
-        )}
+          <div className="text-center text-sm">
+            <span className="text-gray-600">Don't have an account? </span>
+            <button
+              type="button"
+              onClick={() => navigate('/signup')}
+              className="text-yellow-600 hover:text-yellow-700 font-medium"
+            >
+              Sign Up
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   );

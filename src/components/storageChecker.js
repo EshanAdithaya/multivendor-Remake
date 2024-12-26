@@ -1,25 +1,12 @@
-import React, { useEffect, useState } from 'react';
-import { useHistory } from 'react-router-dom';
+import Cookies from 'js-cookie';
 
-const StorageChecker = () => {
-    const [hasAccessToken, setHasAccessToken] = useState(false);
-    const history = useHistory();
-
-    useEffect(() => {
-        const token = localStorage.getItem('accessToken');
-        if (token) {
-            setHasAccessToken(true);
-        } else {
-            alert('You have to login to perform this task');
-            history.push('/login');
-        }
-    }, [history]);
-
-    return (
-        <div>
-            {hasAccessToken ? 'Access Token is present' : 'No Access Token found'}
-        </div>
-    );
+export const checkAuth = () => {
+  const token = localStorage.getItem('accessToken');
+  return !!token;
 };
 
-export default StorageChecker;
+export const saveCurrentUrl = () => {
+  const currentPath = window.location.pathname + window.location.search;
+  Cookies.set('redirectUrl', currentPath, { expires: 1 }); // Expires in 1 day
+};
+
