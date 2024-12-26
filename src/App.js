@@ -2,9 +2,9 @@
 import React from 'react';
 import './App.css';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import ShopListing from './pages/ShopListing';
-import ShopDetail from './pages/ShopDetail';
-import OrderDetailsScreen from './pages/OrderDetailsScreen';
+// import ShopListing from './pages/ShopListing';
+// import ShopDetail from './pages/ShopDetail';
+// import OrderDetailsScreen from './pages/OrderDetailsScreen';
 import Layout from './components/Layout';
 import PromotionsPage from './pages/PromotionsPage';
 import FlashSalesPage from './pages/FlashSalesPage';
@@ -15,7 +15,7 @@ import ProfilePage from './pages/ProfilePage';
 import MyOrdersScreen from './pages/MyOrdersScreen';
 import WishlistPage from './pages/WishlistPage';
 import ContactPage from './pages/ContactPage';
-import ShopsPage from './pages/ShopsPage';
+// import ShopsPage from './pages/ShopsPage';
 import ManufacturersPage from './pages/ManufacturersPage';
 import AuthorsPage from './pages/AuthorsPage';
 import ReportsScreen from './pages/ReportsScreen';
@@ -29,63 +29,85 @@ import LandingPage from './pages/LandingPage';
 import ShopsList from './pages/ShopsList';
 import Signup from './Signup';
 import Login from './Login';
-import JWTHandler from './jwtHandler';
+// import JWTHandler from './jwtHandler';
 import ShopDetails from './pages/ShopDetails';
 import AddressManagement from './pages/AddressManagement';
+import ProtectedRoute from './components/ProtectedRoute';
 
 function App() {
   return (
     <Router>
       <Layout>
         <Routes>
-          
-          
-          {/* <Route path="/" element={<LandingPage />} /> */}
-          {/* <Route path="/handler" element={<JWTHandler />} /> */}
-          {/* <Route path="/" element={<ProductDetail />} /> */}
+          {/* Public routes */}
           <Route path="/" element={<LandingPage />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/login" element={<Login />} />
-          <Route path="/test" element={<ShopListing />} />
-          <Route path="/aa" element={<OrderDetailsScreen />} />
           <Route path="/productDetails" element={<ProductDetail />} />
           <Route path="/shopShow" element={<ShopDetails />} />
-
           <Route path='/offers' element={<PromotionsPage />} />
-          
-          
           <Route path='/refund-policy' element={<RefundPolicyPage />} />
-          
-          
-          {/* left side nav bar ? */}
           <Route path="/contact" element={<ContactPage />} />
-          {/* <Route path="/shops" element={<ShopsPage />} /> */}
           <Route path="/manufacturers" element={<ManufacturersPage />} />
           <Route path="/authors" element={<AuthorsPage />} />
           <Route path="/shops" element={<ShopsList />} />
-          {/* <Route path="/shops" element={<ShopDetail />} /> */}
           <Route path='/flash-sale' element={<FlashSalesPage />} />
           <Route path='/faq' element={<FAQPage />} />
           <Route path='/terms' element={<TermsAndConditionsPage />} />
-          
 
-          {/* right side nav bar */}
-          <Route path='/Profile' element={<ProfilePage />} />
-          <Route path='/my-order' element={<MyOrdersScreen />} />
-          <Route path='/wishlists' element={<WishlistPage />} />
-          <Route path='/change-password' element={<PasswordChangeScreen />} />
-          <Route path='/cards' element={<MyCardScreen />} />
-          <Route path='/questions' element={<QuestionsPage />} />
-          <Route path='/checkout' element={<CheckoutPage />} />
-          <Route path="/refunds" element={<RefundsScreen />} />
-          <Route path="/reports" element={<ReportsScreen />} />
-          <Route path="/address" element={<AddressManagement />} />
+          {/* Protected routes (right side nav bar) */}
+          <Route path='/Profile' element={
+            <ProtectedRoute>
+              <ProfilePage />
+            </ProtectedRoute>
+          } />
+          <Route path='/my-order' element={
+            <ProtectedRoute>
+              <MyOrdersScreen />
+            </ProtectedRoute>
+          } />
+          <Route path='/wishlists' element={
+            <ProtectedRoute>
+              <WishlistPage />
+            </ProtectedRoute>
+          } />
+          <Route path='/change-password' element={
+            <ProtectedRoute>
+              <PasswordChangeScreen />
+            </ProtectedRoute>
+          } />
+          <Route path='/cards' element={
+            <ProtectedRoute>
+              <MyCardScreen />
+            </ProtectedRoute>
+          } />
+          <Route path='/questions' element={
+            <ProtectedRoute>
+              <QuestionsPage />
+            </ProtectedRoute>
+          } />
+          <Route path='/checkout' element={
+            <ProtectedRoute>
+              <CheckoutPage />
+            </ProtectedRoute>
+          } />
+          <Route path="/refunds" element={
+            <ProtectedRoute>
+              <RefundsScreen />
+            </ProtectedRoute>
+          } />
+          <Route path="/reports" element={
+            <ProtectedRoute>
+              <ReportsScreen />
+            </ProtectedRoute>
+          } />
+          <Route path="/address" element={
+            <ProtectedRoute>
+              <AddressManagement />
+            </ProtectedRoute>
+          } />
 
-
-
-
-
-          <Route path="*" element={<div>page not foud</div>} />
+          <Route path="*" element={<div>Page not found</div>} />
         </Routes>
       </Layout>
     </Router>
