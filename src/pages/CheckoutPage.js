@@ -14,14 +14,20 @@ const CheckoutPage = () => {
   const paymentMethods = [
     {
       id: 0,
-      type: 'Credit Card',
+      type: 'credit_card',
       details: 'Credit Card Payment',
       expiry: ''
     },
     {
       id: 1,
-      type: 'Debit Card',
-      details: 'Debit Card Payment',
+      type: 'paypal',
+      details: 'PAYPAL ',
+      expiry: ''
+    },
+    {
+      id: 2,
+      type: 'bank_transfer',
+      details: 'BANK_TRANSFER',
       expiry: ''
     }
   ];
