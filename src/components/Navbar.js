@@ -26,6 +26,7 @@ const NavigationWithMenus = () => {
     { name: 'Profile', path: '/profile' },
     { name: 'My Orders', path: '/my-order' },
     { name: 'My Cards', path: '/cards' },
+    { name: 'My Address', path: '/address' },
     { name: 'My Wishlists', path: '/wishlists' },
     { name: 'My Questions', path: '/questions' },
     { name: 'My Refunds', path: '/refunds' },

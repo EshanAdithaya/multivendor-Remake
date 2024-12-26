@@ -31,6 +31,7 @@ import Signup from './Signup';
 import Login from './Login';
 import JWTHandler from './jwtHandler';
 import ShopDetails from './pages/ShopDetails';
+import AddressManagement from './pages/AddressManagement';
 
 function App() {
   return (
@@ -78,6 +79,7 @@ function App() {
           <Route path='/checkout' element={<CheckoutPage />} />
           <Route path="/refunds" element={<RefundsScreen />} />
           <Route path="/reports" element={<ReportsScreen />} />
+          <Route path="/address" element={<AddressManagement />} />
 
 
 

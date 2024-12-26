@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ShoppingBag } from 'lucide-react';
+import { ShoppingBag, Trash2 } from 'lucide-react';
 
 const ShoppingCart = () => {
   const [carts, setCarts] = React.useState([]);
@@ -39,6 +39,33 @@ const ShoppingCart = () => {
     fetchCarts();
   }, []);
 
+  const deleteCart = async (cartId) => {
+    const confirmDelete = window.confirm('Are you sure you want to delete this cart?');
+    if (!confirmDelete) return;
+
+    const token = localStorage.getItem('accessToken');
+    if (!token) {
+      setError('You need to log in to perform this action.');
+      return;
+    }
+
+    try {
+      const response = await fetch(`https://ppabanckend.adaptable.app/api/carts/${cartId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        setCarts(carts.filter(cart => cart.id !== cartId));
+      } else {
+        setError('Failed to delete cart');
+      }
+    } catch (err) {
+      setError('Failed to delete cart');
+    }
+};
   const calculateTotalPrice = () => {
     return carts.reduce((total, cart) => {
       const cartTotal = cart.cartItems.reduce((sum, item) => {
@@ -87,6 +114,12 @@ const ShoppingCart = () => {
               <span className="text-sm text-gray-500">
                 {new Date(cart.createdAt).toLocaleDateString()}
               </span>
+              <button
+                className="text-red-500"
+                onClick={() => deleteCart(cart.id)}
+              >
+                <Trash2 className="w-5 h-5" />
+              </button>
             </div>
           </div>
           <div className="p-4">
