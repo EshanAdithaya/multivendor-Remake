@@ -1,14 +1,22 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { ShoppingBag } from 'lucide-react';
 
 const ShoppingCart = () => {
   const [carts, setCarts] = React.useState([]);
   const [isLoading, setIsLoading] = React.useState(true);
   const [error, setError] = React.useState(null);
+  const navigate = useNavigate();
 
   React.useEffect(() => {
+    const token = localStorage.getItem('accessToken');
+    if (!token) {
+      setError('You need to log in to see this page.');
+      setIsLoading(false);
+      return;
+    }
+
     const fetchCarts = async () => {
-      const token = localStorage.getItem('accessToken');
       try {
         const response = await fetch('https://ppabanckend.adaptable.app/api/carts/user', {
           headers: {
@@ -52,6 +60,14 @@ const ShoppingCart = () => {
     return (
       <div className="flex items-center justify-center min-h-screen text-red-500">
         {error}
+        {!localStorage.getItem('accessToken') && (
+          <button
+            className="ml-4 px-4 py-2 bg-yellow-600 text-white rounded"
+            onClick={() => navigate('/login')}
+          >
+            Login
+          </button>
+        )}
       </div>
     );
   }
@@ -117,7 +133,5 @@ const ShoppingCart = () => {
     </div>
   );
 };
-
-
 
 export default ShoppingCart;
