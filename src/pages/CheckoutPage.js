@@ -182,7 +182,7 @@ const CheckoutPage = () => {
                 <h2 className="font-semibold">Delivery Address</h2>
               </div>
               <button className="text-yellow-600">
-                <Plus className="w-5 h-5" />
+                <a href='/address'> <Plus className="w-5 h-5" /> </a>
               </button>
             </div>
             

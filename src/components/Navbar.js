@@ -54,6 +54,10 @@ const NavigationWithMenus = () => {
     if (isRightSidebarOpen) setRightSidebarOpen(false);
   };
 
+  const handleCloseShoppingCart = () => {
+    setShoppingCartOpen(false);
+  };
+
   const handleNavigation = (path) => {
     navigate(path);
     setLeftSidebarOpen(false);
@@ -166,14 +170,14 @@ const NavigationWithMenus = () => {
                 <span className="ml-3 text-xl font-semibold">Shopping Cart</span>
               </div>
               <button 
-                onClick={toggleShoppingCart}
+                onClick={handleCloseShoppingCart}
                 className="p-2 hover:bg-gray-100 rounded-full transition-colors duration-200"
               >
                 <X className="w-6 h-6 text-gray-500" />
               </button>
             </div>
             <div className="flex-1 overflow-y-auto">
-              <ShoppingCart />
+              <ShoppingCart onClose={handleCloseShoppingCart} />
             </div>
           </div>
         )}

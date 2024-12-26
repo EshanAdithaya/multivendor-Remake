@@ -2,7 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ShoppingBag, Trash2 } from 'lucide-react';
 
-const ShoppingCart = () => {
+const ShoppingCart = ({ onClose }) => {  // Add onClose prop
   const [carts, setCarts] = React.useState([]);
   const [isLoading, setIsLoading] = React.useState(true);
   const [error, setError] = React.useState(null);
@@ -65,7 +65,8 @@ const ShoppingCart = () => {
     } catch (err) {
       setError('Failed to delete cart');
     }
-};
+  };
+
   const calculateTotalPrice = () => {
     return carts.reduce((total, cart) => {
       const cartTotal = cart.cartItems.reduce((sum, item) => {
@@ -73,6 +74,13 @@ const ShoppingCart = () => {
       }, 0);
       return total + cartTotal;
     }, 0);
+  };
+
+  const handleCheckout = () => {
+    if (onClose) {
+      onClose(); // Close the shopping cart overlay
+    }
+    navigate('/checkout'); // Navigate to checkout page
   };
 
   if (isLoading) {
@@ -166,7 +174,7 @@ const ShoppingCart = () => {
       <div className="mt-4 flex justify-end">
         <button
           className="px-4 py-2 bg-yellow-600 text-white rounded"
-          onClick={() => navigate('/checkout')}
+          onClick={handleCheckout}
         >
           Checkout
         </button>

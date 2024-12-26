@@ -33,6 +33,7 @@ import Login from './Login';
 import ShopDetails from './pages/ShopDetails';
 import AddressManagement from './pages/AddressManagement';
 import ProtectedRoute from './components/ProtectedRoute';
+import ShoppingCart from './pages/ShoppingCart';
 
 function App() {
   return (
@@ -106,6 +107,7 @@ function App() {
               <AddressManagement />
             </ProtectedRoute>
           } />
+          
 
           <Route path="*" element={<div>Page not found</div>} />
         </Routes>
