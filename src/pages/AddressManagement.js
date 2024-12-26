@@ -12,6 +12,7 @@ const AddressModal = ({ isOpen, onClose, initialData = null, onSubmit }) => {
   });
   const [error, setError] = useState('');
   const [countries, setCountries] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     if (initialData) {
@@ -21,15 +22,27 @@ const AddressModal = ({ isOpen, onClose, initialData = null, onSubmit }) => {
 
   useEffect(() => {
     const fetchCountries = async () => {
+      setIsLoading(true);
       try {
-        const response = await fetch('https://restcountries.com/v3.1/all');
+        const response = await fetch('https://restcountries.com/v2/all');
         if (!response.ok) throw new Error('Failed to fetch countries');
         const data = await response.json();
-        setCountries(data);
+        
+        const formattedCountries = data.map(country => ({
+          name: country.name,
+          code: country.alpha2Code,
+          flag: country.flag || `${country.alpha2Code} Flag`
+        })).sort((a, b) => a.name.localeCompare(b.name));
+        
+        setCountries(formattedCountries);
       } catch (err) {
-        setError('Failed to load countries');
+        setError('Failed to load countries. Please try again later.');
+        console.error('Error fetching countries:', err);
+      } finally {
+        setIsLoading(false);
       }
     };
+
     fetchCountries();
   }, []);
 
@@ -46,7 +59,7 @@ const AddressModal = ({ isOpen, onClose, initialData = null, onSubmit }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
       <div className="bg-white rounded-lg shadow-xl w-full max-w-md">
         <div className="flex justify-between items-center p-6 border-b">
           <h2 className="text-xl font-semibold text-gray-800">
@@ -121,19 +134,28 @@ const AddressModal = ({ isOpen, onClose, initialData = null, onSubmit }) => {
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Country
               </label>
-              <select
-                value={formData.country}
-                onChange={(e) => setFormData(prev => ({ ...prev, country: e.target.value }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400"
-                required
-              >
-                <option value="">Select Country</option>
-                {countries.map((country) => (
-                  <option key={country.cca3} value={country.name.common}>
-                    {country.flag} {country.name.common}
-                  </option>
-                ))}
-              </select>
+              <div className="relative">
+                {isLoading ? (
+                  <div className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50">
+                    Loading countries...
+                  </div>
+                ) : (
+                  <select
+                    value={formData.country}
+                    onChange={(e) => setFormData(prev => ({ ...prev, country: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 appearance-none"
+                    required
+                  >
+                    <option value="">Select Country</option>
+                    {countries.map((country) => (
+                      <option key={country.code} value={country.name}>
+                        <img src={country.flag} alt={`${country.name} flag`} className="inline-block w-4 h-4 mr-2" />
+                        {country.name}
+                      </option>
+                    ))}
+                  </select>
+                )}
+              </div>
             </div>
           </div>
 
@@ -148,6 +170,7 @@ const AddressModal = ({ isOpen, onClose, initialData = null, onSubmit }) => {
             <button
               type="submit"
               className="px-4 py-2 bg-yellow-400 text-white rounded-md hover:bg-yellow-500 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:ring-offset-2"
+              disabled={isLoading}
             >
               Save Address
             </button>
