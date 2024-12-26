@@ -163,6 +163,14 @@ const ShoppingCart = () => {
           </div>
         </div>
       </div>
+      <div className="mt-4 flex justify-end">
+        <button
+          className="px-4 py-2 bg-yellow-600 text-white rounded"
+          onClick={() => navigate('/checkout')}
+        >
+          Checkout
+        </button>
+      </div>
     </div>
   );
 };
