@@ -15,27 +15,30 @@ const OrderDetailsScreen = () => {
         const orderId = searchParams.get('token');
         const accessToken = localStorage.getItem('accessToken');
         
-        if (!accessToken) {
+        if (!orderId || !accessToken) {
           throw new Error('Missing required parameters');
         }
 
         const response = await fetch(`https://ppabanckend.adaptable.app/api/orders/${orderId}`, {
+          method: 'GET',
           headers: {
             'Authorization': `Bearer ${accessToken}`,
             'accept': '*/*'
           }
         });
 
+        if (response.status === 404) {
+          throw new Error('Order not found');
+        }
+        
         if (!response.ok) {
-          if (response.status === 404) {
-            throw new Error('Order not found');
-          }
-          throw new Error('Failed to fetch order details');
+          throw new Error(`Failed to fetch order details: ${response.status}`);
         }
 
         const data = await response.json();
         setOrder(data);
       } catch (err) {
+        console.error('Error:', err);
         setError(err.message);
       } finally {
         setLoading(false);
@@ -45,10 +48,8 @@ const OrderDetailsScreen = () => {
     fetchOrderDetails();
   }, [searchParams]);
 
-  // Separate useEffect for handling successful order navigation
   useEffect(() => {
     if (order?.id && !loading && !error) {
-      // Navigate to order-success with the order ID as the key parameter
       navigate(`/order-success?key=${order.id}`);
     }
   }, [order, loading, error, navigate]);
@@ -85,11 +86,9 @@ const OrderDetailsScreen = () => {
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Main Content */}
       <div className="px-6 pt-6">
         <h1 className="text-xl font-bold text-gray-800 mb-4">Order #{order?.id?.slice(0, 6)}</h1>
 
-        {/* Order Details Card */}
         <div className="bg-white rounded-xl shadow-sm mb-4">
           <div className="p-4 border-b border-gray-100">
             <div className="flex items-center justify-between mb-4">
@@ -116,7 +115,6 @@ const OrderDetailsScreen = () => {
             </div>
           </div>
 
-          {/* Addresses */}
           <div className="p-4 space-y-4">
             <div>
               <h3 className="font-semibold mb-2">Shipping Address</h3>
@@ -132,7 +130,6 @@ const OrderDetailsScreen = () => {
             </div>
           </div>
 
-          {/* Price Details */}
           <div className="p-4 border-t border-gray-100">
             <div className="space-y-2">
               <div className="flex justify-between">
@@ -143,11 +140,9 @@ const OrderDetailsScreen = () => {
           </div>
         </div>
 
-        {/* Order Timeline */}
         <div className="relative pb-8">
           <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-gray-200"></div>
           
-          {/* Timeline Items */}
           <div className="space-y-6">
             {[
               { status: 'Pending', complete: order?.status !== 'pending' },
@@ -173,14 +168,12 @@ const OrderDetailsScreen = () => {
           </div>
         </div>
 
-        {/* Items Table */}
         <div className="mt-6">
           <div className="flex justify-between py-3 px-4 bg-gray-50 rounded-t-lg">
             <span className="font-medium">Item</span>
             <span className="font-medium">Quantity</span>
           </div>
           
-          {/* Item Rows */}
           {order?.items?.map((item, index) => (
             <div key={index} className="flex items-center justify-between py-4 px-4 border-b">
               <div className="flex items-center">
