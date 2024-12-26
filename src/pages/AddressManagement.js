@@ -11,12 +11,27 @@ const AddressModal = ({ isOpen, onClose, initialData = null, onSubmit }) => {
     country: ''
   });
   const [error, setError] = useState('');
+  const [countries, setCountries] = useState([]);
 
   useEffect(() => {
     if (initialData) {
       setFormData(initialData);
     }
   }, [initialData]);
+
+  useEffect(() => {
+    const fetchCountries = async () => {
+      try {
+        const response = await fetch('https://restcountries.com/v3.1/all');
+        if (!response.ok) throw new Error('Failed to fetch countries');
+        const data = await response.json();
+        setCountries(data);
+      } catch (err) {
+        setError('Failed to load countries');
+      }
+    };
+    fetchCountries();
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -113,10 +128,11 @@ const AddressModal = ({ isOpen, onClose, initialData = null, onSubmit }) => {
                 required
               >
                 <option value="">Select Country</option>
-                <option value="USA">United States</option>
-                <option value="CAN">Canada</option>
-                <option value="GBR">United Kingdom</option>
-                <option value="AUS">Australia</option>
+                {countries.map((country) => (
+                  <option key={country.cca3} value={country.name.common}>
+                    {country.flag} {country.name.common}
+                  </option>
+                ))}
               </select>
             </div>
           </div>
