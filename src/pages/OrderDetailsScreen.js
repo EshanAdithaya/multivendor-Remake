@@ -77,7 +77,7 @@ const OrderDetailsScreen = () => {
   return (
     <div className="min-h-screen bg-white">
       {/* Header with Logo */}
-      <div className="w-full border-b border-gray-100 px-4 py-3">
+      {/* <div className="w-full border-b border-gray-100 px-4 py-3">
         <div className="flex items-center">
           <div className="relative w-24">
             <div className="w-10 h-10 bg-orange-400 rounded-full flex items-center justify-center">
@@ -92,17 +92,17 @@ const OrderDetailsScreen = () => {
             <span className="absolute bottom-0 left-11 text-sm font-medium text-gray-700">PetDoc</span>
           </div>
         </div>
-      </div>
+      </div> */}
 
       {/* Main Content */}
       <div className="px-6 pt-6">
-        <h1 className="text-xl font-bold text-gray-800 mb-4">Order #{order.id.slice(0, 6)}</h1>
+        <h1 className="text-xl font-bold text-gray-800 mb-4">Order #{order?.id?.slice(0, 6)}</h1>
 
         {/* Order Details Card */}
         <div className="bg-white rounded-xl shadow-sm mb-4">
           <div className="p-4 border-b border-gray-100">
             <div className="flex items-center justify-between mb-4">
-              <div className="text-gray-800">Order Details - {order.transactionId}</div>
+              <div className="text-gray-800">Order Details - {order?.transactionId}</div>
               <div className="flex items-center text-yellow-400">
                 <Eye className="w-5 h-5 mr-2" />
                 <span>Details</span>
@@ -113,13 +113,13 @@ const OrderDetailsScreen = () => {
               <div className="flex items-center">
                 <span className="text-gray-600">Order Status:</span>
                 <span className="ml-2 px-3 py-1 bg-[#f5f0e5] text-[#96772d] rounded-lg text-sm capitalize">
-                  {order.status}
+                  {order?.status}
                 </span>
               </div>
               <div className="flex items-center">
                 <span className="text-gray-600">Payment Status:</span>
                 <span className="ml-2 px-3 py-1 bg-blue-50 text-blue-600 rounded-lg text-sm capitalize">
-                  {order.paymentMethod}
+                  {order?.paymentMethod}
                 </span>
               </div>
             </div>
@@ -130,13 +130,13 @@ const OrderDetailsScreen = () => {
             <div>
               <h3 className="font-semibold mb-2">Shipping Address</h3>
               <p className="text-gray-600">
-                {`${order.shippingAddress.street}, ${order.shippingAddress.city}, ${order.shippingAddress.state}, ${order.shippingAddress.postalCode}, ${order.shippingAddress.country}`}
+                {`${order?.shippingAddress?.street}, ${order?.shippingAddress?.city}, ${order?.shippingAddress?.state}, ${order?.shippingAddress?.postalCode}, ${order?.shippingAddress?.country}`}
               </p>
             </div>
             <div>
               <h3 className="font-semibold mb-2">Billing Address</h3>
               <p className="text-gray-600">
-                {`${order.billingAddress.street}, ${order.billingAddress.city}, ${order.billingAddress.state}, ${order.billingAddress.postalCode}, ${order.billingAddress.country}`}
+                {`${order?.billingAddress?.street}, ${order?.billingAddress?.city}, ${order?.billingAddress?.state}, ${order?.billingAddress?.postalCode}, ${order?.billingAddress?.country}`}
               </p>
             </div>
           </div>
@@ -146,7 +146,7 @@ const OrderDetailsScreen = () => {
             <div className="space-y-2">
               <div className="flex justify-between">
                 <span className="text-gray-600">Total Amount</span>
-                <span>${parseFloat(order.totalAmount).toFixed(2)}</span>
+                <span>${parseFloat(order?.totalAmount).toFixed(2)}</span>
               </div>
             </div>
           </div>
@@ -159,10 +159,10 @@ const OrderDetailsScreen = () => {
           {/* Timeline Items */}
           <div className="space-y-6">
             {[
-              { status: 'Pending', complete: order.status !== 'pending' },
-              { status: 'Processing', complete: order.status === 'processing' },
-              { status: 'Shipped', complete: order.shippingStatus === 'shipped', number: 3 },
-              { status: 'Delivered', complete: order.status === 'completed', number: 4 }
+              { status: 'Pending', complete: order?.status !== 'pending' },
+              { status: 'Processing', complete: order?.status === 'processing' },
+              { status: 'Shipped', complete: order?.shippingStatus === 'shipped', number: 3 },
+              { status: 'Delivered', complete: order?.status === 'completed', number: 4 }
             ].map((item, index) => (
               <div key={index} className="flex items-center ml-4">
                 {item.complete ? (
@@ -190,7 +190,7 @@ const OrderDetailsScreen = () => {
           </div>
           
           {/* Item Rows */}
-          {order.items.map((item, index) => (
+          {order?.items?.map((item, index) => (
             <div key={index} className="flex items-center justify-between py-4 px-4 border-b">
               <div className="flex items-center">
                 <img src="/api/placeholder/48/48" alt="Product" className="w-12 h-12 object-cover rounded" />
