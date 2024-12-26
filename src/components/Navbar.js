@@ -10,6 +10,12 @@ const NavigationWithMenus = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
+  const handleLogout = () => {
+    localStorage.removeItem("accessToken");
+    window.location.href = "https://multivendor-remake.vercel.app/login";
+    // setIsDropdownOpen(false);
+  };
+
   const leftMenuItems = [
     { name: 'Shops', path: '/shops' },
     { name: 'Offers', path: '/offers' },
@@ -33,7 +39,7 @@ const NavigationWithMenus = () => {
     { name: 'My Reports', path: '/reports' },
     { name: 'Checkout', path: '/checkout' },
     { name: 'Change Password', path: '/change-password' },
-    { name: 'Logout', path: '/logout' }
+    { name: 'Logout', path: '#', onClick: handleLogout }
   ];
 
   const toggleLeftSidebar = () => {
@@ -144,7 +150,13 @@ const NavigationWithMenus = () => {
                   ? 'bg-blue-50 text-blue-600'
                   : 'text-gray-800 hover:bg-gray-50'
               }`}
-              onClick={() => handleNavigation(item.path)}
+              onClick={() => {
+                if (item.onClick) {
+                  item.onClick();
+                } else {
+                  handleNavigation(item.path);
+                }
+              }}
             >
               {item.name}
             </button>
