@@ -1,108 +1,123 @@
-import React, { useState } from 'react';
-import { X, Plus, Minus, ShoppingBag } from 'lucide-react';
-import Navbar from '../components/Navbar';
+import React from 'react';
+import { ShoppingBag } from 'lucide-react';
 
 const ShoppingCart = () => {
-  const [cartItems, setCartItems] = useState([
-    { id: 1, name: 'Sticks', price: 1.60, quantity: 1, weight: '1lb', image: '/api/placeholder/60/60' },
-    { id: 2, name: 'Dried Tuna', price: 0.60, quantity: 1, weight: '2Pfund', image: '/api/placeholder/60/60' },
-    { id: 3, name: 'Loem ipsum', price: 2.20, quantity: 1, weight: '1lb', image: '/api/placeholder/60/60' },
-    { id: 4, name: 'Lore', price: 3.50, quantity: 1, weight: '1lb', image: '/api/placeholder/60/60' }
-  ]);
+  const [carts, setCarts] = React.useState([]);
+  const [isLoading, setIsLoading] = React.useState(true);
+  const [error, setError] = React.useState(null);
 
-  const updateQuantity = (id, change) => {
-    setCartItems(items =>
-      items.map(item =>
-        item.id === id
-          ? { ...item, quantity: Math.max(1, item.quantity + change) }
-          : item
-      )
+  React.useEffect(() => {
+    const fetchCarts = async () => {
+      const token = localStorage.getItem('accessToken');
+      try {
+        const response = await fetch('https://ppabanckend.adaptable.app/api/carts/user', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        const data = await response.json();
+        if (Array.isArray(data)) {
+          setCarts(data);
+        } else {
+          setError('Unexpected data format');
+        }
+      } catch (err) {
+        setError('Failed to fetch cart data');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchCarts();
+  }, []);
+
+  const calculateTotalPrice = () => {
+    return carts.reduce((total, cart) => {
+      const cartTotal = cart.cartItems.reduce((sum, item) => {
+        return sum + (Number(item.price) * item.quantity);
+      }, 0);
+      return total + cartTotal;
+    }, 0);
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-yellow-600">Loading cart details...</div>
+      </div>
     );
-  };
+  }
 
-  const removeItem = (id) => {
-    setCartItems(items => items.filter(item => item.id !== id));
-  };
-
-  const totalAmount = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-  const totalItems = cartItems.length;
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-screen text-red-500">
+        {error}
+      </div>
+    );
+  }
 
   return (
-    <div className="flex flex-col min-h-screen bg-white">
-      {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b">
-        <div className="flex items-center gap-2">
-          <ShoppingBag className="w-6 h-6 text-yellow-600" />
-          <span className="text-lg font-medium">{totalItems} Items</span>
-        </div>
-        {/* <button className="p-2 rounded-full bg-gray-100">
-          <X className="w-5 h-5 text-gray-500" />
-        </button> */}
+    <div className="p-4 max-w-4xl mx-auto">
+      <div className="mb-6 flex items-center gap-2">
+        <ShoppingBag className="w-6 h-6 text-yellow-600" />
+        <h1 className="text-2xl font-semibold">Shopping Carts</h1>
       </div>
 
-      {/* Cart Items */}
-      <div className="flex-1 overflow-auto">
-        {cartItems.map(item => (
-          <div key={item.id} className="p-4 border-b flex items-center gap-4">
-            {/* Quantity Controls */}
-            <div className="flex flex-col items-center bg-gray-100 rounded-full">
-              <button
-                className="p-2"
-                onClick={() => updateQuantity(item.id, 1)}
-              >
-                <Plus className="w-4 h-4" />
-              </button>
-              <span className="py-1">{item.quantity}</span>
-              <button
-                className="p-2"
-                onClick={() => updateQuantity(item.id, -1)}
-              >
-                <Minus className="w-4 h-4" />
-              </button>
-            </div>
-
-            {/* Product Info */}
-            <div className="flex-1 flex gap-3">
-              <img
-                src={item.image}
-                alt={item.name}
-                className="w-16 h-16 object-cover rounded"
-              />
-              <div className="flex-1">
-                <h3 className="font-medium">{item.name}</h3>
-                <p className="text-yellow-600">${item.price.toFixed(2)}</p>
-                <p className="text-gray-500 text-sm">
-                  {item.quantity} X {item.weight}
-                </p>
-              </div>
-              <div className="flex items-start gap-4">
-                <span className="font-medium">
-                  ${(item.price * item.quantity).toFixed(2)}
-                </span>
-                <button
-                  onClick={() => removeItem(item.id)}
-                  className="text-gray-400"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
+      {carts.map((cart) => (
+        <div key={cart.id} className="mb-6 bg-white rounded-lg shadow-md overflow-hidden">
+          <div className="p-4 border-b">
+            <div className="flex justify-between items-center">
+              <span className="font-semibold">Cart ID: {cart.id.slice(0, 8)}...</span>
+              <span className="text-sm text-gray-500">
+                {new Date(cart.createdAt).toLocaleDateString()}
+              </span>
             </div>
           </div>
-        ))}
-      </div>
+          <div className="p-4">
+            <div className="space-y-4">
+              <div className="text-sm text-gray-500">Status: {cart.status}</div>
+              <div className="text-sm">Shop: {cart.shop.name}</div>
+              
+              {cart.cartItems.length > 0 ? (
+                <div className="space-y-4">
+                  {cart.cartItems.map((item) => (
+                    <div key={item.id} className="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
+                      <div>
+                        <div className="font-medium">
+                          {item.productVariation.material || 'Product'}
+                        </div>
+                        <div className="text-sm text-gray-500">
+                          Quantity: {item.quantity}
+                        </div>
+                      </div>
+                      <div className="text-yellow-600 font-medium">
+                        ${Number(item.price).toFixed(2)}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-gray-500 text-center py-4">
+                  No items in cart
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      ))}
 
-      {/* Checkout Button */}
-      <div className="p-4 fixed bottom-0 left-0 right-0 bg-white border-t">
-        <button className="w-full bg-yellow-400 text-white py-4 rounded-full flex items-center justify-between px-6">
-          <span className="text-lg font-medium">Checkout</span>
-          <span className="bg-white text-yellow-400 px-4 py-2 rounded-full font-medium">
-            ${totalAmount.toFixed(2)}
-          </span>
-        </button>
+      <div className="mt-8 bg-white rounded-lg shadow-md">
+        <div className="p-6">
+          <div className="flex justify-between items-center text-lg font-semibold">
+            <span>Total Price (All Carts):</span>
+            <span className="text-yellow-600">${calculateTotalPrice().toFixed(2)}</span>
+          </div>
+        </div>
       </div>
-      {/* <Navbar /> */}
     </div>
   );
 };
+
+
 
 export default ShoppingCart;
