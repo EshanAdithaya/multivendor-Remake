@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const Signup = () => {
   const [formData, setFormData] = useState({
@@ -10,6 +11,7 @@ const Signup = () => {
   const [message, setMessage] = useState({ text: '', type: '' });
   const [loading, setLoading] = useState(false);
   const [roles] = useState(['customer', 'super_admin', 'shop_admin']);
+  const navigate = useNavigate();
 
   const validateForm = () => {
     if (!formData.email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
@@ -44,15 +46,19 @@ const Signup = () => {
         headers: {
           'Content-Type': 'application/json',
         },
-        credentials: 'omit', // Changed from 'include' to 'omit'
+        credentials: 'omit',
         body: JSON.stringify(formData)
       });
 
       if (response.ok) {
         const data = await response.json();
         console.log('Registration successful:', data);
-        setMessage({ text: 'Registration successful!', type: 'success' });
+        setMessage({ text: 'Registration successful! Redirecting...', type: 'success' });
         setFormData({ email: '', password: '', role: 'customer' });
+        // Add delay before navigation
+        setTimeout(() => {
+          navigate('/login');
+        }, 2000);
         return;
       }
 
@@ -74,12 +80,21 @@ const Signup = () => {
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
-      <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
-        <h2 className="text-2xl font-bold mb-4 text-center">Sign Up</h2>
-        <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
+        <h2 className="text-2xl font-bold text-center mb-6 text-gray-800">Sign Up</h2>
+        
+        {message.text && (
+          <div className={`mb-4 p-3 rounded ${
+            message.type === 'error' ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'
+          }`}>
+            {message.text}
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-              Email
+            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+              Email Address
             </label>
             <input
               type="email"
@@ -87,14 +102,14 @@ const Signup = () => {
               name="email"
               value={formData.email}
               onChange={handleChange}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-400"
+              placeholder="Enter your email"
               required
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-              placeholder="user@example.com"
             />
           </div>
 
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
               Password
             </label>
             <input
@@ -103,15 +118,15 @@ const Signup = () => {
               name="password"
               value={formData.password}
               onChange={handleChange}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-400"
+              placeholder="Enter password (min. 8 characters)"
               required
               minLength={8}
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-              placeholder="Enter password (min. 8 characters)"
             />
           </div>
 
           <div>
-            <label htmlFor="role" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="role" className="block text-sm font-medium text-gray-700 mb-1">
               Role
             </label>
             <select
@@ -119,7 +134,7 @@ const Signup = () => {
               name="role"
               value={formData.role}
               onChange={handleChange}
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-400"
             >
               {roles.map((role) => (
                 <option key={role} value={role}>
@@ -132,23 +147,24 @@ const Signup = () => {
           <button
             type="submit"
             disabled={loading}
-            className={`w-full py-2 px-4 text-white font-bold rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 ${
-              loading 
-                ? 'bg-indigo-400 cursor-not-allowed' 
-                : 'bg-indigo-600 hover:bg-indigo-700 focus:ring-indigo-500'
+            className={`w-full py-2 px-4 bg-yellow-400 text-white rounded-md hover:bg-yellow-500 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:ring-offset-2 ${
+              loading ? 'opacity-50 cursor-not-allowed' : ''
             }`}
           >
             {loading ? 'Signing up...' : 'Sign Up'}
           </button>
-        </form>
 
-        {message.text && (
-          <p className={`mt-4 text-center text-sm ${
-            message.type === 'error' ? 'text-red-600' : 'text-green-600'
-          }`}>
-            {message.text}
-          </p>
-        )}
+          <div className="text-center text-sm">
+            <span className="text-gray-600">Already have an account? </span>
+            <button
+              type="button"
+              onClick={() => navigate('/login')}
+              className="text-yellow-600 hover:text-yellow-700 font-medium"
+            >
+              Log In
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   );
