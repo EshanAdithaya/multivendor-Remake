@@ -2,7 +2,7 @@ import { Navigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { useState, useEffect } from 'react';
 
-const API_BASE_URL = process.env.BASE_URL ;
+const API_REACT_APP_BASE_URL = process.env.REACT_APP_BASE_URL ;
 
 const ProtectedRoute = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -19,7 +19,7 @@ const ProtectedRoute = ({ children }) => {
           return;
         }
 
-        const response = await axios.get(`${API_BASE_URL}/api/auth/me`, {
+        const response = await axios.get(`${API_REACT_APP_BASE_URL}/api/auth/me`, {
           headers: {
             Authorization: `Bearer ${token}`
           }

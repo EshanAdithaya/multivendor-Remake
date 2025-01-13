@@ -3,7 +3,7 @@ import { Heart, ChevronRight, Minus, Plus } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
 import Header from '../components/Header';
 
-const API_BASE_URL = process.env.BASE_URL;
+const API_REACT_APP_BASE_URL = process.env.REACT_APP_BASE_URL;
 
 const ProductDetail = () => {
   const [quantity, setQuantity] = useState(1);
@@ -19,7 +19,7 @@ const ProductDetail = () => {
       if (!productId) return;
       
       try {
-        const response = await fetch(`${API_BASE_URL}/api/products/${productId}`);
+        const response = await fetch(`${API_REACT_APP_BASE_URL}/api/products/${productId}`);
         if (!response.ok) throw new Error('Product not found');
         const data = await response.json();
         setProduct(data);

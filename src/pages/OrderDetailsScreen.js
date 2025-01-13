@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { Eye, Loader2 } from 'lucide-react';
 
-const API_BASE_URL = process.env.BASE_URL;
+const API_REACT_APP_BASE_URL = process.env.REACT_APP_BASE_URL;
 
 const OrderDetailsScreen = () => {
   const [searchParams] = useSearchParams();
@@ -21,7 +21,7 @@ const OrderDetailsScreen = () => {
           throw new Error('Missing required parameters');
         }
 
-        const response = await fetch(`${API_BASE_URL}/api/orders/${orderId}`, {
+        const response = await fetch(`${API_REACT_APP_BASE_URL}/api/orders/${orderId}`, {
           method: 'GET',
           headers: {
             'Authorization': `Bearer ${accessToken}`,

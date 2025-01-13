@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ShoppingCart } from 'lucide-react';
 import Cookies from 'js-cookie';
 
-const API_BASE_URL = process.env.BASE_URL ;
+const API_REACT_APP_BASE_URL = process.env.REACT_APP_BASE_URL ;
 
 // Auth checking utilities
 export const checkAuth = () => {
@@ -55,7 +55,7 @@ export const useAddToCart = () => {
 
   const checkExistingCart = async (shopId, token) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/carts/shop/${shopId}`, {
+      const response = await fetch(`${API_REACT_APP_BASE_URL}/api/carts/shop/${shopId}`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -73,7 +73,7 @@ export const useAddToCart = () => {
 
   const updateExistingCart = async (shopId, variationId, quantity, token) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/carts`, {
+      const response = await fetch(`${API_REACT_APP_BASE_URL}/api/carts`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -133,7 +133,7 @@ export const useAddToCart = () => {
         ]
       };
 
-      const response = await fetch(`${API_BASE_URL}/api/carts`, {
+      const response = await fetch(`${API_REACT_APP_BASE_URL}/api/carts`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

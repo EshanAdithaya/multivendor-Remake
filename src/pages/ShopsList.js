@@ -3,7 +3,7 @@ import { MapPin } from 'lucide-react';
 import Header from '../components/Header';
 import { useNavigate } from 'react-router-dom';
 
-const API_BASE_URL = process.env.BASE_URL;
+const API_REACT_APP_BASE_URL = process.env.REACT_APP_BASE_URL;
 
 const ShopsList = () => {
   const [shops, setShops] = useState([]);
@@ -14,7 +14,7 @@ const ShopsList = () => {
   useEffect(() => {
     const fetchShops = async () => {
       try {
-        const response = await fetch(`${API_BASE_URL}/api/shops/get-all-with-filters`);
+        const response = await fetch(`${API_REACT_APP_BASE_URL}/api/shops/get-all-with-filters`);
         if (!response.ok) throw new Error('Failed to fetch shops');
         const data = await response.json();
         setShops(data);

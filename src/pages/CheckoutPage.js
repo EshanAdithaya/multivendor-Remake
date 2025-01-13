@@ -11,7 +11,7 @@ const CheckoutPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const API_BASE_URL = process.env.BASE_URL;
+  const API_REACT_APP_BASE_URL = process.env.REACT_APP_BASE_URL;
 
   const paymentMethods = [
     {
@@ -42,7 +42,7 @@ const CheckoutPage = () => {
   const fetchAddresses = async () => {
     const token = localStorage.getItem('accessToken');
     try {
-      const response = await fetch(`${API_BASE_URL}/api/orders/addresses`, {
+      const response = await fetch(`${API_REACT_APP_BASE_URL}/api/orders/addresses`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -60,7 +60,7 @@ const CheckoutPage = () => {
   const fetchCarts = async () => {
     const token = localStorage.getItem('accessToken');
     try {
-      const response = await fetch(`${API_BASE_URL}/api/carts/user`, {
+      const response = await fetch(`${API_REACT_APP_BASE_URL}/api/carts/user`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -116,7 +116,7 @@ const CheckoutPage = () => {
           }))
         };
 
-        const response = await fetch(`${API_BASE_URL}/api/orders`, {
+        const response = await fetch(`${API_REACT_APP_BASE_URL}/api/orders`, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${token}`,

@@ -5,7 +5,7 @@ import Cookies from 'js-cookie';
 // Get environment variables
 const ADMIN_URL = process.env.REACT_APP_ADMIN_URL ;
 const SELLER_URL = process.env.REACT_APP_SELLER_URL ;
-const API_BASE_URL = process.env.BASE_URL;
+const API_REACT_APP_BASE_URL = process.env.REACT_APP_BASE_URL;
 
 const Login = () => {
   const [formData, setFormData] = useState({
@@ -72,7 +72,7 @@ const Login = () => {
     setLoading(true);
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
+      const response = await fetch(`${API_REACT_APP_BASE_URL}/api/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

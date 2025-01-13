@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom';
 import { MapPin, Phone, Mail, Globe, Star } from 'lucide-react';
 import Header from '../components/Header';
 
-const API_BASE_URL = process.env.BASE_URL;
+const API_REACT_APP_BASE_URL = process.env.REACT_APP_BASE_URL;
 
 const ShopDetails = () => {
   const [shop, setShop] = useState(null);
@@ -20,8 +20,8 @@ const ShopDetails = () => {
         if (!shopId) throw new Error('Shop ID is missing');
         
         const [shopResponse, productsResponse] = await Promise.all([
-          fetch(`${API_BASE_URL}/api/shops/${shopId}`),
-          fetch(`${API_BASE_URL}/api/products/get-all-with-filters?shopId=${shopId}`)
+          fetch(`${API_REACT_APP_BASE_URL}/api/shops/${shopId}`),
+          fetch(`${API_REACT_APP_BASE_URL}/api/products/get-all-with-filters?shopId=${shopId}`)
         ]);
 
         if (!shopResponse.ok || !productsResponse.ok) 

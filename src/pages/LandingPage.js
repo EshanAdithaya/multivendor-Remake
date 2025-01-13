@@ -146,10 +146,10 @@ const LandingPage = () => {
       setError(null);
       try {
         const [productsRes, categoriesRes, groupsRes, manufacturersRes] = await Promise.all([
-          fetch(`${process.env.BASE_URL}/api/products/get-all-with-filters`),
-          fetch(`${process.env.BASE_URL}/api/categories`),
-          fetch(`${process.env.BASE_URL}/api/product-groups`),
-          fetch(`${process.env.BASE_URL}/api/manufacturers`)
+          fetch(`${process.env.REACT_APP_BASE_URL}/api/products/get-all-with-filters`),
+          fetch(`${process.env.REACT_APP_BASE_URL}/api/categories`),
+          fetch(`${process.env.REACT_APP_BASE_URL}/api/product-groups`),
+          fetch(`${process.env.REACT_APP_BASE_URL}/api/manufacturers`)
         ]);
         
         if (!productsRes.ok) throw new Error('Failed to fetch products');
@@ -189,8 +189,8 @@ const LandingPage = () => {
         const activeFilters = Object.entries(filters).filter(([_, value]) => value !== '');
         
         const endpoint = activeFilters.length === 0 
-          ? `${process.env.BASE_URL}/api/products/get-all-with-filters`
-          : `${process.env.BASE_URL}/api/products/get-all-with-filters?${new URLSearchParams(
+          ? `${process.env.REACT_APP_BASE_URL}/api/products/get-all-with-filters`
+          : `${process.env.REACT_APP_BASE_URL}/api/products/get-all-with-filters?${new URLSearchParams(
               Object.fromEntries(activeFilters)
             )}`;
         

@@ -191,7 +191,7 @@ const AddressManagement = () => {
 
   const fetchAddresses = async () => {
     try {
-      const response = await fetch(`${process.env.BASE_URL}/api/orders/addresses`, {
+      const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/orders/addresses`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
         },
@@ -210,7 +210,7 @@ const AddressManagement = () => {
 
   const handleAddAddress = async (formData) => {
     try {
-      const response = await fetch(`${process.env.BASE_URL}/api/orders/create-address`, {
+      const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/orders/create-address`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -228,7 +228,7 @@ const AddressManagement = () => {
 
   const handleUpdateAddress = async (formData) => {
     try {
-      const response = await fetch(`${process.env.BASE_URL}/api/orders/update-address/${editingAddress.id}`, {
+      const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/orders/update-address/${editingAddress.id}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -247,7 +247,7 @@ const AddressManagement = () => {
     if (!window.confirm('Are you sure you want to delete this address?')) return;
     
     try {
-      const response = await fetch(`${process.env.BASE_URL}/api/orders/delete-address/${id}`, {
+      const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/orders/delete-address/${id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,

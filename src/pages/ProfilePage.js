@@ -3,7 +3,7 @@ import { Upload, Plus } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import Header from '../components/Header';
 
-const API_BASE_URL = process.env.BASE_URL;
+const API_REACT_APP_BASE_URL = process.env.REACT_APP_BASE_URL;
 
 const ProfilePage = () => {
   const [loading, setLoading] = useState(true);
@@ -27,7 +27,7 @@ const ProfilePage = () => {
           throw new Error('No authentication token found');
         }
 
-        const response = await fetch(`${API_BASE_URL}/api/auth/me`, {
+        const response = await fetch(`${API_REACT_APP_BASE_URL}/api/auth/me`, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'accept': '*/*'
