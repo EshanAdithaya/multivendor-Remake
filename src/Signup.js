@@ -33,50 +33,54 @@ const Signup = () => {
     }));
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!validateForm()) return;
+// Inside your handleSubmit function, replace the fetch call with this:
 
-    setMessage({ text: '', type: '' });
-    setLoading(true);
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  if (!validateForm()) return;
 
-    try {
-      const response = await fetch('https://ppabanckend.adaptable.app/api/auth/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'omit',
-        body: JSON.stringify(formData)
-      });
+  setMessage({ text: '', type: '' });
+  setLoading(true);
 
-      if (response.ok) {
-        const data = await response.json();
-        console.log('Registration successful:', data);
-        setMessage({ text: 'Registration successful! Redirecting...', type: 'success' });
-        setFormData({ email: '', password: '', role: 'customer' });
-        // Add delay before navigation
-        setTimeout(() => {
-          navigate('/login');
-        }, 2000);
-        return;
-      }
+  try {
+    // Correctly using environment variable
+    const REACT_APP_API_BASE_URL = process.env.REACT_APP_REACT_APP_API_BASE_URL || 'https://pawsome.soluzent.com';
+    const response = await fetch(`${REACT_APP_API_BASE_URL}/api/auth/register`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'omit',
+      body: JSON.stringify(formData)
+    });
 
-      const errorData = await response.json().catch(() => ({
-        message: 'An unexpected error occurred'
-      }));
-      throw new Error(errorData.message || `Registration failed with status: ${response.status}`);
-
-    } catch (error) {
-      console.error('Registration error:', error);
-      setMessage({ 
-        text: error.message || 'Registration failed. Please try again later.', 
-        type: 'error' 
-      });
-    } finally {
-      setLoading(false);
+    if (response.ok) {
+      const data = await response.json();
+      console.log('Registration successful:', data);
+      setMessage({ text: 'Registration successful! Redirecting...', type: 'success' });
+      setFormData({ email: '', password: '', role: 'customer' });
+      // Add delay before navigation
+      setTimeout(() => {
+        navigate('/login');
+      }, 2000);
+      return;
     }
-  };
+
+    const errorData = await response.json().catch(() => ({
+      message: 'An unexpected error occurred'
+    }));
+    throw new Error(errorData.message || `Registration failed with status: ${response.status}`);
+
+  } catch (error) {
+    console.error('Registration error:', error);
+    setMessage({ 
+      text: error.message || 'Registration failed. Please try again later.', 
+      type: 'error' 
+    });
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
