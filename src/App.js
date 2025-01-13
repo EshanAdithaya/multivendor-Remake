@@ -34,7 +34,7 @@ import ShopDetails from './pages/ShopDetails';
 import AddressManagement from './pages/AddressManagement';
 import ProtectedRoute from './components/ProtectedRoute';
 import ShoppingCart from './pages/ShoppingCart';
-import OrderSuccess from './pages/OrderSuccess';
+import OrderSuccess from './components/OrderSuccess';
 
 function App() {
   return (

@@ -3,6 +3,8 @@ import { useParams } from 'react-router-dom';
 import { MapPin, Phone, Mail, Globe, Star } from 'lucide-react';
 import Header from '../components/Header';
 
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
+
 const ShopDetails = () => {
   const [shop, setShop] = useState(null);
   const [products, setProducts] = useState([]);
@@ -18,8 +20,8 @@ const ShopDetails = () => {
         if (!shopId) throw new Error('Shop ID is missing');
         
         const [shopResponse, productsResponse] = await Promise.all([
-          fetch(`https://ppabanckend.adaptable.app/api/shops/${shopId}`),
-          fetch(`https://ppabanckend.adaptable.app/api/products/get-all-with-filters?shopId=${shopId}`)
+          fetch(`${API_BASE_URL}/api/shops/${shopId}`),
+          fetch(`${API_BASE_URL}/api/products/get-all-with-filters?shopId=${shopId}`)
         ]);
 
         if (!shopResponse.ok || !productsResponse.ok) 
@@ -41,6 +43,7 @@ const ShopDetails = () => {
     fetchData();
   }, []);
 
+  // Rest of your component code stays exactly the same...
   if (loading) {
     return (
       <main className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
@@ -89,6 +92,7 @@ const ShopDetails = () => {
             </div>
           </div>
 
+          {/* Rest of your JSX remains exactly the same... */}
           <p className="text-gray-600 text-sm sm:text-base mt-2">{shop.description}</p>
 
           <div className="mt-4 space-y-2">

@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { Eye, Loader2 } from 'lucide-react';
 
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
+
 const OrderDetailsScreen = () => {
   const [searchParams] = useSearchParams();
   const [order, setOrder] = useState(null);
@@ -19,7 +21,7 @@ const OrderDetailsScreen = () => {
           throw new Error('Missing required parameters');
         }
 
-        const response = await fetch(`https://ppabanckend.adaptable.app/api/orders/${orderId}`, {
+        const response = await fetch(`${API_BASE_URL}/api/orders/${orderId}`, {
           method: 'GET',
           headers: {
             'Authorization': `Bearer ${accessToken}`,
@@ -54,6 +56,7 @@ const OrderDetailsScreen = () => {
     }
   }, [order, loading, error, navigate]);
 
+  // Rest of your component code remains exactly the same...
   if (loading) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">

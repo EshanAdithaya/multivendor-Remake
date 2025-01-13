@@ -11,6 +11,8 @@ const CheckoutPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
+  
   const paymentMethods = [
     {
       id: 0,
@@ -40,7 +42,7 @@ const CheckoutPage = () => {
   const fetchAddresses = async () => {
     const token = localStorage.getItem('accessToken');
     try {
-      const response = await fetch('https://ppabanckend.adaptable.app/api/orders/addresses', {
+      const response = await fetch(`${API_BASE_URL}/api/orders/addresses`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -58,7 +60,7 @@ const CheckoutPage = () => {
   const fetchCarts = async () => {
     const token = localStorage.getItem('accessToken');
     try {
-      const response = await fetch('https://ppabanckend.adaptable.app/api/carts/user', {
+      const response = await fetch(`${API_BASE_URL}/api/carts/user`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -114,7 +116,7 @@ const CheckoutPage = () => {
           }))
         };
 
-        const response = await fetch('https://ppabanckend.adaptable.app/api/orders', {
+        const response = await fetch(`${API_BASE_URL}/api/orders`, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${token}`,

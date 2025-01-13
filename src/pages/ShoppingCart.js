@@ -2,7 +2,9 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ShoppingBag, Trash2 } from 'lucide-react';
 
-const ShoppingCart = ({ onClose }) => {  // Add onClose prop
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
+
+const ShoppingCart = ({ onClose }) => {
   const [carts, setCarts] = React.useState([]);
   const [isLoading, setIsLoading] = React.useState(true);
   const [error, setError] = React.useState(null);
@@ -18,7 +20,7 @@ const ShoppingCart = ({ onClose }) => {  // Add onClose prop
 
     const fetchCarts = async () => {
       try {
-        const response = await fetch('https://ppabanckend.adaptable.app/api/carts/user', {
+        const response = await fetch(`${API_BASE_URL}/api/carts/user`, {
           headers: {
             'Authorization': `Bearer ${token}`
           }
@@ -50,7 +52,7 @@ const ShoppingCart = ({ onClose }) => {  // Add onClose prop
     }
 
     try {
-      const response = await fetch(`https://ppabanckend.adaptable.app/api/carts/${cartId}`, {
+      const response = await fetch(`${API_BASE_URL}/api/carts/${cartId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -78,9 +80,9 @@ const ShoppingCart = ({ onClose }) => {  // Add onClose prop
 
   const handleCheckout = () => {
     if (onClose) {
-      onClose(); // Close the shopping cart overlay
+      onClose();
     }
-    navigate('/checkout'); // Navigate to checkout page
+    navigate('/checkout');
   };
 
   if (isLoading) {

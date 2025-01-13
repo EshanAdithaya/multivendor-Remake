@@ -3,6 +3,8 @@ import { Upload, Plus } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import Header from '../components/Header';
 
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
+
 const ProfilePage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -20,12 +22,12 @@ const ProfilePage = () => {
   useEffect(() => {
     const fetchUserProfile = async () => {
       try {
-        const token = localStorage.getItem('accessToken'); // Assuming you store the JWT token in localStorage
+        const token = localStorage.getItem('accessToken');
         if (!token) {
           throw new Error('No authentication token found');
         }
 
-        const response = await fetch('https://ppabanckend.adaptable.app/api/auth/me', {
+        const response = await fetch(`${API_BASE_URL}/api/auth/me`, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'accept': '*/*'
@@ -38,12 +40,9 @@ const ProfilePage = () => {
 
         const userData = await response.json();
         
-        // Map API data to profile state
         setProfile(prevProfile => ({
           ...prevProfile,
           email: userData.email,
-          // Add other fields as they become available from the API
-          // For now, keeping some fields with placeholder data
           name: userData.name || 'John Doe',
           bio: userData.bio || '',
           phone: userData.phone || '+1 (936) 514-1641',
@@ -63,6 +62,7 @@ const ProfilePage = () => {
     fetchUserProfile();
   }, []);
 
+  // Rest of your component code remains the same...
   const handleSave = async (field, value) => {
     try {
       const token = localStorage.getItem('token');
@@ -70,14 +70,11 @@ const ProfilePage = () => {
         throw new Error('No authentication token found');
       }
 
-      // Here you would typically make an API call to update the specific field
-      // For now, just updating the local state
       setProfile(prev => ({
         ...prev,
         [field]: value
       }));
 
-      // Show success message
       alert(`${field} updated successfully`);
     } catch (err) {
       console.error(`Error updating ${field}:`, err);
@@ -133,6 +130,7 @@ const ProfilePage = () => {
           </div>
         </div>
 
+        {/* Rest of your JSX remains exactly the same... */}
         {/* Name Section */}
         <div className="space-y-2">
           <label className="block text-gray-700">Name</label>

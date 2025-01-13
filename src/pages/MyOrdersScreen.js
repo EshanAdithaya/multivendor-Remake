@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
+
 const OrderCard = ({ order, onClick }) => {
   const formattedDate = new Date(order.createdAt).toLocaleDateString('en-US', {
     year: 'numeric',
@@ -63,7 +65,7 @@ const MyOrdersScreen = () => {
           throw new Error('No access token found');
         }
 
-        const response = await fetch('https://ppabanckend.adaptable.app/api/orders', {
+        const response = await fetch(`${API_BASE_URL}/api/orders`, {
           headers: {
             'Authorization': `Bearer ${accessToken}`,
             'accept': '*/*'
@@ -110,25 +112,6 @@ const MyOrdersScreen = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      {/* <div className="w-full border-b border-gray-100 bg-white px-4 py-3">
-        <div className="flex items-center">
-          <div className="relative w-24">
-            <div className="w-10 h-10 bg-orange-400 rounded-full flex items-center justify-center">
-              <div className="text-white text-xs transform -rotate-45">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="white">
-                  <path d="M12,2C6.48,2,2,6.48,2,12c0,5.52,4.48,10,10,10s10-4.48,10-10C22,6.48,17.52,2,12,2z"/>
-                  <path d="M15,11c1.1,0,2-0.9,2-2s-0.9-2-2-2s-2,0.9-2,2S13.9,11,15,11z"/>
-                  <path d="M9,11c1.1,0,2-0.9,2-2s-0.9-2-2-2s-2,0.9-2,2S7.9,11,9,11z"/>
-                </svg>
-              </div>
-            </div>
-            <span className="absolute bottom-0 left-11 text-sm font-medium text-gray-700">PetDoc</span>
-          </div>
-        </div>
-      </div> */}
-
-      {/* Main Content */}
       <div className="max-w-2xl mx-auto p-4">
         <h1 className="text-2xl font-bold text-gray-800 mb-6">My Orders</h1>
         
