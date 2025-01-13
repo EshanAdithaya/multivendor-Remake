@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ShoppingCart } from 'lucide-react';
 import Cookies from 'js-cookie';
 
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://ppabanckend.adaptable.app';
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL ;
 
 // Auth checking utilities
 export const checkAuth = () => {

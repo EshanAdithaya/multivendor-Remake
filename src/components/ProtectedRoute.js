@@ -2,7 +2,7 @@ import { Navigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { useState, useEffect } from 'react';
 
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://ppabanckend.adaptable.app';
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL ;
 
 const ProtectedRoute = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
