@@ -2,6 +2,8 @@ import { Navigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { useState, useEffect } from 'react';
 
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://ppabanckend.adaptable.app';
+
 const ProtectedRoute = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -17,7 +19,7 @@ const ProtectedRoute = ({ children }) => {
           return;
         }
 
-        const response = await axios.get('https://ppabanckend.adaptable.app/api/auth/me', {
+        const response = await axios.get(`${API_BASE_URL}/api/auth/me`, {
           headers: {
             Authorization: `Bearer ${token}`
           }

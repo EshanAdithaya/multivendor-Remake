@@ -3,7 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { ShoppingCart } from 'lucide-react';
 import Cookies from 'js-cookie';
 
-// Auth checking utilities remain the same
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://ppabanckend.adaptable.app';
+
+// Auth checking utilities
 export const checkAuth = () => {
   console.log('Checking authentication status...');
   const token = localStorage.getItem('accessToken');
@@ -53,7 +55,7 @@ export const useAddToCart = () => {
 
   const checkExistingCart = async (shopId, token) => {
     try {
-      const response = await fetch(`https://ppabanckend.adaptable.app/api/carts/shop/${shopId}`, {
+      const response = await fetch(`${API_BASE_URL}/api/carts/shop/${shopId}`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -71,7 +73,7 @@ export const useAddToCart = () => {
 
   const updateExistingCart = async (shopId, variationId, quantity, token) => {
     try {
-      const response = await fetch('https://ppabanckend.adaptable.app/api/carts', {
+      const response = await fetch(`${API_BASE_URL}/api/carts`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -131,7 +133,7 @@ export const useAddToCart = () => {
         ]
       };
 
-      const response = await fetch('https://ppabanckend.adaptable.app/api/carts', {
+      const response = await fetch(`${API_BASE_URL}/api/carts`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
