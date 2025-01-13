@@ -3,7 +3,7 @@ import { MapPin } from 'lucide-react';
 import Header from '../components/Header';
 import { useNavigate } from 'react-router-dom';
 
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
+const API_BASE_URL = process.env.BASE_URL;
 
 const ShopsList = () => {
   const [shops, setShops] = useState([]);

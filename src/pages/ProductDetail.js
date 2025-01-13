@@ -3,7 +3,7 @@ import { Heart, ChevronRight, Minus, Plus } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
 import Header from '../components/Header';
 
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
+const API_BASE_URL = process.env.BASE_URL;
 
 const ProductDetail = () => {
   const [quantity, setQuantity] = useState(1);

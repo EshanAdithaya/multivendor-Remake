@@ -5,7 +5,7 @@ import Cookies from 'js-cookie';
 // Get environment variables
 const ADMIN_URL = process.env.REACT_APP_ADMIN_URL ;
 const SELLER_URL = process.env.REACT_APP_SELLER_URL ;
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
+const API_BASE_URL = process.env.BASE_URL;
 
 const Login = () => {
   const [formData, setFormData] = useState({

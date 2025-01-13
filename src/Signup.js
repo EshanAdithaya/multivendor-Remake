@@ -44,8 +44,8 @@ const handleSubmit = async (e) => {
 
   try {
     // Correctly using environment variable
-    const REACT_APP_API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
-    const response = await fetch(`${REACT_APP_API_BASE_URL}/api/auth/register`, {
+    const BASE_URL = process.env.BASE_URL || 'https://pawsome.soluzent.com';
+    const response = await fetch(`${BASE_URL}/api/auth/register`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

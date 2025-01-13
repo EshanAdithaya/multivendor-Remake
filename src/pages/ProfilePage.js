@@ -3,7 +3,7 @@ import { Upload, Plus } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import Header from '../components/Header';
 
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
+const API_BASE_URL = process.env.BASE_URL;
 
 const ProfilePage = () => {
   const [loading, setLoading] = useState(true);

@@ -11,8 +11,8 @@ const CheckoutPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
-  
+  const API_BASE_URL = process.env.BASE_URL;
+
   const paymentMethods = [
     {
       id: 0,

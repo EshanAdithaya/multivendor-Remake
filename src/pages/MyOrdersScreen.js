@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
+const API_BASE_URL = process.env.BASE_URL;
 
 const OrderCard = ({ order, onClick }) => {
   const formattedDate = new Date(order.createdAt).toLocaleDateString('en-US', {
