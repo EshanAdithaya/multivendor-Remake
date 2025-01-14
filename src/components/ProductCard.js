@@ -108,21 +108,33 @@ const ProductCard = ({
       <div className="p-3">
         {product.__shop__ && (
           <div className="flex items-center gap-2 mb-2">
-            <img
-              src={product.__shop__.logoUrl || '/api/placeholder/20/20'}
-              alt={product.__shop__.name}
-              className="w-4 h-4 rounded-full"
-              onError={(e) => {
-                e.target.onerror = null;
-                e.target.src = '/api/placeholder/20/20';
-              }}
-            />
-            <span className="text-xs text-gray-500">{product.__shop__.name}</span>
+            <div className="w-5 h-5 rounded-full overflow-hidden bg-gray-100 flex items-center justify-center">
+              <img
+                src={product.__shop__.logoUrl || '/api/placeholder/20/20'}
+                alt={product.__shop__.name}
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  e.target.onerror = null;
+                  e.target.src = '/api/placeholder/20/20';
+                }}
+              />
+            </div>
+            <div className="flex items-center gap-1">
+              <span className="text-xs text-gray-500">{product.__shop__.name}</span>
+              {product.__shop__.rating && (
+                <span className="text-xs text-yellow-500">★ {product.__shop__.rating}</span>
+              )}
+            </div>
           </div>
         )}
 
         <h3 className="font-medium text-sm mb-1 line-clamp-2 min-h-[2.5rem]">
           {product.name}
+          {product.description && (
+            <span className="text-gray-500 text-xs ml-1">
+              - {product.description}
+            </span>
+          )}
           <span className="text-gray-500">
             {' - '}
             {[
