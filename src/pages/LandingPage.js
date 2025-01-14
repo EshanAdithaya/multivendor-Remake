@@ -3,6 +3,8 @@ import { Search, Filter, X, ChevronRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
 import ProductCard from '../components/ProductCard';
+import Lottie from 'react-lottie';
+import loaderAnimation from '../Assets/animations/loading.json';
 
 // FilterSection component
 const FilterSection = ({ showFilters, setShowFilters, filters, setFilters, categories, productGroups, manufacturers }) => (
@@ -168,6 +170,15 @@ const LandingPage = () => {
     manufacturerId: ''
   });
 
+  const defaultOptions = {
+    loop: true,
+    autoplay: true,
+    animationData: loaderAnimation,
+    rendererSettings: {
+      preserveAspectRatio: 'xMidYMid slice'
+    }
+  };
+
   useEffect(() => {
     const fetchInitialData = async () => {
       setLoading(true);
@@ -322,7 +333,7 @@ const LandingPage = () => {
         {/* Main Content */}
         {loading ? (
           <div className="flex items-center justify-center py-12">
-            <div className="w-8 h-8 border-4 border-gray-200 border-t-red-500 rounded-full animate-spin" />
+            <Lottie options={defaultOptions} height={100} width={100} />
           </div>
         ) : error ? (
           <div className="text-center py-12">
