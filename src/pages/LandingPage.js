@@ -5,6 +5,7 @@ import Header from '../components/Header';
 import ProductCard from '../components/ProductCard';
 import Lottie from 'react-lottie';
 import loaderAnimation from '../Assets/animations/loading.json';
+import notFoundAnimation from '../Assets/animations/not_found.json';
 
 // FilterSection component
 const FilterSection = ({ showFilters, setShowFilters, filters, setFilters, categories, productGroups, manufacturers }) => (
@@ -174,6 +175,15 @@ const LandingPage = () => {
     loop: true,
     autoplay: true,
     animationData: loaderAnimation,
+    rendererSettings: {
+      preserveAspectRatio: 'xMidYMid slice'
+    }
+  };
+
+  const notFoundOptions = {
+    loop: true,
+    autoplay: true,
+    animationData: notFoundAnimation,
     rendererSettings: {
       preserveAspectRatio: 'xMidYMid slice'
     }
@@ -385,7 +395,8 @@ const LandingPage = () => {
                 {products.map(product => renderProductCard(product))}
                 {products.length === 0 && (
                   <div className="col-span-2 text-center py-8">
-                    <p className="text-gray-600">No products found matching your criteria</p>
+                    <Lottie options={notFoundOptions} height={150} width={150} />
+                    <p className="text-gray-600 mt-4">No products found matching your criteria</p>
                   </div>
                 )}
               </div>
