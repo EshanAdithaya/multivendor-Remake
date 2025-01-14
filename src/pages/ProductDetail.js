@@ -10,6 +10,7 @@ const ProductDetail = () => {
   const [isLiked, setIsLiked] = useState(false);
   const [selectedImage, setSelectedImage] = useState(0);
   const [product, setProduct] = useState(null);
+  const [selectedVariation, setSelectedVariation] = useState(null);
   const location = useLocation();
   
   useEffect(() => {
@@ -22,6 +23,10 @@ const ProductDetail = () => {
         const response = await fetch(`${API_REACT_APP_BASE_URL}/api/products/${productId}`);
         if (!response.ok) throw new Error('Product not found');
         const data = await response.json();
+        // If there's only one variation, select it by default
+        if (data.variations?.length === 1) {
+          setSelectedVariation(data.variations[0]);
+        }
         setProduct(data);
       } catch (error) {
         console.error('Failed to fetch product:', error);
@@ -33,15 +38,27 @@ const ProductDetail = () => {
 
   if (!product) return <div className="flex justify-center items-center min-h-screen">Loading...</div>;
 
+  const getVariationDisplayText = (variation) => {
+    const attributes = [];
+    if (variation.size) attributes.push(variation.size);
+    if (variation.weight) attributes.push(`${variation.weight}g`);
+    if (variation.color) attributes.push(variation.color);
+    if (variation.material) attributes.push(variation.material);
+    return attributes.join(' - ') || 'Standard';
+  };
+
+  const formatPrice = (price) => {
+    if (price == null) return 'N/A';
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD'
+    }).format(price);
+  };
+
   const images = [
-    product.imageUrl || '/api/placeholder/400/400',
+    selectedVariation?.imageUrl || product.imageUrl || '/api/placeholder/400/400',
     '/api/placeholder/400/400'
   ];
-
-  const formattedPrice = new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD'
-  }).format(product.price);
 
   return (
     <div className="flex flex-col min-h-screen bg-white">
@@ -58,11 +75,11 @@ const ProductDetail = () => {
         </div>
       </div>
 
-      <div className="flex gap-4 px-4 mb-6">
+      <div className="flex gap-4 px-4 mb-6 overflow-x-auto">
         {images.map((img, index) => (
           <button
             key={index}
-            className={`border-2 rounded-lg p-1 ${
+            className={`border-2 rounded-lg p-1 flex-shrink-0 ${
               selectedImage === index ? 'border-yellow-400' : 'border-gray-200'
             }`}
             onClick={() => setSelectedImage(index)}
@@ -83,24 +100,50 @@ const ProductDetail = () => {
           </button>
         </div>
 
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-gray-600">{product.weight}g</span>
-          {product.__shop__?.rating && (
+        {product.__shop__?.rating && (
+          <div className="flex items-center gap-2">
             <div className="flex items-center gap-1 bg-yellow-400 text-white px-2 py-1 rounded">
               <span>{product.__shop__.rating}</span>
               <span>★</span>
             </div>
-          )}
-        </div>
+          </div>
+        )}
 
-        <p className="text-gray-600">
-          {product.description}
-        </p>
+        <p className="text-gray-600">{product.description}</p>
 
-        <div className="flex items-center gap-2">
-          <span className="text-xl font-bold text-yellow-500">{formattedPrice}</span>
-        </div>
+        {/* Variations */}
+        {product.variations && product.variations.length > 0 && (
+          <div className="space-y-2">
+            <h3 className="font-medium">Select Option</h3>
+            <div className="space-y-2">
+              {product.variations.map((variation) => (
+                <button
+                  key={variation.id}
+                  onClick={() => setSelectedVariation(variation)}
+                  className={`w-full p-3 rounded-lg border text-left
+                    ${selectedVariation?.id === variation.id 
+                      ? 'border-yellow-400 bg-yellow-50'
+                      : 'border-gray-200 hover:border-yellow-400'
+                    }`}
+                >
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <div className="font-medium">{getVariationDisplayText(variation)}</div>
+                      <div className="text-sm text-gray-500">
+                        SKU: {variation.sku} • Stock: {variation.stockQuantity}
+                      </div>
+                    </div>
+                    <div className="text-yellow-500 font-bold">
+                      {formatPrice(variation.price)}
+                    </div>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
+        {/* Quantity Selector */}
         <div className="flex items-center justify-between bg-yellow-400 rounded-lg p-2">
           <button 
             className="p-2 text-white" 
@@ -111,16 +154,39 @@ const ProductDetail = () => {
           <span className="text-white font-medium">{quantity}</span>
           <button 
             className="p-2 text-white"
-            onClick={() => setQuantity(quantity + 1)}
+            onClick={() => quantity < (selectedVariation?.stockQuantity || 0) && setQuantity(quantity + 1)}
           >
             <Plus className="w-5 h-5" />
           </button>
         </div>
 
-        <p className="text-gray-600 text-center">{product.stockQuantity} pieces available</p>
+        <div className="text-center text-sm text-gray-600">
+          {selectedVariation 
+            ? `${selectedVariation.stockQuantity} pieces available`
+            : 'Select an option'
+          }
+        </div>
 
-        <div className="space-y-4">
-          {product.__shop__ && (
+        {/* Add to Cart Button */}
+        <button
+          className={`w-full py-3 rounded-lg font-medium
+            ${selectedVariation?.stockQuantity > 0
+              ? 'bg-yellow-400 text-white hover:bg-yellow-500'
+              : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+            }`}
+          disabled={!selectedVariation || selectedVariation.stockQuantity === 0}
+        >
+          {!selectedVariation
+            ? 'Select Option'
+            : selectedVariation.stockQuantity === 0
+              ? 'Out of Stock'
+              : 'Add to Cart'
+          }
+        </button>
+
+        {/* Shop Details */}
+        {product.__shop__ && (
+          <div className="space-y-4 pt-4">
             <div>
               <span className="font-medium">Seller</span>
               <div className="mt-2">
@@ -129,20 +195,18 @@ const ProductDetail = () => {
                 </span>
               </div>
             </div>
-          )}
-        </div>
 
-        <div className="pb-6">
-          <h2 className="font-medium mb-2">Shop Details</h2>
-          {product.__shop__ && (
-            <div className="text-gray-600 space-y-2">
-              <p>{product.__shop__.description}</p>
-              <p>{product.__shop__.address}</p>
-              <p>{product.__shop__.city}, {product.__shop__.state}</p>
-              <p>Contact: {product.__shop__.email}</p>
+            <div className="pb-6">
+              <h2 className="font-medium mb-2">Shop Details</h2>
+              <div className="text-gray-600 space-y-2">
+                <p>{product.__shop__.description}</p>
+                <p>{product.__shop__.address}</p>
+                <p>{product.__shop__.city}, {product.__shop__.state}</p>
+                <p>Contact: {product.__shop__.email}</p>
+              </div>
             </div>
-          )}
-        </div>
+          </div>
+        )}
       </div>
     </div>
   );
