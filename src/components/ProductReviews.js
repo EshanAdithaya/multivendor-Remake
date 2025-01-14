@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Star, Trash2, Edit2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom'; // Replace useHistory with useNavigate
+import { toast } from 'react-toastify'; // Import toast for notifications
+import 'react-toastify/dist/ReactToastify.css'; // Import toast styles
 
 const ProductReviews = ({ productId }) => {
   const [reviews, setReviews] = useState([]);
@@ -18,8 +20,14 @@ const ProductReviews = ({ productId }) => {
 
   const fetchReviews = async () => {
     try {
+      const token = localStorage.getItem('accessToken');
       const response = await fetch(
-        `${process.env.REACT_APP_BASE_URL}/api/product-reviews/product/${productId}`
+        `${process.env.REACT_APP_BASE_URL}/api/product-reviews/product/${productId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
       );
       if (response.ok) {
         const data = await response.json();
@@ -55,6 +63,7 @@ const ProductReviews = ({ productId }) => {
         setNewReview('');
         setRating(0);
         fetchReviews();
+        toast.success('Your comment has been added'); // Show success notification
       } else if (response.status === 401) {
         alert('You need to login to review a product');
         navigate('/login'); // Replace history.push with navigate
