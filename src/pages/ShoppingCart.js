@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { ShoppingBag, Trash2 } from 'lucide-react';
 import lottie from 'lottie-web';
 import emptyCartAnimation from '../Assets/animations/empty_cart.json';
+import catWaitingAnimation from '../Assets/animations/cat_waiting.json';
+import cloudAnimation from '../Assets/animations/cloud.json';
 
 const API_REACT_APP_BASE_URL = process.env.REACT_APP_BASE_URL;
 
@@ -15,8 +17,15 @@ const ShoppingCart = ({ onClose }) => {
   React.useEffect(() => {
     const token = localStorage.getItem('accessToken');
     if (!token) {
-      setError('You need to log in to see this page.');
+      setError('');
       setIsLoading(false);
+      lottie.loadAnimation({
+        container: document.getElementById('lottie-cat-waiting'),
+        renderer: 'svg',
+        loop: true,
+        autoplay: true,
+        animationData: catWaitingAnimation
+      });
       return;
     }
 
@@ -32,6 +41,13 @@ const ShoppingCart = ({ onClose }) => {
           setCarts(data);
         } else {
           setError('Unexpected data format');
+          lottie.loadAnimation({
+            container: document.getElementById('lottie-unexpected-data'),
+            renderer: 'svg',
+            loop: true,
+            autoplay: true,
+            animationData: cloudAnimation
+          });
         }
       } catch (err) {
         setError('Failed to fetch cart data');
@@ -44,7 +60,7 @@ const ShoppingCart = ({ onClose }) => {
   }, []);
 
   React.useEffect(() => {
-    if (carts.length === 0 && !isLoading && !error) {
+    if (carts.length === 0 && !isLoading && !error && localStorage.getItem('accessToken')) {
       lottie.loadAnimation({
         container: document.getElementById('lottie-empty-cart'),
         renderer: 'svg',
@@ -111,13 +127,23 @@ const ShoppingCart = ({ onClose }) => {
     return (
       <div className="flex items-center justify-center min-h-screen text-red-500">
         {error}
+        {error === 'Unexpected data format' && (
+          <div className="flex flex-col items-center">
+            <div id="lottie-unexpected-data" className="w-64 h-64"></div>
+            <p className="text-gray-500 mt-4">Unexpected data format. Please contact admin.</p>
+          </div>
+        )}
         {!localStorage.getItem('accessToken') && (
-          <button
-            className="ml-4 px-4 py-2 bg-yellow-600 text-white rounded"
-            onClick={() => navigate('/login')}
-          >
-            Login
-          </button>
+          <div className="flex flex-col items-center">
+            <div id="lottie-cat-waiting" className="w-64 h-64"></div>
+            <p className="text-gray-500 mt-4">You can see your cart after logging into your account.</p>
+            <button
+              className="mt-4 px-4 py-2 bg-yellow-600 text-white rounded"
+              onClick={() => navigate('/login')}
+            >
+              Login
+            </button>
+          </div>
         )}
       </div>
     );
