@@ -13,19 +13,35 @@ const ShoppingCart = ({ onClose }) => {
   const [isLoading, setIsLoading] = React.useState(true);
   const [error, setError] = React.useState(null);
   const navigate = useNavigate();
+  const animationContainer = React.useRef(null);
+  const currentAnimation = React.useRef(null);
+
+  const clearCurrentAnimation = () => {
+    if (currentAnimation.current) {
+      currentAnimation.current.destroy();
+      currentAnimation.current = null;
+    }
+  };
+
+  const playAnimation = (animationData) => {
+    clearCurrentAnimation();
+    if (animationContainer.current) {
+      currentAnimation.current = lottie.loadAnimation({
+        container: animationContainer.current,
+        renderer: 'svg',
+        loop: true,
+        autoplay: true,
+        animationData
+      });
+    }
+  };
 
   React.useEffect(() => {
     const token = localStorage.getItem('accessToken');
     if (!token) {
       setError('');
       setIsLoading(false);
-      lottie.loadAnimation({
-        container: document.getElementById('lottie-cat-waiting'),
-        renderer: 'svg',
-        loop: true,
-        autoplay: true,
-        animationData: catWaitingAnimation
-      });
+      playAnimation(catWaitingAnimation);
       return;
     }
 
@@ -41,13 +57,6 @@ const ShoppingCart = ({ onClose }) => {
           setCarts(data);
         } else {
           setError('Unexpected data format');
-          lottie.loadAnimation({
-            container: document.getElementById('lottie-unexpected-data'),
-            renderer: 'svg',
-            loop: true,
-            autoplay: true,
-            animationData: cloudAnimation
-          });
         }
       } catch (err) {
         setError('Failed to fetch cart data');
@@ -57,17 +66,19 @@ const ShoppingCart = ({ onClose }) => {
     };
 
     fetchCarts();
+
+    return () => clearCurrentAnimation();
   }, []);
 
   React.useEffect(() => {
-    if (carts.length === 0 && !isLoading && !error && localStorage.getItem('accessToken')) {
-      lottie.loadAnimation({
-        container: document.getElementById('lottie-empty-cart'),
-        renderer: 'svg',
-        loop: true,
-        autoplay: true,
-        animationData: emptyCartAnimation
-      });
+    if (isLoading) return;
+
+    if (error === 'Unexpected data format') {
+      playAnimation(cloudAnimation);
+    } else if (!localStorage.getItem('accessToken')) {
+      playAnimation(catWaitingAnimation);
+    } else if (carts.length === 0) {
+      playAnimation(emptyCartAnimation);
     }
   }, [carts, isLoading, error]);
 
@@ -129,13 +140,13 @@ const ShoppingCart = ({ onClose }) => {
         {error}
         {error === 'Unexpected data format' && (
           <div className="flex flex-col items-center">
-            <div id="lottie-unexpected-data" className="w-64 h-64"></div>
+            <div ref={animationContainer} className="w-64 h-64"></div>
             <p className="text-gray-500 mt-4">Unexpected data format. Please contact admin.</p>
           </div>
         )}
         {!localStorage.getItem('accessToken') && (
           <div className="flex flex-col items-center">
-            <div id="lottie-cat-waiting" className="w-64 h-64"></div>
+            <div ref={animationContainer} className="w-64 h-64"></div>
             <p className="text-gray-500 mt-4">You can see your cart after logging into your account.</p>
             <button
               className="mt-4 px-4 py-2 bg-yellow-600 text-white rounded"
@@ -158,7 +169,7 @@ const ShoppingCart = ({ onClose }) => {
 
       {carts.length === 0 ? (
         <div className="flex flex-col items-center justify-center min-h-screen">
-          <div id="lottie-empty-cart" className="w-64 h-64"></div>
+          <div ref={animationContainer} className="w-64 h-64"></div>
           <p className="text-gray-500 mt-4">Shopping cart is empty</p>
         </div>
       ) : (
