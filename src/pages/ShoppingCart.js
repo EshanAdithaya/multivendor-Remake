@@ -1,6 +1,8 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ShoppingBag, Trash2 } from 'lucide-react';
+import lottie from 'lottie-web';
+import emptyCartAnimation from '../Assets/animations/empty_cart.json';
 
 const API_REACT_APP_BASE_URL = process.env.REACT_APP_BASE_URL;
 
@@ -40,6 +42,18 @@ const ShoppingCart = ({ onClose }) => {
 
     fetchCarts();
   }, []);
+
+  React.useEffect(() => {
+    if (carts.length === 0 && !isLoading && !error) {
+      lottie.loadAnimation({
+        container: document.getElementById('lottie-empty-cart'),
+        renderer: 'svg',
+        loop: true,
+        autoplay: true,
+        animationData: emptyCartAnimation
+      });
+    }
+  }, [carts, isLoading, error]);
 
   const deleteCart = async (cartId) => {
     const confirmDelete = window.confirm('Are you sure you want to delete this cart?');
@@ -116,54 +130,61 @@ const ShoppingCart = ({ onClose }) => {
         <h1 className="text-2xl font-semibold">Shopping Carts</h1>
       </div>
 
-      {carts.map((cart) => (
-        <div key={cart.id} className="mb-6 bg-white rounded-lg shadow-md overflow-hidden">
-          <div className="p-4 border-b">
-            <div className="flex justify-between items-center">
-              <span className="font-semibold">Cart ID: {cart.id.slice(0, 8)}...</span>
-              <span className="text-sm text-gray-500">
-                {new Date(cart.createdAt).toLocaleDateString()}
-              </span>
-              <button
-                className="text-red-500"
-                onClick={() => deleteCart(cart.id)}
-              >
-                <Trash2 className="w-5 h-5" />
-              </button>
-            </div>
-          </div>
-          <div className="p-4">
-            <div className="space-y-4">
-              <div className="text-sm text-gray-500">Status: {cart.status}</div>
-              <div className="text-sm">Shop: {cart.shop.name}</div>
-              
-              {cart.cartItems.length > 0 ? (
-                <div className="space-y-4">
-                  {cart.cartItems.map((item) => (
-                    <div key={item.id} className="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
-                      <div>
-                        <div className="font-medium">
-                          {item.productVariation.material || 'Product'}
-                        </div>
-                        <div className="text-sm text-gray-500">
-                          Quantity: {item.quantity}
-                        </div>
-                      </div>
-                      <div className="text-yellow-600 font-medium">
-                        ${Number(item.price).toFixed(2)}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-gray-500 text-center py-4">
-                  No items in cart
-                </div>
-              )}
-            </div>
-          </div>
+      {carts.length === 0 ? (
+        <div className="flex flex-col items-center justify-center min-h-screen">
+          <div id="lottie-empty-cart" className="w-64 h-64"></div>
+          <p className="text-gray-500 mt-4">Shopping cart is empty</p>
         </div>
-      ))}
+      ) : (
+        carts.map((cart) => (
+          <div key={cart.id} className="mb-6 bg-white rounded-lg shadow-md overflow-hidden">
+            <div className="p-4 border-b">
+              <div className="flex justify-between items-center">
+                <span className="font-semibold">Cart ID: {cart.id.slice(0, 8)}...</span>
+                <span className="text-sm text-gray-500">
+                  {new Date(cart.createdAt).toLocaleDateString()}
+                </span>
+                <button
+                  className="text-red-500"
+                  onClick={() => deleteCart(cart.id)}
+                >
+                  <Trash2 className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+            <div className="p-4">
+              <div className="space-y-4">
+                <div className="text-sm text-gray-500">Status: {cart.status}</div>
+                <div className="text-sm">Shop: {cart.shop.name}</div>
+                
+                {cart.cartItems.length > 0 ? (
+                  <div className="space-y-4">
+                    {cart.cartItems.map((item) => (
+                      <div key={item.id} className="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
+                        <div>
+                          <div className="font-medium">
+                            {item.productVariation.material || 'Product'}
+                          </div>
+                          <div className="text-sm text-gray-500">
+                            Quantity: {item.quantity}
+                          </div>
+                        </div>
+                        <div className="text-yellow-600 font-medium">
+                          ${Number(item.price).toFixed(2)}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-gray-500 text-center py-4">
+                    No items in cart
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        ))
+      )}
 
       <div className="mt-8 bg-white rounded-lg shadow-md">
         <div className="p-6">
