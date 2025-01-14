@@ -40,7 +40,12 @@ const ProductCard = ({
     e.stopPropagation();
     setIsLoading(true);
     try {
-      const result = await handleCartOperation({ ...product, ...selectedVariation });
+      const cartItem = {
+        ...product,
+        ...selectedVariation,
+        shop: product.__shop__ || null  // Include shop information
+      };
+      const result = await handleCartOperation(cartItem);
       if (!result.success) {
         alert(result.error);
       } else {
