@@ -97,7 +97,7 @@ const NavigationWithMenus = () => {
                   key={index}
                   className={`w-full text-left py-3 px-2 rounded-lg font-medium transition-colors duration-200 ${
                     location.pathname === item.path
-                      ? 'bg-red-50 text-red-600'
+                      ? 'bg-red-50 text-yellow-600'
                       : 'text-gray-800 hover:bg-gray-50'
                   }`}
                   onClick={() => handleNavigation(item.path)}
@@ -152,7 +152,7 @@ const NavigationWithMenus = () => {
                   key={index}
                   className={`w-full text-left py-3 px-2 rounded-lg font-medium transition-colors duration-200 ${
                     location.pathname === item.path
-                      ? 'bg-red-50 text-red-600'
+                      ? 'bg-red-50 text-yellow-600'
                       : 'text-gray-800 hover:bg-gray-50'
                   }`}
                   onClick={() => {
@@ -198,7 +198,7 @@ const NavigationWithMenus = () => {
         <button
           onClick={toggleLeftSidebar}
           className={`transform transition-colors duration-200 ${
-            isLeftSidebarOpen ? 'text-red-500' : 'text-gray-500'
+            isLeftSidebarOpen ? 'text-yellow-500' : 'text-gray-500'
           }`}
         >
           <Menu className="w-6 h-6" />
@@ -206,7 +206,7 @@ const NavigationWithMenus = () => {
         <button 
           onClick={() => handleNavigation('/')}
           className={`transform transition-colors duration-200 ${
-            location.pathname === '/' ? 'text-red-500' : 'text-gray-500'
+            location.pathname === '/' && !isShoppingCartOpen ? 'text-yellow-500' : 'text-gray-500'
           }`}
         >
           <Home className="w-6 h-6" />
@@ -214,7 +214,7 @@ const NavigationWithMenus = () => {
         <button 
           onClick={toggleShoppingCart}
           className={`transform transition-colors duration-200 ${
-            isShoppingCartOpen ? 'text-red-500' : 'text-gray-500'
+            isShoppingCartOpen ? 'text-yellow-500' : 'text-gray-500'
           }`}
         >
           <ShoppingBag className="w-6 h-6" />
@@ -222,7 +222,7 @@ const NavigationWithMenus = () => {
         <button 
           onClick={toggleRightSidebar}
           className={`transform transition-colors duration-200 ${
-            isRightSidebarOpen ? 'text-red-500' : 'text-gray-500'
+            isRightSidebarOpen ? 'text-yellow-500' : 'text-gray-500'
           }`}
         >
           <User className="w-6 h-6" />
