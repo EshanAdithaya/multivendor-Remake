@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ShoppingCart, Heart, Clock } from 'lucide-react';
+import { ShoppingCart, Heart, Clock, ChevronDown } from 'lucide-react';
 import { handleCartOperation } from '../utils/cartUtils';
 
 const ProductCard = ({ 
@@ -10,6 +10,10 @@ const ProductCard = ({
   onNavigate
 }) => {
   const [isLoading, setIsLoading] = useState(false);
+  const [selectedVariation, setSelectedVariation] = useState(
+    product.variations?.length > 0 ? product.variations[0] : null
+  );
+  const [showVariations, setShowVariations] = useState(false);
 
   const formatPrice = (price) => {
     if (price == null) return '0.00';
@@ -32,11 +36,11 @@ const ProductCard = ({
     return `${hours}h ${minutes}m`;
   };
 
-  const handleAddToCart = async (e, variation) => {
+  const handleAddToCart = async (e) => {
     e.stopPropagation();
     setIsLoading(true);
     try {
-      const result = await handleCartOperation({ ...product, ...variation });
+      const result = await handleCartOperation({ ...product, ...selectedVariation });
       if (!result.success) {
         alert(result.error);
       } else {
@@ -49,139 +53,173 @@ const ProductCard = ({
     }
   };
 
-  // If no variations, don't render anything
-  if (!product.variations?.length) return null;
+  const handleVariationClick = (e, variation) => {
+    e.stopPropagation();
+    setSelectedVariation(variation);
+    setShowVariations(false);
+  };
 
-  // Render each variation as its own card
+  // If no variations or no selected variation, don't render anything
+  if (!product.variations?.length || !selectedVariation) return null;
+
   return (
-    <>
-      {product.variations.map((variation, index) => (
-        <div 
-          key={variation.id || index}
-          className="relative bg-white rounded-lg shadow-sm overflow-hidden cursor-pointer"
-          onClick={onNavigate}
-        >
-          <button 
-            className="absolute top-2 right-2 w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-sm z-10"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <Heart className="w-5 h-5 text-gray-400" />
-          </button>
+    <div 
+      className="relative bg-white rounded-lg shadow-sm overflow-hidden cursor-pointer"
+      onClick={onNavigate}
+    >
+      <button 
+        className="absolute top-2 right-2 w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-sm z-10"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <Heart className="w-5 h-5 text-gray-400" />
+      </button>
 
-          {isFlashSale && (
-            <div className="absolute top-2 left-2 z-10">
-              <div className="bg-red-500 text-white text-xs font-bold px-2 py-1 rounded flex items-center gap-1">
-                <Clock className="w-3 h-3" />
-                Flash Sale
-              </div>
-              {saleEndsAt && (
-                <div className="bg-black bg-opacity-70 text-white text-xs px-2 py-1 mt-1 rounded">
-                  {getTimeRemaining(saleEndsAt)}
-                </div>
-              )}
+      {isFlashSale && (
+        <div className="absolute top-2 left-2 z-10">
+          <div className="bg-red-500 text-white text-xs font-bold px-2 py-1 rounded flex items-center gap-1">
+            <Clock className="w-3 h-3" />
+            Flash Sale
+          </div>
+          {saleEndsAt && (
+            <div className="bg-black bg-opacity-70 text-white text-xs px-2 py-1 mt-1 rounded">
+              {getTimeRemaining(saleEndsAt)}
             </div>
           )}
+        </div>
+      )}
 
-          <div className="relative aspect-square">
+      <div className="relative aspect-square">
+        <img
+          src={selectedVariation.imageUrl || product.imageUrl || '/api/placeholder/400/400'}
+          alt={`${product.name} ${[selectedVariation.size, selectedVariation.color, selectedVariation.material].filter(Boolean).join(', ')}`}
+          className="w-full h-full object-cover"
+          onError={(e) => {
+            e.target.onerror = null;
+            e.target.src = '/api/placeholder/400/400';
+          }}
+        />
+        {product.status && (
+          <div className="absolute bottom-2 left-2 bg-black bg-opacity-60 text-white text-xs px-2 py-1 rounded">
+            {product.status}
+          </div>
+        )}
+      </div>
+
+      <div className="p-3">
+        {product.__shop__ && (
+          <div className="flex items-center gap-2 mb-2">
             <img
-              src={variation.imageUrl || product.imageUrl || '/api/placeholder/400/400'}
-              alt={`${product.name} ${[variation.size, variation.color, variation.material].filter(Boolean).join(', ')}`}
-              className="w-full h-full object-cover"
+              src={product.__shop__.logoUrl || '/api/placeholder/20/20'}
+              alt={product.__shop__.name}
+              className="w-4 h-4 rounded-full"
               onError={(e) => {
                 e.target.onerror = null;
-                e.target.src = '/api/placeholder/400/400';
+                e.target.src = '/api/placeholder/20/20';
               }}
             />
-            {product.status && (
-              <div className="absolute bottom-2 left-2 bg-black bg-opacity-60 text-white text-xs px-2 py-1 rounded">
-                {product.status}
-              </div>
-            )}
+            <span className="text-xs text-gray-500">{product.__shop__.name}</span>
           </div>
+        )}
 
-          <div className="p-3">
-            {product.__shop__ && (
-              <div className="flex items-center gap-2 mb-2">
-                <img
-                  src={product.__shop__.logoUrl || '/api/placeholder/20/20'}
-                  alt={product.__shop__.name}
-                  className="w-4 h-4 rounded-full"
-                  onError={(e) => {
-                    e.target.onerror = null;
-                    e.target.src = '/api/placeholder/20/20';
-                  }}
-                />
-                <span className="text-xs text-gray-500">{product.__shop__.name}</span>
-              </div>
-            )}
+        <h3 className="font-medium text-sm mb-1 line-clamp-2 min-h-[2.5rem]">
+          {product.name}
+          <span className="text-gray-500">
+            {' - '}
+            {[
+              selectedVariation.size,
+              selectedVariation.color,
+              selectedVariation.material
+            ].filter(Boolean).join(', ')}
+          </span>
+        </h3>
 
-            <h3 className="font-medium text-sm mb-1 line-clamp-2 min-h-[2.5rem]">
-              {product.name}
-              <span className="text-gray-500">
-                {' - '}
-                {[
-                  variation.size,
-                  variation.color,
-                  variation.material
-                ].filter(Boolean).join(', ')}
+        <div className="flex items-baseline gap-2 mb-2">
+          <span className="text-lg font-bold text-red-500">
+            ${isFlashSale ? calculateDiscountedPrice(selectedVariation.price) : formatPrice(selectedVariation.price)}
+          </span>
+          {isFlashSale && (
+            <>
+              <span className="text-sm text-gray-400 line-through">
+                ${formatPrice(selectedVariation.price)}
               </span>
-            </h3>
-
-            <div className="flex items-baseline gap-2 mb-2">
-              <span className="text-lg font-bold text-red-500">
-                ${isFlashSale ? calculateDiscountedPrice(variation.price) : formatPrice(variation.price)}
+              <span className="text-xs text-red-500 font-medium">
+                -{discount}%
               </span>
-              {isFlashSale && (
-                <>
-                  <span className="text-sm text-gray-400 line-through">
-                    ${formatPrice(variation.price)}
-                  </span>
-                  <span className="text-xs text-red-500 font-medium">
-                    -{discount}%
-                  </span>
-                </>
-              )}
-            </div>
+            </>
+          )}
+        </div>
 
-            <div className="mb-3">
-              {isFlashSale && variation.stockQuantity > 0 && (
-                <div className="w-full bg-gray-200 h-2 rounded-full mb-1">
-                  <div 
-                    className="bg-red-500 h-2 rounded-full"
-                    style={{ width: `${Math.min((variation.stockQuantity / 100) * 100, 100)}%` }}
-                  />
-                </div>
-              )}
-              <div className="flex justify-between text-xs text-gray-500">
-                <span>{variation.stockQuantity} left</span>
-                <span>SKU: {variation.sku}</span>
-                {isFlashSale && <span>100 sold</span>}
-              </div>
+        {/* Variation Selector */}
+        <div className="mb-3">
+          <button
+            className="w-full py-2 px-3 rounded-md border border-gray-200 text-sm flex items-center justify-between"
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowVariations(!showVariations);
+            }}
+          >
+            <span>Select Variation</span>
+            <ChevronDown className={`w-4 h-4 transition-transform ${showVariations ? 'rotate-180' : ''}`} />
+          </button>
+          
+          {showVariations && (
+            <div className="absolute left-0 right-0 mt-1 mx-3 bg-white border border-gray-200 rounded-md shadow-lg z-20 max-h-48 overflow-y-auto">
+              {product.variations.map((variation, index) => (
+                <button
+                  key={variation.id || index}
+                  className={`w-full p-2 text-left hover:bg-gray-50 ${
+                    selectedVariation.id === variation.id ? 'bg-gray-50' : ''
+                  }`}
+                  onClick={(e) => handleVariationClick(e, variation)}
+                >
+                  <div className="flex justify-between items-center">
+                    <span>
+                      {[variation.size, variation.color, variation.material]
+                        .filter(Boolean)
+                        .join(', ')}
+                    </span>
+                    <span className="text-sm font-medium">
+                      ${formatPrice(variation.price)}
+                    </span>
+                  </div>
+                  <div className="text-xs text-gray-500 mt-1">
+                    Stock: {variation.stockQuantity} · SKU: {variation.sku}
+                  </div>
+                </button>
+              ))}
             </div>
+          )}
+        </div>
 
-            <button 
-              className={`w-full py-2 rounded-full text-sm font-medium flex items-center justify-center gap-2
-                ${isLoading ? 'bg-gray-300 cursor-not-allowed' :
-                  variation.isActive && variation.stockQuantity > 0
-                    ? 'bg-red-500 text-white active:bg-red-600'
-                    : 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                }`}
-              disabled={isLoading || !variation.isActive || variation.stockQuantity === 0}
-              onClick={(e) => handleAddToCart(e, variation)}
-            >
-              {isLoading ? (
-                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-              ) : (
-                <>
-                  <ShoppingCart className="w-4 h-4" />
-                  {variation.stockQuantity === 0 ? 'Out of Stock' : 'Add to Cart'}
-                </>
-              )}
-            </button>
+        <div className="mb-3">
+          <div className="flex justify-between text-xs text-gray-500">
+            <span>{selectedVariation.stockQuantity} left</span>
+            <span>SKU: {selectedVariation.sku}</span>
+            {isFlashSale && <span>100 sold</span>}
           </div>
         </div>
-      ))}
-    </>
+
+        <button 
+          className={`w-full py-2 rounded-full text-sm font-medium flex items-center justify-center gap-2
+            ${isLoading ? 'bg-gray-300 cursor-not-allowed' :
+              selectedVariation.isActive && selectedVariation.stockQuantity > 0
+                ? 'bg-red-500 text-white active:bg-red-600'
+                : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+            }`}
+          disabled={isLoading || !selectedVariation.isActive || selectedVariation.stockQuantity === 0}
+          onClick={handleAddToCart}
+        >
+          {isLoading ? (
+            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+          ) : (
+            <>
+              <ShoppingCart className="w-4 h-4" />
+              {selectedVariation.stockQuantity === 0 ? 'Out of Stock' : 'Add to Cart'}
+            </>
+          )}
+        </button>
+      </div>
+    </div>
   );
 };
 
