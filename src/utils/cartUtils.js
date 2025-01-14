@@ -1,6 +1,6 @@
 // Check if user is authenticated
 export const checkAuth = () => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('accessToken');
     return !!token;
   };
   
