@@ -76,7 +76,7 @@ const ProductCard = ({
 
       {isFlashSale && (
         <div className="absolute top-2 left-2 z-10">
-          <div className="bg-red-500 text-white text-xs font-bold px-2 py-1 rounded flex items-center gap-1">
+          <div className="bg-yellow-500 text-white text-xs font-bold px-2 py-1 rounded flex items-center gap-1">
             <Clock className="w-3 h-3" />
             Flash Sale
           </div>
@@ -120,9 +120,9 @@ const ProductCard = ({
               />
             </div>
             <div className="flex items-center gap-1">
-              <span className="text-xs text-gray-500">{product.__shop__.name}</span>
+              <span className="text-xs text-gray-400">{product.__shop__.name}</span>
               {product.__shop__.rating && (
-                <span className="text-xs text-yellow-500">★ {product.__shop__.rating}</span>
+                <span className="text-xs text-yellow-400">★ {product.__shop__.rating}</span>
               )}
             </div>
           </div>
@@ -131,11 +131,11 @@ const ProductCard = ({
         <h3 className="font-medium text-sm mb-1 line-clamp-2 min-h-[2.5rem]">
           {product.name}
           {product.description && (
-            <span className="text-gray-500 text-xs ml-1">
+            <span className="text-gray-400 text-xs ml-1">
               - {product.description}
             </span>
           )}
-          <span className="text-gray-500">
+          <span className="text-gray-400">
             {' - '}
             {[
               selectedVariation.size,
@@ -146,7 +146,7 @@ const ProductCard = ({
         </h3>
 
         <div className="flex items-baseline gap-2 mb-2">
-          <span className="text-lg font-bold text-red-500">
+          <span className="text-lg font-bold text-yellow-500">
             ${isFlashSale ? calculateDiscountedPrice(selectedVariation.price) : formatPrice(selectedVariation.price)}
           </span>
           {isFlashSale && (
@@ -154,7 +154,7 @@ const ProductCard = ({
               <span className="text-sm text-gray-400 line-through">
                 ${formatPrice(selectedVariation.price)}
               </span>
-              <span className="text-xs text-red-500 font-medium">
+              <span className="text-xs text-yellow-500 font-medium">
                 -{discount}%
               </span>
             </>
@@ -164,7 +164,7 @@ const ProductCard = ({
         {/* Variation Selector */}
         <div className="mb-3">
           <button
-            className="w-full py-2 px-3 rounded-md border border-gray-200 text-sm flex items-center justify-between"
+            className="w-full py-2 px-3 rounded-md border border-gray-100 text-sm flex items-center justify-between"
             onClick={(e) => {
               e.stopPropagation();
               setShowVariations(!showVariations);
@@ -175,12 +175,12 @@ const ProductCard = ({
           </button>
           
           {showVariations && (
-            <div className="absolute left-0 right-0 mt-1 mx-3 bg-white border border-gray-200 rounded-md shadow-lg z-20 max-h-48 overflow-y-auto">
+            <div className="absolute left-0 right-0 mt-1 mx-3 bg-white border border-gray-100 rounded-md shadow-lg z-20 max-h-48 overflow-y-auto">
               {product.variations.map((variation, index) => (
                 <button
                   key={variation.id || index}
-                  className={`w-full p-2 text-left hover:bg-gray-50 ${
-                    selectedVariation.id === variation.id ? 'bg-gray-50' : ''
+                  className={`w-full p-2 text-left hover:bg-gray-100 ${
+                    selectedVariation.id === variation.id ? 'bg-gray-100' : ''
                   }`}
                   onClick={(e) => handleVariationClick(e, variation)}
                 >
@@ -194,7 +194,7 @@ const ProductCard = ({
                       ${formatPrice(variation.price)}
                     </span>
                   </div>
-                  <div className="text-xs text-gray-500 mt-1">
+                  <div className="text-xs text-gray-400 mt-1">
                     Stock: {variation.stockQuantity} · SKU: {variation.sku}
                   </div>
                 </button>
@@ -204,7 +204,7 @@ const ProductCard = ({
         </div>
 
         <div className="mb-3">
-          <div className="flex justify-between text-xs text-gray-500">
+          <div className="flex justify-between text-xs text-gray-400">
             <span>{selectedVariation.stockQuantity} left</span>
             <span>SKU: {selectedVariation.sku}</span>
             {isFlashSale && <span>100 sold</span>}
@@ -213,9 +213,9 @@ const ProductCard = ({
 
         <button 
           className={`w-full py-2 rounded-full text-sm font-medium flex items-center justify-center gap-2
-            ${isLoading ? 'bg-gray-300 cursor-not-allowed' :
+            ${isLoading ? 'bg-gray-100 cursor-not-allowed' :
               selectedVariation.isActive && selectedVariation.stockQuantity > 0
-                ? 'bg-red-500 text-white active:bg-red-600'
+                ? 'bg-yellow-400 text-white active:bg-yellow-500'
                 : 'bg-gray-100 text-gray-400 cursor-not-allowed'
             }`}
           disabled={isLoading || !selectedVariation.isActive || selectedVariation.stockQuantity === 0}
