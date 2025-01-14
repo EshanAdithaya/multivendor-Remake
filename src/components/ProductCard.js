@@ -12,12 +12,14 @@ const ProductCard = ({
   const [isLoading, setIsLoading] = useState(false);
 
   const formatPrice = (price) => {
+    if (price == null) return '0.00';
     const numPrice = typeof price === 'string' ? parseFloat(price) : price;
     return numPrice.toFixed(2);
   };
 
   const calculateDiscountedPrice = (originalPrice) => {
-    if (!discount) return originalPrice;
+    if (originalPrice == null) return '0.00';
+    if (!discount) return originalPrice.toFixed(2);
     const numPrice = typeof originalPrice === 'string' ? parseFloat(originalPrice) : originalPrice;
     return (numPrice * (1 - discount / 100)).toFixed(2);
   };
