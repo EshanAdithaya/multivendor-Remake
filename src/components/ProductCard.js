@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ShoppingCart, Heart, Clock, ChevronDown } from 'lucide-react';
 import { handleCartOperation } from '../utils/cartUtils';
 
@@ -10,10 +10,81 @@ const ProductCard = ({
   onNavigate
 }) => {
   const [isLoading, setIsLoading] = useState(false);
+  const [isWishlistLoading, setIsWishlistLoading] = useState(false);
+  const [isInWishlist, setIsInWishlist] = useState(false);
   const [selectedVariation, setSelectedVariation] = useState(
     product.variations?.length > 0 ? product.variations[0] : null
   );
   const [showVariations, setShowVariations] = useState(false);
+
+  useEffect(() => {
+    checkWishlistStatus();
+  }, []);
+
+  const checkWishlistStatus = async () => {
+    try {
+      const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/wishlist/my-wishlist`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+        },
+      });
+      
+      if (response.ok) {
+        const wishlist = await response.json();
+        setIsInWishlist(wishlist.some(item => item.product.id === product.id));
+      }
+    } catch (error) {
+      console.error('Error checking wishlist status:', error);
+    }
+  };
+
+  const handleWishlist = async (e) => {
+    e.stopPropagation();
+    if (!localStorage.getItem('accessToken')) {
+      alert('Please login to manage your wishlist');
+      return;
+    }
+
+    setIsWishlistLoading(true);
+    try {
+      if (isInWishlist) {
+        // Remove from wishlist
+        const response = await fetch(
+          `${process.env.REACT_APP_BASE_URL}/api/wishlist/product/${product.id}`,
+          {
+            method: 'DELETE',
+            headers: {
+              'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+            },
+          }
+        );
+
+        if (!response.ok) throw new Error('Failed to remove from wishlist');
+      } else {
+        // Add to wishlist
+        const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/wishlist`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+          },
+          body: JSON.stringify({
+            productId: product.id,
+            shopId: product.__shop__?.id
+          }),
+        });
+
+        if (!response.ok) throw new Error('Failed to add to wishlist');
+      }
+
+      setIsInWishlist(!isInWishlist);
+    } catch (error) {
+      console.error('Error updating wishlist:', error);
+      alert('Failed to update wishlist');
+    } finally {
+      setIsWishlistLoading(false);
+    }
+  };
 
   const formatPrice = (price) => {
     if (price == null) return '0.00';
@@ -43,7 +114,7 @@ const ProductCard = ({
       const cartItem = {
         ...product,
         ...selectedVariation,
-        shop: product.__shop__ || null  // Include shop information
+        shop: product.__shop__ || null
       };
       const result = await handleCartOperation(cartItem);
       if (!result.success) {
@@ -64,7 +135,6 @@ const ProductCard = ({
     setShowVariations(false);
   };
 
-  // If no variations or no selected variation, don't render anything
   if (!product.variations?.length || !selectedVariation) return null;
 
   return (
@@ -73,10 +143,20 @@ const ProductCard = ({
       onClick={onNavigate}
     >
       <button 
-        className="absolute top-2 right-2 w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-sm z-10"
-        onClick={(e) => e.stopPropagation()}
+        className={`absolute top-2 right-2 w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-sm z-10 transition-all
+          ${isWishlistLoading ? 'cursor-not-allowed' : 'hover:bg-gray-50'}`}
+        onClick={handleWishlist}
+        disabled={isWishlistLoading}
       >
-        <Heart className="w-5 h-5 text-gray-400" />
+        {isWishlistLoading ? (
+          <div className="w-4 h-4 border-2 border-gray-300 border-t-yellow-400 rounded-full animate-spin" />
+        ) : (
+          <Heart 
+            className={`w-5 h-5 transition-colors ${
+              isInWishlist ? 'text-yellow-400 fill-yellow-400' : 'text-gray-400'
+            }`}
+          />
+        )}
       </button>
 
       {isFlashSale && (
@@ -166,7 +246,6 @@ const ProductCard = ({
           )}
         </div>
 
-        {/* Variation Selector */}
         <div className="mb-3">
           <button
             className="w-full py-2 px-3 rounded-md border border-gray-100 text-sm flex items-center justify-between"
