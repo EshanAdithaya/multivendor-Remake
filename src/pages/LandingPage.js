@@ -51,8 +51,8 @@ const FilterSection = ({ showFilters, setShowFilters, filters, setFilters, categ
                     onClick={() => setFilters(prev => ({ ...prev, categoryId: '' }))}
                     className={`px-3 py-1.5 rounded-lg text-sm transition-colors ${
                       filters.categoryId === '' 
-                        ? 'bg-red-100 text-red-800' 
-                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                        ? 'bg-yellow-400 text-yellow-500' 
+                        : 'bg-gray-100 text-gray-400 hover:bg-gray-100'
                     }`}
                   >
                     All
@@ -63,8 +63,8 @@ const FilterSection = ({ showFilters, setShowFilters, filters, setFilters, categ
                       onClick={() => setFilters(prev => ({ ...prev, categoryId: cat.id }))}
                       className={`px-3 py-1.5 rounded-lg text-sm transition-colors ${
                         filters.categoryId === cat.id
-                          ? 'bg-red-100 text-red-800'
-                          : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                          ? 'bg-yellow-400 text-yellow-500'
+                          : 'bg-gray-100 text-gray-400 hover:bg-gray-100'
                       }`}
                     >
                       {cat.name}
@@ -83,8 +83,8 @@ const FilterSection = ({ showFilters, setShowFilters, filters, setFilters, categ
                     onClick={() => setFilters(prev => ({ ...prev, productGroupId: '' }))}
                     className={`px-3 py-1.5 rounded-lg text-sm transition-colors ${
                       filters.productGroupId === ''
-                        ? 'bg-red-100 text-red-800'
-                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                        ? 'bg-yellow-400 text-yellow-500'
+                        : 'bg-gray-100 text-gray-400 hover:bg-gray-100'
                     }`}
                   >
                     All
@@ -95,8 +95,8 @@ const FilterSection = ({ showFilters, setShowFilters, filters, setFilters, categ
                       onClick={() => setFilters(prev => ({ ...prev, productGroupId: group.id }))}
                       className={`px-3 py-1.5 rounded-lg text-sm transition-colors ${
                         filters.productGroupId === group.id
-                          ? 'bg-red-100 text-red-800'
-                          : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                          ? 'bg-yellow-400 text-yellow-500'
+                          : 'bg-gray-100 text-gray-400 hover:bg-gray-100'
                       }`}
                     >
                       {group.name}
@@ -115,8 +115,8 @@ const FilterSection = ({ showFilters, setShowFilters, filters, setFilters, categ
                     onClick={() => setFilters(prev => ({ ...prev, manufacturerId: '' }))}
                     className={`px-3 py-2 rounded-lg text-sm transition-colors text-left ${
                       filters.manufacturerId === ''
-                        ? 'bg-red-100 text-red-800'
-                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                        ? 'bg-yellow-400 text-yellow-500'
+                        : 'bg-gray-100 text-gray-400 hover:bg-gray-100'
                     }`}
                   >
                     All Manufacturers
@@ -127,8 +127,8 @@ const FilterSection = ({ showFilters, setShowFilters, filters, setFilters, categ
                       onClick={() => setFilters(prev => ({ ...prev, manufacturerId: mfr.id }))}
                       className={`px-3 py-2 rounded-lg text-sm transition-colors text-left ${
                         filters.manufacturerId === mfr.id
-                          ? 'bg-red-100 text-red-800'
-                          : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                          ? 'bg-yellow-400 text-yellow-500'
+                          : 'bg-gray-100 text-gray-400 hover:bg-gray-100'
                       }`}
                     >
                       {mfr.name}
@@ -144,7 +144,7 @@ const FilterSection = ({ showFilters, setShowFilters, filters, setFilters, categ
         <div className="p-4 border-t border-gray-100">
           <button
             onClick={() => setShowFilters(false)}
-            className="w-full py-3 bg-red-500 text-white rounded-lg font-medium hover:bg-red-600 transition-colors"
+            className="w-full py-3 bg-yellow-500 text-white rounded-lg font-medium hover:bg-yellow-400 transition-colors"
           >
             Apply Filters
           </button>
@@ -293,7 +293,7 @@ const LandingPage = () => {
                 <input
                   type="text"
                   placeholder="Search products..."
-                  className="w-full px-4 py-2 text-sm bg-gray-100 rounded-full pl-10 focus:outline-none focus:ring-2 focus:ring-red-400"
+                  className="w-full px-4 py-2 text-sm bg-gray-100 rounded-full pl-10 focus:outline-none focus:ring-2 focus:ring-yellow-400"
                   value={filters.name}
                   onChange={(e) => setFilters(prev => ({ ...prev, name: e.target.value }))}
                 />
@@ -317,8 +317,8 @@ const LandingPage = () => {
                 onClick={() => setFilters(prev => ({ ...prev, categoryId: '' }))}
                 className={`px-4 py-2 rounded-full text-sm whitespace-nowrap ${
                   filters.categoryId === ''
-                    ? 'bg-red-500 text-white'
-                    : 'bg-gray-100 text-gray-700'
+                    ? 'bg-yellow-500 text-white'
+                    : 'bg-gray-100 text-orange'
                 }`}
               >
                 All
@@ -329,8 +329,8 @@ const LandingPage = () => {
                   onClick={() => setFilters(prev => ({ ...prev, categoryId: cat.id }))}
                   className={`px-4 py-2 rounded-full text-sm whitespace-nowrap ${
                     filters.categoryId === cat.id
-                      ? 'bg-red-500 text-white'
-                      : 'bg-gray-100 text-gray-700'
+                      ? 'bg-yellow-500 text-white'
+                      : 'bg-gray-100 text-orange'
                   }`}
                 >
                   {cat.name}
@@ -350,7 +350,7 @@ const LandingPage = () => {
             <p className="text-red-500">{error}</p>
             <button 
               onClick={() => window.location.reload()} 
-              className="mt-4 px-4 py-2 bg-red-500 text-white rounded-lg"
+              className="mt-4 px-4 py-2 bg-yellow-500 text-white rounded-lg"
             >
               Retry
             </button>
