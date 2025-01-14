@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Heart, ChevronRight, Minus, Plus } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
 import Header from '../components/Header';
+import ProductReviews from '../components/ProductReviews';
 
 const API_REACT_APP_BASE_URL = process.env.REACT_APP_BASE_URL;
 
@@ -208,6 +209,9 @@ const ProductDetail = () => {
           </div>
         )}
       </div>
+      <div className="px-4 mb-20">
+  <ProductReviews productId={product.id} />
+</div>
     </div>
   );
 };
