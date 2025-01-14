@@ -1,12 +1,16 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { ShoppingCart, Heart, Clock } from 'lucide-react';
+import { handleCartOperation } from '../utils/cartUtils';
 
 const ProductCard = ({ 
   product, 
   isFlashSale = false, 
   saleEndsAt = null,
-  discount = null 
+  discount = null,
+  onNavigate
 }) => {
+  const [isLoading, setIsLoading] = useState(false);
+
   const formatPrice = (price) => {
     const numPrice = typeof price === 'string' ? parseFloat(price) : price;
     return numPrice.toFixed(2);
@@ -26,14 +30,37 @@ const ProductCard = ({
     return `${hours}h ${minutes}m`;
   };
 
+  const handleAddToCart = async (e) => {
+    e.stopPropagation(); // Prevent navigation
+    setIsLoading(true);
+    try {
+      const result = await handleCartOperation(product);
+      if (!result.success) {
+        alert(result.error); // Replace with your toast notification
+      } else {
+        alert('Added to cart successfully'); // Replace with your toast notification
+      }
+    } catch (error) {
+      alert('Failed to add to cart'); // Replace with your toast notification
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
-    <div className="relative bg-white rounded-lg shadow-sm overflow-hidden">
+    <div 
+      className="relative bg-white rounded-lg shadow-sm overflow-hidden cursor-pointer"
+      onClick={onNavigate}
+    >
       {/* Wishlist Button */}
-      <button className="absolute top-2 right-2 w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-sm z-10">
+      <button 
+        className="absolute top-2 right-2 w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-sm z-10"
+        onClick={(e) => e.stopPropagation()} // Prevent navigation when clicking heart
+      >
         <Heart className="w-5 h-5 text-gray-400" />
       </button>
 
-      {/* Sale Badge */}
+      {/* Flash Sale Badge */}
       {isFlashSale && (
         <div className="absolute top-2 left-2 z-10">
           <div className="bg-red-500 text-white text-xs font-bold px-2 py-1 rounded flex items-center gap-1">
@@ -64,11 +91,10 @@ const ProductCard = ({
 
       {/* Product Info */}
       <div className="p-3">
-        {/* Shop Info - for multivendor */}
         {product.__shop__ && (
           <div className="flex items-center gap-2 mb-2">
             <img
-              src={product.__shop__.logoUrl || '/api/placeholder/20/20'} 
+              src={product.__shop__.logoUrl || '/api/placeholder/20/20'}
               alt={product.__shop__.name}
               className="w-4 h-4 rounded-full"
             />
@@ -76,12 +102,10 @@ const ProductCard = ({
           </div>
         )}
 
-        {/* Product Name */}
         <h3 className="font-medium text-sm mb-1 line-clamp-2 min-h-[2.5rem]">
           {product.name}
         </h3>
 
-        {/* Pricing */}
         <div className="flex items-baseline gap-2 mb-2">
           <span className="text-lg font-bold text-red-500">
             ${isFlashSale ? calculateDiscountedPrice(product.price) : formatPrice(product.price)}
@@ -98,7 +122,6 @@ const ProductCard = ({
           )}
         </div>
 
-        {/* Stock and Sold Info */}
         <div className="mb-3">
           {isFlashSale && product.stockQuantity > 0 && (
             <div className="w-full bg-gray-200 h-2 rounded-full mb-1">
@@ -114,17 +137,24 @@ const ProductCard = ({
           </div>
         </div>
 
-        {/* Add to Cart Button */}
         <button 
           className={`w-full py-2 rounded-full text-sm font-medium flex items-center justify-center gap-2
-            ${product.isActive && product.stockQuantity > 0
-              ? 'bg-red-500 text-white active:bg-red-600'
-              : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+            ${isLoading ? 'bg-gray-300 cursor-not-allowed' :
+              product.isActive && product.stockQuantity > 0
+                ? 'bg-red-500 text-white active:bg-red-600'
+                : 'bg-gray-100 text-gray-400 cursor-not-allowed'
             }`}
-          disabled={!product.isActive || product.stockQuantity === 0}
+          disabled={isLoading || !product.isActive || product.stockQuantity === 0}
+          onClick={handleAddToCart}
         >
-          <ShoppingCart className="w-4 h-4" />
-          {product.stockQuantity === 0 ? 'Out of Stock' : 'Add to Cart'}
+          {isLoading ? (
+            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+          ) : (
+            <>
+              <ShoppingCart className="w-4 h-4" />
+              {product.stockQuantity === 0 ? 'Out of Stock' : 'Add to Cart'}
+            </>
+          )}
         </button>
       </div>
     </div>

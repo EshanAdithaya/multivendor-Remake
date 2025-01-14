@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Filter, X, ChevronRight } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
 import ProductCard from '../components/ProductCard';
 
-// Filter Section Component
+// FilterSection component
 const FilterSection = ({ showFilters, setShowFilters, filters, setFilters, categories, productGroups, manufacturers }) => (
   <div className={`fixed inset-0 bg-gray-800 bg-opacity-50 z-50 transition-opacity ${showFilters ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
     <div className={`absolute right-0 top-0 h-full w-[80%] max-w-md bg-white transform transition-transform ${showFilters ? 'translate-x-0' : 'translate-x-full'}`}>
@@ -150,43 +151,9 @@ const FilterSection = ({ showFilters, setShowFilters, filters, setFilters, categ
   </div>
 );
 
-// Flash Sale Section Component
-const FlashSaleSection = ({ products }) => {
-  const saleEndTime = new Date();
-  saleEndTime.setHours(saleEndTime.getHours() + 4);
-
-  return (
-    <div className="mb-6">
-      <div className="flex items-center justify-between mb-4 px-4">
-        <div>
-          <h2 className="text-lg font-bold text-gray-900">Flash Sale</h2>
-          <p className="text-sm text-gray-500">Don't miss out on these deals!</p>
-        </div>
-        <button className="flex items-center text-sm text-gray-500">
-          View All
-          <ChevronRight className="w-4 h-4 ml-1" />
-        </button>
-      </div>
-
-      <div className="overflow-x-auto">
-        <div className="flex gap-3 px-4 pb-4">
-          {products.slice(0, 6).map(product => (
-            <div key={product.id} className="w-[160px] flex-shrink-0">
-              <ProductCard
-                product={product}
-                isFlashSale={true}
-                saleEndsAt={saleEndTime}
-                discount={20}
-              />
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-};
-
+// Main LandingPage Component
 const LandingPage = () => {
+  const navigate = useNavigate();
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [productGroups, setProductGroups] = useState([]);
@@ -232,6 +199,7 @@ const LandingPage = () => {
       } catch (error) {
         console.error('Error fetching initial data:', error);
         setError(error.message || 'Failed to load initial data');
+        setProducts([]);
       } finally {
         setLoading(false);
       }
@@ -274,6 +242,23 @@ const LandingPage = () => {
     return () => clearTimeout(timeoutId);
   }, [filters]);
 
+  const handleNavigateToProduct = (productId) => {
+    navigate(`/productDetails?key=${productId}`);
+  };
+
+  const renderProductCard = (product, isFlashSale = false) => {
+    return (
+      <ProductCard
+        key={product.id}
+        product={product}
+        isFlashSale={isFlashSale}
+        saleEndsAt={isFlashSale ? new Date(Date.now() + 4 * 60 * 60 * 1000) : null}
+        discount={isFlashSale ? 20 : null}
+        onNavigate={() => handleNavigateToProduct(product.id)}
+      />
+    );
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
@@ -307,6 +292,16 @@ const LandingPage = () => {
         <div className="bg-white mb-4">
           <div className="overflow-x-auto">
             <div className="flex gap-3 px-4 py-4">
+              <button
+                onClick={() => setFilters(prev => ({ ...prev, categoryId: '' }))}
+                className={`px-4 py-2 rounded-full text-sm whitespace-nowrap ${
+                  filters.categoryId === ''
+                    ? 'bg-red-500 text-white'
+                    : 'bg-gray-100 text-gray-700'
+                }`}
+              >
+                All
+              </button>
               {categories.map(cat => (
                 <button
                   key={cat.id}
@@ -341,8 +336,31 @@ const LandingPage = () => {
           </div>
         ) : (
           <>
-            <FlashSaleSection products={products} />
+            {/* Flash Sale Section */}
+            <div className="mb-6">
+              <div className="flex items-center justify-between mb-4 px-4">
+                <div>
+                  <h2 className="text-lg font-bold text-gray-900">Flash Sale</h2>
+                  <p className="text-sm text-gray-500">Don't miss out on these deals!</p>
+                </div>
+                <button className="flex items-center text-sm text-gray-500">
+                  View All
+                  <ChevronRight className="w-4 h-4 ml-1" />
+                </button>
+              </div>
 
+              <div className="overflow-x-auto">
+                <div className="flex gap-3 px-4 pb-4">
+                  {products.slice(0, 6).map(product => (
+                    <div key={product.id} className="w-[160px] flex-shrink-0">
+                      {renderProductCard(product, true)}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* All Products Grid */}
             <div className="px-4">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-lg font-bold text-gray-900">All Products</h2>
@@ -353,12 +371,7 @@ const LandingPage = () => {
               </div>
               
               <div className="grid grid-cols-2 gap-3">
-                {products.map(product => (
-                  <ProductCard 
-                    key={product.id} 
-                    product={product}
-                  />
-                ))}
+                {products.map(product => renderProductCard(product))}
                 {products.length === 0 && (
                   <div className="col-span-2 text-center py-8">
                     <p className="text-gray-600">No products found matching your criteria</p>
@@ -369,7 +382,7 @@ const LandingPage = () => {
           </>
         )}
 
-        {/* Filter Overlay */}
+        {/* Filter Section */}
         <FilterSection 
           showFilters={showFilters}
           setShowFilters={setShowFilters}
