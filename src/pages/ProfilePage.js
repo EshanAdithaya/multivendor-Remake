@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Upload, Plus } from 'lucide-react';
+import Lottie from 'lottie-react';
+import loadingAnimation from '../Assets/animations/loading.json';
 import Navbar from '../components/Navbar';
 import Header from '../components/Header';
 
@@ -85,7 +87,9 @@ const ProfilePage = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-400"></div>
+        <div className="w-32 h-32">
+          <Lottie animationData={loadingAnimation} loop={true} />
+        </div>
       </div>
     );
   }

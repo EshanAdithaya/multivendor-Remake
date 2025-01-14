@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { ChevronLeft, MapPin, CreditCard, Clock, Plus, ShoppingBag } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import Lottie from 'lottie-react';
+import loadingAnimation from '../Assets/animations/loading.json';
 
 const CheckoutPage = () => {
   const navigate = useNavigate();
@@ -140,7 +142,11 @@ const CheckoutPage = () => {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="text-yellow-600">Loading checkout...</div>
+        <Lottie
+          animationData={loadingAnimation}
+          loop={true}
+          style={{ width: 200, height: 200 }}
+        />
       </div>
     );
   }

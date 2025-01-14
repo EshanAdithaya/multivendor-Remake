@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Trash2, PlusCircle, Edit } from 'lucide-react';
+import Lottie from 'lottie-react';
+import loadingAnimation from '../Assets/animations/loading.json';
 
 // AddressModal component for adding/editing addresses
 const AddressModal = ({ isOpen, onClose, initialData = null, onSubmit }) => {
@@ -187,9 +189,10 @@ const AddressManagement = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingAddress, setEditingAddress] = useState(null);
   const [error, setError] = useState('');
-
+  const [isLoading, setIsLoading] = useState(true);
 
   const fetchAddresses = async () => {
+    setIsLoading(true);
     try {
       const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/orders/addresses`, {
         headers: {
@@ -201,6 +204,8 @@ const AddressManagement = () => {
       setAddresses(data);
     } catch (err) {
       setError('Failed to load addresses');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -296,7 +301,13 @@ const AddressManagement = () => {
             <span className="text-gray-500 font-medium">Actions</span>
           </div>
 
-          {addresses.length === 0 ? (
+          {isLoading ? (
+            <div className="flex justify-center items-center py-12">
+              <div className="w-32 h-32">
+                <Lottie animationData={loadingAnimation} loop={true} />
+              </div>
+            </div>
+          ) : addresses.length === 0 ? (
             <div className="px-6 py-12 flex justify-center border-t border-gray-100">
               <span className="text-gray-500">No addresses found</span>
             </div>

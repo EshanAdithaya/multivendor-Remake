@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import Header from '../../components/Header';
+import Lottie from 'lottie-react';
+import loadingAnimation from '../../Assets/animations/loading.json';
 
 const AddCardModal = ({ isOpen, onClose }) => {
   const [cardData, setCardData] = useState({
@@ -236,26 +238,17 @@ const AddCardModal = ({ isOpen, onClose }) => {
 
 const MyCardsScreen = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Simulate loading
+  React.useEffect(() => {
+    setTimeout(() => {
+      setIsLoading(false);
+    }, 2000); // Remove this in production and use real data loading
+  }, []);
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Header with Logo */}
-      {/* <div className="w-full border-b border-gray-100 px-4 py-3">
-        <div className="flex items-center">
-          <div className="relative w-24">
-            <div className="w-10 h-10 bg-orange-400 rounded-full flex items-center justify-center">
-              <div className="text-white text-xs transform -rotate-45">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="white">
-                  <path d="M12,2C6.48,2,2,6.48,2,12c0,5.52,4.48,10,10,10s10-4.48,10-10C22,6.48,17.52,2,12,2z M12,20c-4.41,0-8-3.59-8-8 s3.59-8,8-8s8,3.59,8,8S16.41,20,12,20z"/>
-                  <path d="M15,11c1.1,0,2-0.9,2-2s-0.9-2-2-2s-2,0.9-2,2S13.9,11,15,11z"/>
-                  <path d="M9,11c1.1,0,2-0.9,2-2s-0.9-2-2-2s-2,0.9-2,2S7.9,11,9,11z"/>
-                </svg>
-              </div>
-            </div>
-            <span className="absolute bottom-0 left-11 text-sm font-medium text-gray-700">PetDoc</span>
-          </div>
-        </div>
-      </div> */}
       <Header />
 
       {/* Main Content */}
@@ -279,10 +272,19 @@ const MyCardsScreen = () => {
             <span className="text-gray-500 font-medium">Card N°</span>
           </div>
 
-          {/* Empty State */}
-          <div className="px-6 py-12 flex justify-center border-t border-gray-100">
-            <span className="text-gray-500">No card found</span>
-          </div>
+          {isLoading ? (
+            <div className="px-6 py-12 flex justify-center border-t border-gray-100">
+              <Lottie 
+                animationData={loadingAnimation}
+                style={{ width: 100, height: 100 }}
+                loop={true}
+              />
+            </div>
+          ) : (
+            <div className="px-6 py-12 flex justify-center border-t border-gray-100">
+              <span className="text-gray-500">No card found</span>
+            </div>
+          )}
         </div>
       </div>
 

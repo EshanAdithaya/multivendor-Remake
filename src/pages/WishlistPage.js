@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Loader } from 'lucide-react';
+import Lottie from 'lottie-react';
+import loadingAnimation from '../Assets/animations/loading.json';
 import Header from '../components/Header';
 import ProductCard from '../components/ProductCard';
 
@@ -57,7 +58,10 @@ const WishlistPage = () => {
         <div className="p-6">
           <h1 className="text-2xl font-bold text-gray-900 mb-8">My Wishlist</h1>
           <div className="flex items-center justify-center h-64">
-            <Loader className="w-8 h-8 text-yellow-400 animate-spin" />
+            <Lottie 
+              animationData={loadingAnimation}
+              style={{ width: 150, height: 150 }}
+            />
           </div>
         </div>
       </div>
