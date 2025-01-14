@@ -56,7 +56,7 @@ const ShoppingCart = ({ onClose }) => {
         if (Array.isArray(data)) {
           setCarts(data);
         } else {
-          setError('Unexpected data format');
+          // setError('Unexpected data format');
         }
       } catch (err) {
         setError('Failed to fetch cart data');
