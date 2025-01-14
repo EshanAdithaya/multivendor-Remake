@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Menu, Home, ShoppingBag, User, X } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import ShoppingCart from '../pages/ShoppingCart';
+import ShoppingCart from '../pages/ShoppingCart'; // Adjust this import path as needed
 
 const NavigationWithMenus = () => {
   const [isLeftSidebarOpen, setLeftSidebarOpen] = useState(false);
@@ -13,7 +13,6 @@ const NavigationWithMenus = () => {
   const handleLogout = () => {
     localStorage.removeItem("accessToken");
     window.location.href = "https://multivendor-remake.vercel.app/login";
-    // setIsDropdownOpen(false);
   };
 
   const leftMenuItems = [
@@ -77,19 +76,25 @@ const NavigationWithMenus = () => {
       <div
         className={`fixed top-0 left-0 h-full w-64 bg-white transform transition-transform duration-300 ease-in-out z-30 ${
           isLeftSidebarOpen ? 'translate-x-0' : '-translate-x-full'
-        }`}
+        } shadow-lg`}
       >
         <div className="border-b border-gray-200 p-4">
-          <div className="flex items-center">
+          <div className="flex items-center justify-between">
             <img
               src="/api/placeholder/40/40"
-              alt="PetDoc Logo"
+              alt="Logo"
               className="h-10"
             />
+            <button 
+              onClick={() => setLeftSidebarOpen(false)}
+              className="p-2 hover:bg-gray-100 rounded-full"
+            >
+              <X className="w-6 h-6 text-gray-500" />
+            </button>
           </div>
         </div>
         
-        <div className="flex-grow">
+        <div className="flex-grow overflow-y-auto">
           <nav className="px-4 py-6">
             {leftMenuItems.map((item, index) => (
               <button
@@ -112,15 +117,21 @@ const NavigationWithMenus = () => {
       <div
         className={`fixed top-0 right-0 h-full w-64 bg-white transform transition-transform duration-300 ease-in-out z-30 ${
           isRightSidebarOpen ? 'translate-x-0' : 'translate-x-full'
-        }`}
+        } shadow-lg`}
       >
         <div className="border-b border-gray-200 p-4">
-          <div className="flex items-center">
+          <div className="flex items-center justify-between">
             <img
               src="/api/placeholder/40/40"
-              alt="PetDoc Logo"
+              alt="Logo"
               className="h-10"
             />
+            <button 
+              onClick={() => setRightSidebarOpen(false)}
+              className="p-2 hover:bg-gray-100 rounded-full"
+            >
+              <X className="w-6 h-6 text-gray-500" />
+            </button>
           </div>
         </div>
 
@@ -141,42 +152,40 @@ const NavigationWithMenus = () => {
           </div>
         </div>
 
-        <nav className="px-4 py-6">
-          {rightMenuItems.map((item, index) => (
-            <button
-              key={index}
-              className={`w-full text-left py-3 px-2 rounded-lg font-medium transition-colors duration-200 ${
-                location.pathname === item.path
-                  ? 'bg-blue-50 text-blue-600'
-                  : 'text-gray-800 hover:bg-gray-50'
-              }`}
-              onClick={() => {
-                if (item.onClick) {
-                  item.onClick();
-                } else {
-                  handleNavigation(item.path);
-                }
-              }}
-            >
-              {item.name}
-            </button>
-          ))}
-        </nav>
+        <div className="flex-grow overflow-y-auto">
+          <nav className="px-4 py-6">
+            {rightMenuItems.map((item, index) => (
+              <button
+                key={index}
+                className={`w-full text-left py-3 px-2 rounded-lg font-medium transition-colors duration-200 ${
+                  location.pathname === item.path
+                    ? 'bg-blue-50 text-blue-600'
+                    : 'text-gray-800 hover:bg-gray-50'
+                }`}
+                onClick={() => {
+                  if (item.onClick) {
+                    item.onClick();
+                  } else {
+                    handleNavigation(item.path);
+                  }
+                }}
+              >
+                {item.name}
+              </button>
+            ))}
+          </nav>
+        </div>
       </div>
 
       {/* Full Screen Shopping Cart */}
-      <div
-        className={`fixed inset-0 bg-white transform transition-transform duration-300 ease-in-out z-40 ${
-          isShoppingCartOpen ? 'translate-y-0' : 'translate-y-full'
-        }`}
-      >
-        {isShoppingCartOpen && (
+      {isShoppingCartOpen && (
+        <div className="fixed inset-0 bg-white z-40">
           <div className="h-full flex flex-col">
             <div className="border-b border-gray-200 p-4 flex justify-between items-center">
               <div className="flex items-center">
                 <img
                   src="/api/placeholder/40/40"
-                  alt="PetDoc Logo"
+                  alt="Logo"
                   className="h-10"
                 />
                 <span className="ml-3 text-xl font-semibold">Shopping Cart</span>
@@ -188,12 +197,12 @@ const NavigationWithMenus = () => {
                 <X className="w-6 h-6 text-gray-500" />
               </button>
             </div>
-            <div className="flex-1 overflow-y-auto">
+            <div className="flex-1 overflow-hidden">
               <ShoppingCart onClose={handleCloseShoppingCart} />
             </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* Bottom Navigation */}
       <nav className="fixed bottom-0 left-0 right-0 bg-white border-t py-4 px-6 flex items-center justify-between z-20">
