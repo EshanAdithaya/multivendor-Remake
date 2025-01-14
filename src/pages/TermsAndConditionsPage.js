@@ -2,30 +2,29 @@ import React, { useState, useEffect } from 'react';
 import { AlertCircle } from 'lucide-react';
 
 const TermsAndConditionsPage = () => {
-  const [latestTerms, setLatestTerms] = useState(null);
-  const [allTerms, setAllTerms] = useState([]);
+  const [terms, setTerms] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
 
   useEffect(() => {
-    const fetchTermsData = async () => {
+    const fetchTerms = async () => {
       setIsLoading(true);
       try {
-        // Fetch both latest and all active terms
-        const [latestResponse, allResponse] = await Promise.all([
-          fetch(`${process.env.REACT_APP_BASE_URL}/api/terms/latest`),
-          fetch(`${process.env.REACT_APP_BASE_URL}/api/terms?active=true`)
-        ]);
-
-        if (!latestResponse.ok || !allResponse.ok) {
+        const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/terms`);
+        
+        if (!response.ok) {
           throw new Error('Failed to fetch terms and conditions');
         }
 
-        const latestData = await latestResponse.json();
-        const allData = await allResponse.json();
+        const data = await response.json();
+        // Find the active terms
+        const activeTerms = data.find(term => term.isActive);
+        
+        if (!activeTerms) {
+          throw new Error('No active terms and conditions found');
+        }
 
-        setLatestTerms(latestData);
-        setAllTerms(allData);
+        setTerms(activeTerms);
         setError('');
       } catch (err) {
         setError('Failed to load terms and conditions. Please try again later.');
@@ -35,7 +34,7 @@ const TermsAndConditionsPage = () => {
       }
     };
 
-    fetchTermsData();
+    fetchTerms();
   }, []);
 
   if (isLoading) {
@@ -44,17 +43,13 @@ const TermsAndConditionsPage = () => {
         <h1 className="text-3xl font-bold text-gray-900 mb-12">
           Terms and Conditions
         </h1>
-        <div className="space-y-8">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="animate-pulse">
-              <div className="h-6 bg-gray-200 rounded w-1/4 mb-4"></div>
-              <div className="space-y-3">
-                <div className="h-4 bg-gray-200 rounded w-full"></div>
-                <div className="h-4 bg-gray-200 rounded w-full"></div>
-                <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-              </div>
-            </div>
-          ))}
+        <div className="animate-pulse">
+          <div className="h-6 bg-gray-200 rounded w-1/4 mb-4"></div>
+          <div className="space-y-3">
+            <div className="h-4 bg-gray-200 rounded w-full"></div>
+            <div className="h-4 bg-gray-200 rounded w-full"></div>
+            <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+          </div>
         </div>
       </div>
     );
@@ -73,68 +68,31 @@ const TermsAndConditionsPage = () => {
         </div>
       )}
 
-      {!error && latestTerms && (
-        <div className="space-y-8">
-          <div className="mb-12">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-2xl font-bold text-gray-900">
-                {latestTerms.title}
-              </h2>
-              <span className="px-3 py-1 bg-green-100 text-green-800 text-sm font-medium rounded-full">
-                Current Version {latestTerms.version}
-              </span>
-            </div>
-            
-            {latestTerms.effectiveDate && (
-              <p className="text-sm text-gray-500 mb-4">
-                Effective from: {new Date(latestTerms.effectiveDate).toLocaleDateString()}
-                {latestTerms.expirationDate && 
-                  ` until ${new Date(latestTerms.expirationDate).toLocaleDateString()}`
-                }
-              </p>
-            )}
-            
-            <div className="prose prose-lg max-w-none">
-              <p className="text-gray-600 leading-relaxed whitespace-pre-wrap">
-                {latestTerms.content}
-              </p>
-            </div>
+      {!error && terms && (
+        <div className="bg-white rounded-lg">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-2xl font-bold text-gray-900">
+              {terms.title}
+            </h2>
+            <span className="px-3 py-1 bg-green-100 text-green-800 text-sm font-medium rounded-full">
+              Version {terms.version}
+            </span>
           </div>
-
-          {allTerms.length > 1 && (
-            <div className="mt-12">
-              <h3 className="text-xl font-semibold text-gray-900 mb-6">
-                Previous Versions
-              </h3>
-              <div className="space-y-6">
-                {allTerms
-                  .filter(term => term.id !== latestTerms.id)
-                  .map(term => (
-                    <div key={term.id} className="p-6 bg-gray-50 rounded-lg">
-                      <div className="flex justify-between items-center mb-4">
-                        <h4 className="text-lg font-medium text-gray-900">
-                          {term.title}
-                        </h4>
-                        <span className="text-sm text-gray-500">
-                          Version {term.version}
-                        </span>
-                      </div>
-                      <p className="text-gray-600">
-                        {term.content}
-                      </p>
-                      {term.effectiveDate && (
-                        <p className="text-sm text-gray-500 mt-4">
-                          Effective: {new Date(term.effectiveDate).toLocaleDateString()}
-                          {term.expirationDate && 
-                            ` - ${new Date(term.expirationDate).toLocaleDateString()}`
-                          }
-                        </p>
-                      )}
-                    </div>
-                  ))}
-              </div>
-            </div>
+          
+          {terms.effectiveDate && (
+            <p className="text-sm text-gray-500 mb-4">
+              Effective from: {new Date(terms.effectiveDate).toLocaleDateString()}
+              {terms.expirationDate && 
+                ` until ${new Date(terms.expirationDate).toLocaleDateString()}`
+              }
+            </p>
           )}
+          
+          <div className="prose prose-lg max-w-none">
+            <p className="text-gray-600 leading-relaxed whitespace-pre-wrap">
+              {terms.content}
+            </p>
+          </div>
         </div>
       )}
     </div>
