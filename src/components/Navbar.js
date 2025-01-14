@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Menu, Home, ShoppingBag, User, X } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import ShoppingCart from '../pages/ShoppingCart'; // Adjust this import path as needed
+import ShoppingCart from '../pages/ShoppingCart';
 
 const NavigationWithMenus = () => {
   const [isLeftSidebarOpen, setLeftSidebarOpen] = useState(false);
@@ -71,131 +71,120 @@ const NavigationWithMenus = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white relative overflow-hidden">
+    <div className="relative">
       {/* Left Sliding Sidebar */}
       <div
-        className={`fixed top-0 left-0 h-full w-64 bg-white transform transition-transform duration-300 ease-in-out z-30 ${
+        className={`fixed top-12 left-0 h-[calc(100%-48px)] w-64 bg-white transform transition-transform duration-300 ease-in-out z-40 ${
           isLeftSidebarOpen ? 'translate-x-0' : '-translate-x-full'
         } shadow-lg`}
       >
-        <div className="border-b border-gray-200 p-4">
-          <div className="flex items-center justify-between">
-            <img
-              src="/api/placeholder/40/40"
-              alt="Logo"
-              className="h-10"
-            />
-            <button 
-              onClick={() => setLeftSidebarOpen(false)}
-              className="p-2 hover:bg-gray-100 rounded-full"
-            >
-              <X className="w-6 h-6 text-gray-500" />
-            </button>
-          </div>
-        </div>
-        
-        <div className="flex-grow overflow-y-auto">
-          <nav className="px-4 py-6">
-            {leftMenuItems.map((item, index) => (
-              <button
-                key={index}
-                className={`w-full text-left py-3 px-2 rounded-lg font-medium transition-colors duration-200 ${
-                  location.pathname === item.path
-                    ? 'bg-blue-50 text-blue-600'
-                    : 'text-gray-800 hover:bg-gray-50'
-                }`}
-                onClick={() => handleNavigation(item.path)}
+        <div className="h-full flex flex-col">
+          <div className="px-4 py-3 border-b border-gray-200">
+            <div className="flex items-center justify-between">
+              <button 
+                onClick={() => setLeftSidebarOpen(false)}
+                className="p-2 hover:bg-gray-100 rounded-full ml-auto"
               >
-                {item.name}
+                <X className="w-6 h-6 text-gray-500" />
               </button>
-            ))}
-          </nav>
+            </div>
+          </div>
+          
+          <div className="flex-1 overflow-y-auto">
+            <nav className="px-4 py-6">
+              {leftMenuItems.map((item, index) => (
+                <button
+                  key={index}
+                  className={`w-full text-left py-3 px-2 rounded-lg font-medium transition-colors duration-200 ${
+                    location.pathname === item.path
+                      ? 'bg-red-50 text-red-600'
+                      : 'text-gray-800 hover:bg-gray-50'
+                  }`}
+                  onClick={() => handleNavigation(item.path)}
+                >
+                  {item.name}
+                </button>
+              ))}
+            </nav>
+          </div>
         </div>
       </div>
 
       {/* Right Sliding Sidebar */}
       <div
-        className={`fixed top-0 right-0 h-full w-64 bg-white transform transition-transform duration-300 ease-in-out z-30 ${
+        className={`fixed top-12 right-0 h-[calc(100%-48px)] w-64 bg-white transform transition-transform duration-300 ease-in-out z-40 ${
           isRightSidebarOpen ? 'translate-x-0' : 'translate-x-full'
         } shadow-lg`}
       >
-        <div className="border-b border-gray-200 p-4">
-          <div className="flex items-center justify-between">
-            <img
-              src="/api/placeholder/40/40"
-              alt="Logo"
-              className="h-10"
-            />
-            <button 
-              onClick={() => setRightSidebarOpen(false)}
-              className="p-2 hover:bg-gray-100 rounded-full"
-            >
-              <X className="w-6 h-6 text-gray-500" />
-            </button>
-          </div>
-        </div>
-
-        <div className="bg-white mb-4">
-          <div className="px-6 py-4 space-y-3">
-            <div className="flex justify-between items-center text-gray-600">
-              <span>Total Points</span>
-              <span>0</span>
-            </div>
-            <div className="flex justify-between items-center text-gray-600">
-              <span>Points Used</span>
-              <span>0</span>
-            </div>
-            <div className="flex justify-between items-center text-gray-600">
-              <span>Available Points</span>
-              <span>0</span>
-            </div>
-          </div>
-        </div>
-
-        <div className="flex-grow overflow-y-auto">
-          <nav className="px-4 py-6">
-            {rightMenuItems.map((item, index) => (
-              <button
-                key={index}
-                className={`w-full text-left py-3 px-2 rounded-lg font-medium transition-colors duration-200 ${
-                  location.pathname === item.path
-                    ? 'bg-blue-50 text-blue-600'
-                    : 'text-gray-800 hover:bg-gray-50'
-                }`}
-                onClick={() => {
-                  if (item.onClick) {
-                    item.onClick();
-                  } else {
-                    handleNavigation(item.path);
-                  }
-                }}
-              >
-                {item.name}
-              </button>
-            ))}
-          </nav>
-        </div>
-      </div>
-
-      {/* Full Screen Shopping Cart */}
-      {isShoppingCartOpen && (
-        <div className="fixed inset-0 bg-white z-40">
-          <div className="h-full flex flex-col">
-            <div className="border-b border-gray-200 p-4 flex justify-between items-center">
-              <div className="flex items-center">
-                <img
-                  src="/api/placeholder/40/40"
-                  alt="Logo"
-                  className="h-10"
-                />
-                <span className="ml-3 text-xl font-semibold">Shopping Cart</span>
-              </div>
+        <div className="h-full flex flex-col">
+          <div className="px-4 py-3 border-b border-gray-200">
+            <div className="flex items-center justify-between">
               <button 
-                onClick={handleCloseShoppingCart}
-                className="p-2 hover:bg-gray-100 rounded-full transition-colors duration-200"
+                onClick={() => setRightSidebarOpen(false)}
+                className="p-2 hover:bg-gray-100 rounded-full ml-auto"
               >
                 <X className="w-6 h-6 text-gray-500" />
               </button>
+            </div>
+          </div>
+
+          <div className="bg-white">
+            <div className="px-6 py-4 space-y-3 border-b border-gray-100">
+              <div className="flex justify-between items-center text-gray-600">
+                <span>Total Points</span>
+                <span>0</span>
+              </div>
+              <div className="flex justify-between items-center text-gray-600">
+                <span>Points Used</span>
+                <span>0</span>
+              </div>
+              <div className="flex justify-between items-center text-gray-600">
+                <span>Available Points</span>
+                <span>0</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex-1 overflow-y-auto">
+            <nav className="px-4 py-6">
+              {rightMenuItems.map((item, index) => (
+                <button
+                  key={index}
+                  className={`w-full text-left py-3 px-2 rounded-lg font-medium transition-colors duration-200 ${
+                    location.pathname === item.path
+                      ? 'bg-red-50 text-red-600'
+                      : 'text-gray-800 hover:bg-gray-50'
+                  }`}
+                  onClick={() => {
+                    if (item.onClick) {
+                      item.onClick();
+                    } else {
+                      handleNavigation(item.path);
+                    }
+                  }}
+                >
+                  {item.name}
+                </button>
+              ))}
+            </nav>
+          </div>
+        </div>
+      </div>
+
+      {/* Shopping Cart Overlay */}
+      {isShoppingCartOpen && (
+        <div className="fixed inset-x-0 top-12 bottom-0 bg-white z-40">
+          <div className="h-full flex flex-col">
+            <div className="px-4 py-3 border-b border-gray-200">
+              <div className="flex justify-between items-center">
+                <span className="text-xl font-semibold">Shopping Cart</span>
+                <button 
+                  onClick={handleCloseShoppingCart}
+                  className="p-2 hover:bg-gray-100 rounded-full"
+                >
+                  <X className="w-6 h-6 text-gray-500" />
+                </button>
+              </div>
             </div>
             <div className="flex-1 overflow-hidden">
               <ShoppingCart onClose={handleCloseShoppingCart} />
@@ -205,22 +194,27 @@ const NavigationWithMenus = () => {
       )}
 
       {/* Bottom Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t py-4 px-6 flex items-center justify-between z-20">
+      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t py-4 px-6 flex items-center justify-between z-40">
         <button
           onClick={toggleLeftSidebar}
           className={`transform transition-colors duration-200 ${
-            isLeftSidebarOpen ? 'text-blue-500' : 'text-gray-500'
+            isLeftSidebarOpen ? 'text-red-500' : 'text-gray-500'
           }`}
         >
           <Menu className="w-6 h-6" />
         </button>
-        <button onClick={() => handleNavigation('/')}>
-          <Home className="w-6 h-6 text-gray-500 hover:text-blue-500" />
+        <button 
+          onClick={() => handleNavigation('/')}
+          className={`transform transition-colors duration-200 ${
+            location.pathname === '/' ? 'text-red-500' : 'text-gray-500'
+          }`}
+        >
+          <Home className="w-6 h-6" />
         </button>
         <button 
           onClick={toggleShoppingCart}
           className={`transform transition-colors duration-200 ${
-            isShoppingCartOpen ? 'text-blue-500' : 'text-gray-500'
+            isShoppingCartOpen ? 'text-red-500' : 'text-gray-500'
           }`}
         >
           <ShoppingBag className="w-6 h-6" />
@@ -228,17 +222,17 @@ const NavigationWithMenus = () => {
         <button 
           onClick={toggleRightSidebar}
           className={`transform transition-colors duration-200 ${
-            isRightSidebarOpen ? 'text-blue-500' : 'text-gray-500'
+            isRightSidebarOpen ? 'text-red-500' : 'text-gray-500'
           }`}
         >
           <User className="w-6 h-6" />
         </button>
       </nav>
 
-      {/* Overlay (only for sidebars, not for shopping cart) */}
+      {/* Overlay */}
       {(isLeftSidebarOpen || isRightSidebarOpen) && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-50 transition-opacity duration-300 z-20"
+          className="fixed inset-0 bg-black bg-opacity-50 transition-opacity duration-300 z-30"
           onClick={() => {
             setLeftSidebarOpen(false);
             setRightSidebarOpen(false);
