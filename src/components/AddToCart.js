@@ -3,48 +3,51 @@ import { useNavigate } from 'react-router-dom';
 import { ShoppingCart } from 'lucide-react';
 import Cookies from 'js-cookie';
 
-const API_REACT_APP_BASE_URL = process.env.REACT_APP_BASE_URL ;
+const API_REACT_APP_BASE_URL = process.env.REACT_APP_BASE_URL;
 
-// Auth checking utilities
+// Enhanced auth checking utilities
 export const checkAuth = () => {
-  console.log('Checking authentication status...');
+  console.log('🔒 Starting authentication check...');
   const token = localStorage.getItem('accessToken');
   
   if (!token) {
-    console.log('No access token found - user is not authenticated');
+    console.warn('❌ No access token found in localStorage');
     return false;
   }
   
   try {
     const tokenParts = token.split('.');
     if (tokenParts.length !== 3) {
-      console.log('Invalid token format');
+      console.warn('❌ Invalid token format - expected 3 parts, got:', tokenParts.length);
       return false;
     }
     
     const payload = JSON.parse(atob(tokenParts[1]));
+    console.log('🔍 Token payload:', { ...payload, exp: new Date(payload.exp * 1000) });
+    
     if (payload.exp && payload.exp * 1000 < Date.now()) {
-      console.log('Token has expired');
+      console.warn('⏰ Token expired at:', new Date(payload.exp * 1000));
       localStorage.removeItem('accessToken');
       return false;
     }
     
-    console.log('User is authenticated');
+    console.log('✅ User is authenticated');
     return true;
   } catch (error) {
-    console.error('Error validating token:', error);
+    console.error('❌ Error validating token:', error);
     return false;
   }
 };
 
 export const saveCurrentUrl = () => {
   const currentPath = window.location.pathname + window.location.search;
-  console.log('Saving current URL for redirect:', currentPath);
+  console.log('💾 Saving redirect URL:', currentPath);
   Cookies.set('redirectUrl', currentPath, { expires: 1 });
 };
 
 const informAndRedirectToLogin = (navigate) => {
-  alert('You are not authenticated. Redirecting to login page...');
+  console.log('🔄 Redirecting to login...');
+  alert('Please log in to continue shopping');
   saveCurrentUrl();
   navigate('/login');
 };
@@ -54,85 +57,109 @@ export const useAddToCart = () => {
   const navigate = useNavigate();
 
   const checkExistingCart = async (shopId, token) => {
+    console.log('🔍 Checking existing cart for shop:', shopId);
     try {
-      const response = await fetch(`${API_REACT_APP_BASE_URL}/api/carts/shop/${shopId}`, {
+      const url = `${API_REACT_APP_BASE_URL}/api/carts/shop/${shopId}`;
+      console.log('📡 Making request to:', url);
+      
+      const response = await fetch(url, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
       });
       
-      if (response.ok) {
-        return await response.json();
+      console.log('📥 Cart check response status:', response.status);
+      
+      if (response.status === 404) {
+        console.log('ℹ️ No existing cart found');
+        return null;
       }
-      return null;
+      
+      if (!response.ok) {
+        throw new Error(`Failed to check cart: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      console.log('📦 Existing cart data:', data);
+      return data;
     } catch (error) {
-      console.error('Error checking existing cart:', error);
-      return null;
+      console.error('❌ Error checking existing cart:', error);
+      throw error;
     }
   };
 
-  const updateExistingCart = async (shopId, variationId, quantity, token) => {
+  const updateExistingCart = async (shopId, variations, token) => {
+    console.log('🔄 Updating cart for shop:', shopId);
+    console.log('📦 Variations to update:', variations);
+    
     try {
-      const response = await fetch(`${API_REACT_APP_BASE_URL}/api/carts`, {
+      const url = `${API_REACT_APP_BASE_URL}/api/carts`;
+      console.log('📡 Making PATCH request to:', url);
+      
+      const payload = {
+        shopId: shopId,
+        updatedVariations: variations.map(v => ({
+          variationId: v.variationId,
+          quantity: v.quantity
+        }))
+      };
+      
+      console.log('📤 Update payload:', payload);
+      
+      const response = await fetch(url, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify({
-          shopId: shopId,
-          updatedVariations: [{
-            variationId: variationId,
-            quantity: quantity
-          }]
-        })
+        body: JSON.stringify(payload)
       });
 
+      console.log('📥 Update response status:', response.status);
+      
       if (!response.ok) {
-        throw new Error('Failed to update cart');
+        const errorData = await response.json();
+        throw new Error(`Failed to update cart: ${errorData.message || response.status}`);
       }
 
-      return await response.json();
+      const data = await response.json();
+      console.log('✅ Cart updated successfully:', data);
+      return data;
     } catch (error) {
-      console.error('Error updating cart:', error);
+      console.error('❌ Error updating cart:', error);
       throw error;
     }
   };
 
   const createNewCart = async (product, quantity, token) => {
+    console.log('🛍️ Creating new cart for product:', product.id);
     try {
       if (!product.variations || product.variations.length === 0) {
-        throw new Error('Product configuration is invalid');
+        throw new Error('Product has no variations');
       }
 
-      const variation = product.variations[0];
-      
-      if (!product.__shop__?.id) {
-        throw new Error('Product shop information is missing');
-      }
+      // Handle multiple variations if they exist
+      const variations = product.variations.map(variation => ({
+        variationId: variation.id,
+        quantity: quantity,
+        price: variation.price,
+        name: product.name,
+        imageUrl: variation.imageUrl || product.imageUrl,
+        // Add any additional variation-specific properties
+        size: variation.size,
+        color: variation.color,
+        material: variation.material,
+        sku: variation.sku,
+        weight: variation.weight
+      }));
 
       const cartData = {
-        productId: product.id,
-        quantity: 1,
         shopId: product.__shop__.id,
-        price: product.price,
-        name: product.name,
-        description: product.description,
-        imageUrl: product.imageUrl,
-        categoryId: product.category?.id,
-        productGroupId: product.productGroup?.id,
-        manufacturerId: product.manufacturer?.id,
-        productVariations: [
-          {
-            variationId: variation.id,
-            quantity: quantity,
-            price: variation.price,
-            name: product.name,
-            imageUrl: variation.imageUrl || product.imageUrl
-          }
-        ]
+        productVariations: variations
       };
 
+      console.log('📤 Create cart payload:', cartData);
+      
       const response = await fetch(`${API_REACT_APP_BASE_URL}/api/carts`, {
         method: 'POST',
         headers: {
@@ -142,24 +169,31 @@ export const useAddToCart = () => {
         body: JSON.stringify(cartData)
       });
 
+      console.log('📥 Create cart response status:', response.status);
+      
       if (!response.ok) {
-        throw new Error('Failed to create cart');
+        const errorData = await response.json();
+        throw new Error(`Failed to create cart: ${errorData.message || response.status}`);
       }
 
-      return await response.json();
+      const data = await response.json();
+      console.log('✅ Cart created successfully:', data);
+      return data;
     } catch (error) {
-      console.error('Error creating cart:', error);
+      console.error('❌ Error creating cart:', error);
       throw error;
     }
   };
 
   const addToCart = async (product, quantity = 1) => {
-    console.log('Starting add to cart process for product:', product.id);
+    console.log('🛒 Starting add to cart process');
+    console.log('📦 Product:', product);
+    console.log('🔢 Quantity:', quantity);
     
     const isAuthenticated = checkAuth();
     
     if (!isAuthenticated) {
-      console.log('User not authenticated, informing user and redirecting to login');
+      console.log('❌ User not authenticated');
       informAndRedirectToLogin(navigate);
       return false;
     }
@@ -168,46 +202,41 @@ export const useAddToCart = () => {
     const token = localStorage.getItem('accessToken');
 
     try {
-      // Check if a cart exists for this shop
       const existingCart = await checkExistingCart(product.__shop__.id, token);
       
       if (existingCart) {
-        console.log('Existing cart found, updating...');
-        // Check if variation already exists in cart
-        const existingVariation = existingCart.cartItems.find(
-          item => item.productVariation.id === product.variations[0].id
-        );
+        console.log('🛍️ Found existing cart, preparing update...');
         
-        if (existingVariation) {
-          // Update existing variation quantity
-          const newQuantity = existingVariation.quantity + quantity;
-          await updateExistingCart(
-            product.__shop__.id,
-            product.variations[0].id,
-            newQuantity,
-            token
+        // Handle multiple variations
+        const updatedVariations = product.variations.map(variation => {
+          const existingItem = existingCart.cartItems?.find(
+            item => item.productVariation.id === variation.id
           );
-        } else {
-          // Add new variation to existing cart
-          await updateExistingCart(
-            product.__shop__.id,
-            product.variations[0].id,
-            quantity,
-            token
-          );
-        }
+          
+          return {
+            variationId: variation.id,
+            quantity: existingItem ? existingItem.quantity + quantity : quantity
+          };
+        });
+
+        await updateExistingCart(product.__shop__.id, updatedVariations, token);
       } else {
-        console.log('No existing cart, creating new cart...');
+        console.log('🆕 No existing cart, creating new one...');
         await createNewCart(product, quantity, token);
       }
 
-      console.log('Cart operation successful');
-      alert('Product added to cart successfully!');
+      console.log('✅ Cart operation completed successfully');
+      alert('Product added to cart!');
       return true;
 
     } catch (error) {
-      console.error('Error in addToCart:', error);
-      alert('Failed to add product to cart. Please try again.');
+      console.error('❌ Cart operation failed:', error);
+      if (error.message.includes('401')) {
+        console.log('🔒 Authentication error, redirecting to login...');
+        informAndRedirectToLogin(navigate);
+      } else {
+        alert('Failed to add to cart. Please try again.');
+      }
       return false;
     } finally {
       setAddingToCart(false);
@@ -221,7 +250,14 @@ export const AddToCartButton = ({ product, className = "" }) => {
   const { addToCart, addingToCart } = useAddToCart();
 
   const handleClick = async () => {
-    console.log('Add to cart button clicked for product:', product.id);
+    console.log('🖱️ Add to cart button clicked');
+    console.log('📦 Product details:', {
+      id: product.id,
+      name: product.name,
+      shopId: product.__shop__?.id,
+      variations: product.variations?.length
+    });
+    
     await addToCart(product);
   };
 
