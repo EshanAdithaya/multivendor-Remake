@@ -1,7 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { MapPin, Phone, Mail, Globe, Star } from 'lucide-react';
 import Header from '../components/Header';
+import ProductCard from '../components/ProductCard';
+import Lottie from 'react-lottie';
+import loaderAnimation from '../Assets/animations/loading.json'; // Adjust path as needed
+import notFoundAnimation from '../Assets/animations/not_found.json'; // Adjust path as needed
 
 const API_REACT_APP_BASE_URL = process.env.REACT_APP_BASE_URL;
 
@@ -10,7 +14,25 @@ const ShopDetails = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const { id } = useParams();
+  const navigate = useNavigate();
+
+  const defaultOptions = {
+    loop: true,
+    autoplay: true,
+    animationData: loaderAnimation,
+    rendererSettings: {
+      preserveAspectRatio: 'xMidYMid slice'
+    }
+  };
+
+  const notFoundOptions = {
+    loop: true,
+    autoplay: true,
+    animationData: notFoundAnimation,
+    rendererSettings: {
+      preserveAspectRatio: 'xMidYMid slice'
+    }
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -43,169 +65,129 @@ const ShopDetails = () => {
     fetchData();
   }, []);
 
-  // Rest of your component code stays exactly the same...
+  const handleNavigateToProduct = (productId) => {
+    navigate(`/productDetails?key=${productId}`);
+  };
+
   if (loading) {
     return (
-      <main className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <div className="text-base text-gray-600">Loading...</div>
-      </main>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <Lottie options={defaultOptions} height={100} width={100} />
+      </div>
     );
   }
 
   if (error) {
     return (
-      <main className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <div className="text-base text-red-600">Error: {error}</div>
-      </main>
+      <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4">
+        <div className="text-xl font-semibold text-red-600 mb-2">Error: {error}</div>
+        <button 
+          onClick={() => window.location.reload()} 
+          className="px-4 py-2 bg-red-500 text-white rounded-lg"
+        >
+          Retry
+        </button>
+      </div>
     );
   }
 
   return (
-    <main className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50">
       <Header />
       
-      {/* Shop Header - Mobile Optimized */}
+      {/* Shop Header */}
       <div className="relative">
-        <img
-          src={shop.coverImageUrl || '/placeholder-cover.jpg'}
-          alt="Shop Cover"
-          className="w-full h-32 sm:h-48 object-cover"
-        />
-        <div className="absolute -bottom-12 sm:-bottom-16 left-4 bg-white p-2 rounded-xl shadow-lg">
+        <div className="h-40 bg-gradient-to-r from-blue-500 to-blue-600"></div>
+        <div className="absolute -bottom-16 left-4 bg-white p-2 rounded-xl shadow-lg">
           <img
-            src={shop.logoUrl || '/placeholder-logo.png'}
+            src={shop.logoUrl || '/api/placeholder/80/80'}
             alt={shop.name}
-            className="w-20 h-20 sm:w-28 sm:h-28 rounded-lg object-cover"
+            className="w-28 h-28 rounded-lg object-cover"
+            onError={(e) => {
+              e.target.onerror = null;
+              e.target.src = '/api/placeholder/80/80';
+            }}
           />
         </div>
       </div>
 
-      {/* Shop Details - Mobile Optimized */}
-      <div className="px-4 mt-16 sm:mt-20 space-y-4">
-        <div className="bg-white rounded-xl p-4 shadow-sm">
-          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2">
-            <h1 className="text-xl sm:text-2xl font-bold text-gray-900">{shop.name}</h1>
+      {/* Shop Details */}
+      <div className="px-4 mt-20">
+        <div className="bg-white rounded-xl p-4 shadow-sm mb-4">
+          <div className="flex justify-between items-start">
+            <h1 className="text-2xl font-bold text-gray-900">{shop.name}</h1>
             <div className="flex items-center gap-1">
-              <Star className="w-4 h-4 sm:w-5 sm:h-5 fill-yellow-400 text-yellow-400" />
-              <span className="text-base sm:text-lg font-semibold">{shop.rating}</span>
-              <span className="text-sm text-gray-500">({shop.totalReviews})</span>
+              <Star className="w-5 h-5 fill-yellow-400 text-yellow-400" />
+              <span className="text-lg font-semibold">{shop.rating || 0}</span>
+              <span className="text-sm text-gray-500">({shop.totalReviews || 0})</span>
             </div>
           </div>
 
-          {/* Rest of your JSX remains exactly the same... */}
-          <p className="text-gray-600 text-sm sm:text-base mt-2">{shop.description}</p>
+          <p className="text-gray-600 mt-2">{shop.description}</p>
 
           <div className="mt-4 space-y-2">
             <div className="flex items-start gap-2">
-              <MapPin className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400 flex-shrink-0 mt-1" />
-              <p className="text-sm sm:text-base text-gray-600">
+              <MapPin className="w-5 h-5 text-gray-400 flex-shrink-0 mt-1" />
+              <p className="text-gray-600">
                 {`${shop.streetAddress}, ${shop.city}, ${shop.state}, ${shop.zip}`}
               </p>
             </div>
 
-            <div className="flex items-center gap-2">
-              <Phone className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400" />
-              <a href={`tel:${shop.phoneNumber}`} className="text-sm sm:text-base text-gray-600">
-                {shop.phoneNumber}
-              </a>
-            </div>
+            {shop.phoneNumber && (
+              <div className="flex items-center gap-2">
+                <Phone className="w-5 h-5 text-gray-400" />
+                <a href={`tel:${shop.phoneNumber}`} className="text-gray-600">
+                  {shop.phoneNumber}
+                </a>
+              </div>
+            )}
 
-            <div className="flex items-center gap-2">
-              <Mail className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400" />
-              <a href={`mailto:${shop.email}`} className="text-sm sm:text-base text-gray-600 break-all">
-                {shop.email}
-              </a>
-            </div>
+            {shop.email && (
+              <div className="flex items-center gap-2">
+                <Mail className="w-5 h-5 text-gray-400" />
+                <a href={`mailto:${shop.email}`} className="text-gray-600 break-all">
+                  {shop.email}
+                </a>
+              </div>
+            )}
 
             {shop.website && (
               <div className="flex items-center gap-2">
-                <Globe className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400" />
+                <Globe className="w-5 h-5 text-gray-400" />
                 <a href={shop.website} target="_blank" rel="noopener noreferrer" 
-                   className="text-sm sm:text-base text-blue-600 break-all">
+                   className="text-blue-600 break-all">
                   Visit Website
                 </a>
               </div>
             )}
           </div>
-
-          <div className="mt-4 sm:mt-6">
-            <h2 className="text-lg sm:text-xl font-semibold mb-3">Shop Statistics</h2>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="bg-gray-50 p-3 rounded-lg">
-                <p className="text-xs sm:text-sm text-gray-500">Products</p>
-                <p className="text-lg sm:text-2xl font-bold text-gray-900">{shop.totalProducts}</p>
-              </div>
-              <div className="bg-gray-50 p-3 rounded-lg">
-                <p className="text-xs sm:text-sm text-gray-500">Reviews</p>
-                <p className="text-lg sm:text-2xl font-bold text-gray-900">{shop.totalReviews}</p>
-              </div>
-            </div>
-          </div>
         </div>
 
-        {/* Products Section - Mobile Optimized */}
-        <div className="bg-white rounded-xl p-4 shadow-sm">
-          <h2 className="text-lg sm:text-xl font-semibold mb-3">Products ({products.length})</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-            {products.map((product) => (
-              <div key={product.id} className="bg-gray-50 rounded-lg p-3 sm:p-4">
-                <div className="relative">
-                  <img
-                    src={product.imageUrl || '/api/placeholder/400/320'}
-                    alt={product.name}
-                    className="w-full h-32 sm:h-48 object-cover rounded-lg"
-                  />
-                  <span className={`absolute top-2 right-2 text-xs px-2 py-1 rounded ${
-                    product.status === 'AVAILABLE' 
-                      ? 'bg-green-100 text-green-800' 
-                      : 'bg-red-100 text-red-800'
-                  }`}>
-                    {product.status}
-                  </span>
-                </div>
-                
-                <h3 className="font-semibold text-base sm:text-lg mt-2 line-clamp-1">{product.name}</h3>
-                <p className="text-xs sm:text-sm text-gray-600 mt-1 line-clamp-2">{product.description}</p>
-                
-                <div className="flex justify-between items-center mt-2">
-                  <span className="text-base sm:text-lg font-bold text-blue-600">
-                    ${parseFloat(product.price).toFixed(2)}
-                  </span>
-                  <span className="text-xs sm:text-sm text-gray-500">
-                    Stock: {product.stockQuantity}
-                  </span>
-                </div>
-                
-                {product.variations?.length > 0 && (
-                  <div className="mt-2 pt-2 border-t border-gray-200">
-                    <p className="text-xs sm:text-sm font-medium mb-1">Variations:</p>
-                    <div className="space-y-1">
-                      {product.variations.slice(0, 2).map((variant) => (
-                        <div key={variant.id} className="text-xs sm:text-sm text-gray-600 flex justify-between">
-                          <span>{variant.material || variant.size || variant.color}</span>
-                          <span>${parseFloat(variant.price).toFixed(2)}</span>
-                        </div>
-                      ))}
-                      {product.variations.length > 2 && (
-                        <div className="text-xs text-blue-600">
-                          +{product.variations.length - 2} more variations
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                <div className="mt-2 pt-2 border-t border-gray-200">
-                  <span className="text-xs text-gray-500">
-                    Expires: {new Date(product.expirationDate).toLocaleDateString()}
-                  </span>
-                </div>
-              </div>
-            ))}
+        {/* Products Section */}
+        <div className="mb-20">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-lg font-bold text-gray-900">Products ({products.length})</h2>
           </div>
+
+          {products.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-8">
+              <Lottie options={notFoundOptions} height={150} width={150} />
+              <p className="text-gray-500 mt-4">No products available</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 gap-3">
+              {products.map((product) => (
+                <ProductCard
+                  key={product.id}
+                  product={product}
+                  onNavigate={() => handleNavigateToProduct(product.id)}
+                />
+              ))}
+            </div>
+          )}
         </div>
       </div>
-    </main>
+    </div>
   );
 };
 
