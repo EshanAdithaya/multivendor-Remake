@@ -99,9 +99,11 @@ const CheckoutPage = () => {
 
   const handlePlaceOrder = async () => {
     const token = localStorage.getItem('accessToken');
+    const orderNumbers = [];
     
     try {
       for (const cart of carts) {
+        const orderNumber = `ORD${Date.now()}${Math.floor(Math.random() * 1000)}`;
         const orderData = {
           status: "pending",
           paymentStatus: "pending",
@@ -112,12 +114,13 @@ const CheckoutPage = () => {
           shopId: cart.shop.id,
           shippingStatus: "pending",
           shippingMethod: "standard",
+          orderNumber: orderNumber, // Add order number
           items: cart.cartItems.map(item => ({
             productVariationId: item.productVariation.id,
             quantity: item.quantity
           }))
         };
-
+  
         const response = await fetch(`${API_REACT_APP_BASE_URL}/api/orders`, {
           method: 'POST',
           headers: {
@@ -126,14 +129,27 @@ const CheckoutPage = () => {
           },
           body: JSON.stringify(orderData)
         });
-
+  
         if (!response.ok) {
           throw new Error(`Failed to create order for ${cart.shop.name}`);
         }
+  
+        orderNumbers.push(orderNumber);
       }
       
-      // Navigate to success page or show success message
-      navigate('/order-success');
+      // Get user email from localStorage or your auth context
+      const userEmail = localStorage.getItem('userEmail'); // Adjust based on your auth setup
+      
+      // Navigate to success page with order details
+      navigate('/order-success', {
+        state: {
+          orderDetails: {
+            orderNumber: orderNumbers.join(', '),
+            email: userEmail,
+            total: calculateTotal().total
+          }
+        }
+      });
     } catch (err) {
       setError(err.message);
     }
