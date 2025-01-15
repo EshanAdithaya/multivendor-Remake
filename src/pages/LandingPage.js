@@ -282,32 +282,13 @@ const LandingPage = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header />
+      <Header 
+  onSearchChange={(value) => setFilters(prev => ({ ...prev, name: value }))}
+  onFilterClick={() => setShowFilters(!showFilters)}
+/>
       
       <main className="pb-6">
-        {/* Search and Filter Controls */}
-        <div className="sticky top-0 bg-white shadow-sm z-40">
-          <div className="container mx-auto px-4 py-3">
-            <div className="flex items-center gap-3">
-              <div className="relative flex-grow">
-                <input
-                  type="text"
-                  placeholder="Search products..."
-                  className="w-full px-4 py-2 text-sm bg-gray-100 rounded-full pl-10 focus:outline-none focus:ring-2 focus:ring-yellow-400"
-                  value={filters.name}
-                  onChange={(e) => setFilters(prev => ({ ...prev, name: e.target.value }))}
-                />
-                <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
-              </div>
-              <button 
-                className="p-2 bg-gray-100 rounded-full"
-                onClick={() => setShowFilters(!showFilters)}
-              >
-                <Filter className="w-5 h-5 text-gray-600" />
-              </button>
-            </div>
-          </div>
-        </div>
+
 
         {/* Categories Scroll */}
         <div className="bg-white mb-4">

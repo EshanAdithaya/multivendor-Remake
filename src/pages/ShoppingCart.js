@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ShoppingBag, Trash2 } from 'lucide-react';
+import { ShoppingBag, Trash2, X } from 'lucide-react';
 import lottie from 'lottie-web';
 import emptyCartAnimation from '../Assets/animations/empty_cart.json';
 import catWaitingAnimation from '../Assets/animations/cat_waiting.json';
@@ -49,14 +49,15 @@ const ShoppingCart = ({ onClose }) => {
       try {
         const response = await fetch(`${API_REACT_APP_BASE_URL}/api/carts/user`, {
           headers: {
-            'Authorization': `Bearer ${token}`
+            'Authorization': `Bearer ${token}`,
+            'Accept': '*/*'
           }
         });
         const data = await response.json();
         if (Array.isArray(data)) {
           setCarts(data);
         } else {
-          // setError('Unexpected data format');
+          setError('Unexpected data format');
         }
       } catch (err) {
         setError('Failed to fetch cart data');
@@ -96,7 +97,8 @@ const ShoppingCart = ({ onClose }) => {
       const response = await fetch(`${API_REACT_APP_BASE_URL}/api/carts/${cartId}`, {
         method: 'DELETE',
         headers: {
-          'Authorization': `Bearer ${token}`
+          'Authorization': `Bearer ${token}`,
+          'Accept': '*/*'
         }
       });
 
@@ -128,116 +130,153 @@ const ShoppingCart = ({ onClose }) => {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-yellow-600">Loading cart details...</div>
+      <div className="fixed inset-0 bg-white z-50 h-screen">
+        <div className="h-full flex items-center justify-center">
+          <div className="text-yellow-600">Loading cart details...</div>
+        </div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="flex items-center justify-center min-h-screen text-red-500">
-        {error}
-        {error === 'Unexpected data format' && (
-          <div className="flex flex-col items-center">
-            <div ref={animationContainer} className="w-64 h-64"></div>
-            <p className="text-gray-500 mt-4">Unexpected data format. Please contact admin.</p>
+      <div className="fixed inset-0 bg-white z-50 h-screen">
+        <div className="h-full flex items-center justify-center">
+          <div className="text-center">
+            <div className="text-red-500 mb-4">{error}</div>
+            {error === 'Unexpected data format' && (
+              <>
+                <div ref={animationContainer} className="w-64 h-64" />
+                <p className="text-gray-500 mt-4">Unexpected data format. Please contact admin.</p>
+              </>
+            )}
+            {!localStorage.getItem('accessToken') && (
+              <>
+                <div ref={animationContainer} className="w-64 h-64" />
+                <p className="text-gray-500 mt-4">Please log in to view your cart</p>
+                <button
+                  className="mt-4 px-4 py-2 bg-yellow-600 text-white rounded"
+                  onClick={() => navigate('/login')}
+                >
+                  Login
+                </button>
+              </>
+            )}
           </div>
-        )}
-        {!localStorage.getItem('accessToken') && (
-          <div className="flex flex-col items-center">
-            <div ref={animationContainer} className="w-64 h-64"></div>
-            <p className="text-gray-500 mt-4">You can see your cart after logging into your account.</p>
-            <button
-              className="mt-4 px-4 py-2 bg-yellow-600 text-white rounded"
-              onClick={() => navigate('/login')}
-            >
-              Login
-            </button>
-          </div>
-        )}
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="p-4 max-w-4xl mx-auto">
-      <div className="mb-6 flex items-center gap-2">
-        <ShoppingBag className="w-6 h-6 text-yellow-600" />
-        <h1 className="text-2xl font-semibold">Shopping Carts</h1>
+    <div className="fixed inset-0 bg-white z-50">
+      {/* Header */}
+      <div className="absolute top-0 left-0 right-0 h-[60px] bg-white border-b flex items-center px-4">
+        <div className="flex items-center gap-2">
+          <ShoppingBag className="w-6 h-6 text-yellow-600" />
+          <h1 className="text-2xl font-semibold">Shopping Carts</h1>
+        </div>
+        {onClose && (
+          <button 
+            onClick={onClose} 
+            className="ml-auto p-2 hover:bg-gray-100 rounded-full"
+          >
+            <X className="w-6 h-6" />
+          </button>
+        )}
       </div>
 
-      {carts.length === 0 ? (
-        <div className="flex flex-col items-center justify-center min-h-screen">
-          <div ref={animationContainer} className="w-64 h-64"></div>
-          <p className="text-gray-500 mt-4">Shopping cart is empty</p>
-        </div>
-      ) : (
-        carts.map((cart) => (
-          <div key={cart.id} className="mb-6 bg-white rounded-lg shadow-md overflow-hidden">
-            <div className="p-4 border-b">
-              <div className="flex justify-between items-center">
-                <span className="font-semibold">Cart ID: {cart.id.slice(0, 8)}...</span>
-                <span className="text-sm text-gray-500">
-                  {new Date(cart.createdAt).toLocaleDateString()}
-                </span>
-                <button
-                  className="text-red-500"
-                  onClick={() => deleteCart(cart.id)}
-                >
-                  <Trash2 className="w-5 h-5" />
-                </button>
-              </div>
+      {/* Scrollable Content - Adjusted to account for bottom nav */}
+      <div className="absolute top-[60px] bottom-[140px] left-0 right-0 overflow-y-auto">
+        <div className="container mx-auto max-w-4xl p-4">
+          {carts.length === 0 ? (
+            <div className="flex flex-col items-center justify-center min-h-[400px]">
+              <div ref={animationContainer} className="w-64 h-64" />
+              <p className="text-gray-500 mt-4">Shopping cart is empty</p>
             </div>
-            <div className="p-4">
-              <div className="space-y-4">
-                <div className="text-sm text-gray-500">Status: {cart.status}</div>
-                <div className="text-sm">Shop: {cart.shop.name}</div>
-                
-                {cart.cartItems.length > 0 ? (
-                  <div className="space-y-4">
-                    {cart.cartItems.map((item) => (
-                      <div key={item.id} className="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
-                        <div>
-                          <div className="font-medium">
-                            {item.productVariation.material || 'Product'}
-                          </div>
-                          <div className="text-sm text-gray-500">
-                            Quantity: {item.quantity}
-                          </div>
-                        </div>
-                        <div className="text-yellow-600 font-medium">
-                          ${Number(item.price).toFixed(2)}
+          ) : (
+            <div className="space-y-4">
+              {carts.map((cart) => (
+                <div key={cart.id} className="bg-white rounded-xl shadow-sm border">
+                  <div className="p-4 border-b">
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <span className="font-medium text-gray-700">
+                          Cart ID: {cart.id.slice(0, 8)}...
+                        </span>
+                        <div className="text-sm text-blue-600 mt-1">
+                          Status: {cart.status}
                         </div>
                       </div>
-                    ))}
+                      <button
+                        className="text-red-500 hover:text-red-600 p-2 hover:bg-red-50 rounded-full"
+                        onClick={() => deleteCart(cart.id)}
+                      >
+                        <Trash2 className="w-5 h-5" />
+                      </button>
+                    </div>
                   </div>
-                ) : (
-                  <div className="text-gray-500 text-center py-4">
-                    No items in cart
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        ))
-      )}
 
-      <div className="mt-8 bg-white rounded-lg shadow-md">
-        <div className="p-6">
-          <div className="flex justify-between items-center text-lg font-semibold">
-            <span>Total Price (All Carts):</span>
-            <span className="text-yellow-600">${calculateTotalPrice().toFixed(2)}</span>
-          </div>
+                  <div className="p-4">
+                    <div className="mb-3 flex justify-between items-center">
+                      <span className="text-gray-600">
+                        Shop: {cart.shop.name}
+                      </span>
+                      <span className="text-sm text-gray-500">
+                        {new Date(cart.createdAt).toLocaleDateString()}
+                      </span>
+                    </div>
+                    
+                    {cart.cartItems.length > 0 ? (
+                      <div className="space-y-3">
+                        {cart.cartItems.map((item) => (
+                          <div key={item.id} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                            <div>
+                              <div className="font-medium">
+                                {item.productVariation.material || 'Product'}
+                              </div>
+                              <div className="text-sm text-gray-500">
+                                Quantity: {item.quantity}
+                              </div>
+                            </div>
+                            <div className="text-yellow-600 font-medium">
+                              ${Number(item.price).toFixed(2)}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-gray-500 text-center py-3">
+                        No items in cart
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
-      <div className="mt-4 flex justify-end">
-        <button
-          className="px-4 py-2 bg-yellow-600 text-white rounded"
-          onClick={handleCheckout}
-        >
-          Checkout
-        </button>
+
+      {/* Fixed Total Price & Checkout - Positioned just above nav bar */}
+      <div className="fixed bottom-[56px] left-0 right-0 bg-white border-t">
+        <div className="container mx-auto max-w-4xl px-4 py-3">
+          <div className="flex justify-between items-center mb-3">
+            <span className="text-lg font-medium text-gray-800">
+              Total Price (All Carts):
+            </span>
+            <span className="text-xl font-bold text-yellow-600">
+              ${calculateTotalPrice().toFixed(2)}
+            </span>
+          </div>
+          <button
+            className="w-full h-12 bg-yellow-600 text-white rounded-lg font-semibold hover:bg-yellow-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            onClick={handleCheckout}
+            disabled={carts.length === 0}
+          >
+            Checkout
+          </button>
+        </div>
       </div>
     </div>
   );
