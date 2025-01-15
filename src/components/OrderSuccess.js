@@ -1,20 +1,19 @@
 import React from 'react';
-import { CheckCircle } from 'lucide-react';
+import Lottie from 'lottie-react';
+import orderSuccessAnimation from '../Assets/animations/packing.json';
 
 const OrderSuccess = () => {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4">
       {/* Success Card */}
       <div className="bg-white rounded-lg shadow-lg p-8 max-w-md w-full text-center">
-        {/* Animation Container */}
-        <div className="mb-6 relative">
-          {/* Outer expanding circle animation */}
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-24 h-24 rounded-full bg-green-100 animate-ping" />
-          
-          {/* Inner static circle */}
-          <div className="relative">
-            <CheckCircle className="w-24 h-24 mx-auto text-green-500 animate-bounce" />
-          </div>
+        {/* Lottie Animation */}
+        <div className="mb-6 w-48 h-48 mx-auto">
+          <Lottie
+            animationData={orderSuccessAnimation}
+            loop={false}
+            autoplay={true}
+          />
         </div>
 
         {/* Success Message */}
