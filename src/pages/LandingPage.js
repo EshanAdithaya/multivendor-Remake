@@ -276,27 +276,6 @@ const LandingPage = () => {
     return () => clearTimeout(timeoutId);
   }, [filters]);
 
-  useEffect(() => {
-    const handleBeforeUnload = (event) => {
-      event.preventDefault();
-      event.returnValue = 'Do you really want to leave?';
-    };
-
-    const handleUnload = () => {
-      if (window.confirm('Do you really want to leave?')) {
-        localStorage.removeItem('hasSeenLoader');
-      }
-    };
-
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    window.addEventListener('unload', handleUnload);
-
-    return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload);
-      window.removeEventListener('unload', handleUnload);
-    };
-  }, []);
-
   const handleNavigateToProduct = (productId) => {
     navigate(`/productDetails?key=${productId}`);
   };

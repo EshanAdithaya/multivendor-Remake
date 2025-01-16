@@ -78,9 +78,9 @@ const NavigationWithMenus = () => {
     { name: 'My Cards', path: '/cards' },
     { name: 'My Address', path: '/address' },
     { name: 'My Wishlists', path: '/wishlists' },
-    { name: 'My Questions', path: '/questions' },
+    { name: 'My Reviews', path: '/review' },
     { name: 'My Refunds', path: '/refunds' },
-    { name: 'My Reports', path: '/reports' },
+    // { name: 'My Reports', path: '/reports' },
     { name: 'Checkout', path: '/checkout' },
     { name: 'Change Password', path: '/change-password' },
     { name: 'Logout', path: '#', onClick: handleLogout }

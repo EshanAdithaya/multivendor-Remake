@@ -18,7 +18,6 @@ import ContactPage from './pages/ContactPage';
 // import ShopsPage from './pages/ShopsPage';
 import ManufacturersPage from './pages/ManufacturersPage';
 import AuthorsPage from './pages/AuthorsPage';
-import ReportsScreen from './pages/ReportsScreen';
 import RefundsScreen from './pages/RefundsScreen';
 import ProductDetail from './pages/ProductDetail';
 import PasswordChangeScreen from './pages/dashboard/PasswordChangeScreen';
@@ -99,11 +98,7 @@ function App() {
               <RefundsScreen />
             </ProtectedRoute>
           } />
-          <Route path="/reports" element={
-            <ProtectedRoute>
-              <ReportsScreen />
-            </ProtectedRoute>
-          } />
+          
           <Route path="/address" element={
             <ProtectedRoute>
               <AddressManagement />
