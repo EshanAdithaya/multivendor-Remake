@@ -1,12 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Menu, Home, ShoppingBag, User, X } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import ShoppingCart from '../pages/ShoppingCart';
+
+const API_REACT_APP_BASE_URL = process.env.REACT_APP_BASE_URL;
 
 const NavigationWithMenus = () => {
   const [isLeftSidebarOpen, setLeftSidebarOpen] = useState(false);
   const [isRightSidebarOpen, setRightSidebarOpen] = useState(false);
   const [isShoppingCartOpen, setShoppingCartOpen] = useState(false);
+  const [cartItemCount, setCartItemCount] = useState(0);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -14,6 +17,48 @@ const NavigationWithMenus = () => {
     localStorage.removeItem("accessToken");
     window.location.href = "https://multivendor-remake.vercel.app/login";
   };
+
+  // Fetch cart items count
+  useEffect(() => {
+    const fetchCartItemCount = async () => {
+      const token = localStorage.getItem('accessToken');
+      if (!token) {
+        setCartItemCount(0);
+        return;
+      }
+
+      try {
+        const response = await fetch(`${API_REACT_APP_BASE_URL}/api/carts/user`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Accept': '*/*'
+          }
+        });
+
+        if (response.ok) {
+          const carts = await response.json();
+          const totalItems = carts.reduce((total, cart) => 
+            total + cart.cartItems.reduce((sum, item) => sum + item.quantity, 0), 
+          0);
+          setCartItemCount(totalItems);
+        } else {
+          setCartItemCount(0);
+        }
+      } catch (error) {
+        console.error('Error fetching cart items:', error);
+        setCartItemCount(0);
+      }
+    };
+
+    // Fetch on initial load and when cart opens
+    fetchCartItemCount();
+
+    // Set up interval to periodically check cart items
+    const intervalId = setInterval(fetchCartItemCount, 60000); // Every minute
+
+    // Clean up interval on component unmount
+    return () => clearInterval(intervalId);
+  }, [isShoppingCartOpen]);
 
   const leftMenuItems = [
     { name: 'Shops', path: '/shops' },
@@ -213,11 +258,16 @@ const NavigationWithMenus = () => {
         </button>
         <button 
           onClick={toggleShoppingCart}
-          className={`transform transition-colors duration-200 ${
+          className={`relative transform transition-colors duration-200 ${
             isShoppingCartOpen ? 'text-yellow-500' : 'text-gray-500'
           }`}
         >
           <ShoppingBag className="w-6 h-6" />
+          {cartItemCount > 0 && (
+            <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+              {cartItemCount > 99 ? '99+' : cartItemCount}
+            </span>
+          )}
         </button>
         <button 
           onClick={toggleRightSidebar}
