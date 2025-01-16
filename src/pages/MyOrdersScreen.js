@@ -89,9 +89,11 @@ const MyOrdersScreen = () => {
     fetchOrders();
   }, []);
 
-  const handleOrderClick = (orderId) => {
-    navigate(`/orderDetails?token=${orderId}`);
-  };
+// In MyOrdersScreen.jsx
+const handleOrderClick = (orderId) => {
+  // Updated to use the correct route - make sure this matches your router configuration
+  navigate(`/order-details?token=${orderId}`);
+};
 
   if (loading) {
     return (

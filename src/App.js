@@ -104,7 +104,7 @@ function App() {
               <AddressManagement />
             </ProtectedRoute>
           } />
-          <Route path="/orderDetails" element={
+          <Route path="/order-details" element={
             <ProtectedRoute>
               <OrderDetailsScreen />
             </ProtectedRoute>
