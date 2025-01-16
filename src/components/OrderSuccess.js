@@ -81,12 +81,12 @@ const OrderSuccess = () => {
         </div>
 
         <div className="space-y-3">
-          <button 
-            onClick={() => navigate('/orders')}
+          {/* <button 
+            onClick={() => navigate(`/order-details?token=${orderDetails.orderId}`)}
             className="w-full text-yellow-500 hover:text-yellow-600 font-semibold py-2 px-4 rounded-md transition-colors"
           >
             Track Order
-          </button>
+          </button> */}
 
           <button 
             onClick={() => navigate('/')}

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ChevronLeft, MapPin, CreditCard, Clock, Plus, ShoppingBag } from 'lucide-react';
+import { ChevronLeft, MapPin, CreditCard, Clock, Plus, ShoppingBag, Tag } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Lottie from 'lottie-react';
 import loadingAnimation from '../Assets/animations/loading.json';
@@ -12,6 +12,9 @@ const CheckoutPage = () => {
   const [carts, setCarts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [couponCode, setCouponCode] = useState('');
+  const [appliedCoupon, setAppliedCoupon] = useState(null);
+  const [couponError, setCouponError] = useState('');
 
   const API_REACT_APP_BASE_URL = process.env.REACT_APP_BASE_URL;
 
@@ -78,6 +81,45 @@ const CheckoutPage = () => {
     }
   };
 
+  const handleApplyCoupon = async () => {
+    if (!couponCode) {
+      setCouponError('Please enter a coupon code');
+      return;
+    }
+
+    try {
+      const response = await fetch(`${API_REACT_APP_BASE_URL}/api/coupons/coupon-name/${couponCode}`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Invalid coupon code');
+      }
+
+      const couponData = await response.json();
+      
+      // Check if coupon is expired
+      if (new Date(couponData.expiresAt) < new Date()) {
+        setCouponError('This coupon has expired');
+        return;
+      }
+
+      setAppliedCoupon(couponData);
+      setCouponError('');
+    } catch (err) {
+      setCouponError('Invalid coupon code');
+      setAppliedCoupon(null);
+    }
+  };
+
+  const removeCoupon = () => {
+    setAppliedCoupon(null);
+    setCouponCode('');
+    setCouponError('');
+  };
+
   const calculateTotal = () => {
     let subtotal = carts.reduce((total, cart) => {
       return total + cart.cartItems.reduce((cartTotal, item) => {
@@ -87,12 +129,23 @@ const CheckoutPage = () => {
 
     const delivery = 2.00;
     const tax = subtotal * 0.1; // 10% tax
-    const total = subtotal + delivery + tax;
+
+    let discount = 0;
+    if (appliedCoupon) {
+      if (appliedCoupon.type === 'fixed') {
+        discount = Number(appliedCoupon.value);
+      } else if (appliedCoupon.type === 'percentage') {
+        discount = (subtotal * Number(appliedCoupon.value)) / 100;
+      }
+    }
+
+    const total = subtotal + delivery + tax - discount;
 
     return {
       subtotal,
       delivery,
       tax,
+      discount,
       total
     };
   };
@@ -100,6 +153,40 @@ const CheckoutPage = () => {
   const handlePlaceOrder = async () => {
     const token = localStorage.getItem('accessToken');
     const orderNumbers = [];
+    
+    // Add check for zero subtotal
+    if (calculateTotal().subtotal <= 0) {
+      setError('Cannot place order with empty cart');
+      return;
+    }
+
+    // Validate coupon before placing order
+    if (appliedCoupon) {
+      try {
+        const couponResponse = await fetch(`${API_REACT_APP_BASE_URL}/api/coupons/coupon-name/${appliedCoupon.code}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (!couponResponse.ok) {
+          // If coupon is invalid, remove it and continue with order
+          setAppliedCoupon(null);
+          setCouponError('Coupon is no longer valid');
+        } else {
+          const couponData = await couponResponse.json();
+          if (new Date(couponData.expiresAt) < new Date()) {
+            // If coupon is expired, remove it and continue with order
+            setAppliedCoupon(null);
+            setCouponError('Coupon has expired');
+          }
+        }
+      } catch (err) {
+        // If there's an error checking the coupon, continue without it
+        setAppliedCoupon(null);
+        setCouponError('Error validating coupon');
+      }
+    }
     
     try {
       for (const cart of carts) {
@@ -114,13 +201,18 @@ const CheckoutPage = () => {
           shopId: cart.shop.id,
           shippingStatus: "pending",
           shippingMethod: "standard",
-          orderNumber: orderNumber, // Add order number
+          orderNumber: orderNumber,
           items: cart.cartItems.map(item => ({
             productVariationId: item.productVariation.id,
             quantity: item.quantity
           }))
         };
-  
+
+        // Only add coupon to order if it's still valid
+        if (appliedCoupon) {
+          orderData.couponId = appliedCoupon.id;
+        }
+
         const response = await fetch(`${API_REACT_APP_BASE_URL}/api/orders`, {
           method: 'POST',
           headers: {
@@ -129,18 +221,16 @@ const CheckoutPage = () => {
           },
           body: JSON.stringify(orderData)
         });
-  
+
         if (!response.ok) {
           throw new Error(`Failed to create order for ${cart.shop.name}`);
         }
-  
+
         orderNumbers.push(orderNumber);
       }
-      
-      // Get user email from localStorage or your auth context
-      const userEmail = localStorage.getItem('userEmail'); // Adjust based on your auth setup
-      
-      // Navigate to success page with order details
+
+      const userEmail = localStorage.getItem('userEmail');
+
       navigate('/order-success', {
         state: {
           orderDetails: {
@@ -266,6 +356,54 @@ const CheckoutPage = () => {
             </div>
           </div>
 
+          {/* Coupon Section */}
+          <div className="bg-white rounded-xl p-4 shadow-sm">
+            <div className="flex items-center gap-2 mb-4">
+              <Tag className="w-5 h-5 text-yellow-600" />
+              <h2 className="font-semibold">Apply Coupon</h2>
+            </div>
+            
+            {appliedCoupon ? (
+              <div className="flex items-center justify-between bg-green-50 p-3 rounded-lg">
+                <div>
+                  <p className="font-medium text-green-700">{appliedCoupon.code}</p>
+                  <p className="text-sm text-green-600">
+                    {appliedCoupon.type === 'fixed' 
+                      ? `$${appliedCoupon.value} off` 
+                      : `${appliedCoupon.value}% off`}
+                  </p>
+                </div>
+                <button 
+                  onClick={removeCoupon}
+                  className="text-red-500 text-sm hover:text-red-700"
+                >
+                  Remove
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={couponCode}
+                    onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                    placeholder="Enter coupon code"
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
+                  />
+                  <button
+                    onClick={handleApplyCoupon}
+                    className="px-4 py-2 bg-yellow-400 text-white rounded-lg hover:bg-yellow-500"
+                  >
+                    Apply
+                  </button>
+                </div>
+                {couponError && (
+                  <p className="text-red-500 text-sm">{couponError}</p>
+                )}
+              </div>
+            )}
+          </div>
+
           {/* Order Summary */}
           <div className="bg-white rounded-xl p-4 shadow-sm">
             <h2 className="font-semibold mb-4">Order Summary</h2>
@@ -282,6 +420,12 @@ const CheckoutPage = () => {
                 <span>Tax</span>
                 <span>${orderSummary.tax.toFixed(2)}</span>
               </div>
+              {orderSummary.discount > 0 && (
+                <div className="flex justify-between text-green-600">
+                  <span>Discount</span>
+                  <span>-${orderSummary.discount.toFixed(2)}</span>
+                </div>
+              )}
               <div className="flex justify-between font-semibold text-lg pt-2 border-t">
                 <span>Total</span>
                 <span>${orderSummary.total.toFixed(2)}</span>
@@ -296,7 +440,7 @@ const CheckoutPage = () => {
         <div className="bg-white border-t p-4">
           <button 
             onClick={handlePlaceOrder}
-            disabled={!selectedAddress} 
+            disabled={!selectedAddress || orderSummary.subtotal <= 0} 
             className="w-full bg-yellow-400 text-white py-4 rounded-full flex items-center justify-between px-6 disabled:opacity-50"
           >
             <span className="text-lg font-medium">Place Order</span>
