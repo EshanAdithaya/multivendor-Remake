@@ -3,6 +3,7 @@ import { Search, Filter, X, ChevronRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
 import ProductCard from '../components/ProductCard';
+import PromotionalPopup from '../components/PromotionalPopup';
 import Lottie from 'react-lottie';
 import loaderAnimation from '../Assets/animations/loading.json';
 import notFoundAnimation from '../Assets/animations/not_found.json';
@@ -283,12 +284,13 @@ const LandingPage = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <Header 
-  onSearchChange={(value) => setFilters(prev => ({ ...prev, name: value }))}
-  onFilterClick={() => setShowFilters(!showFilters)}
-/>
+        onSearchChange={(value) => setFilters(prev => ({ ...prev, name: value }))}
+        onFilterClick={() => setShowFilters(!showFilters)}
+      />
       
       <main className="pb-6">
-
+        {/* Promotional Popup */}
+        <PromotionalPopup />
 
         {/* Categories Scroll */}
         <div className="bg-white mb-4">
@@ -354,7 +356,7 @@ const LandingPage = () => {
               <div className="overflow-x-auto">
                 <div className="flex gap-3 px-4 pb-4">
                   {products.slice(0, 6).map(product => (
-                    <div key={product.id} className="w-[160px] flex-shrink-0">
+                    <div key={product.id} className="w-[160pxflex-shrink-0">
                       {renderProductCard(product, true)}
                     </div>
                   ))}
