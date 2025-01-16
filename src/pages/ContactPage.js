@@ -24,7 +24,7 @@ const ContactPage = () => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          to: ['eshangunathilaka10@gmail.com'],
+          to: ['thisithakavinda@gmail.com'],
           subject: `New Contact Form Submission: ${formData.subject}`,
           htmlContent: `
             <h1>New Contact Form Submission</h1>

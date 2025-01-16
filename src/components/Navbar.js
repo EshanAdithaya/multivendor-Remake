@@ -66,7 +66,7 @@ const NavigationWithMenus = () => {
     { name: 'Contact', path: '/contact' },
     { name: 'Flash Sale', path: '/flash-sale' },
     { name: 'Manufacturers/Publishers', path: '/manufacturers' },
-    { name: 'Authors', path: '/authors' },
+    // { name: 'Authors', path: '/authors' },
     { name: 'FAQ', path: '/faq' },
     { name: 'Terms & Conditions', path: '/terms' },
     { name: 'Refund Policy', path: '/refund-policy' }
