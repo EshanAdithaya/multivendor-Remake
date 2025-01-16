@@ -7,6 +7,7 @@ import PromotionalPopup from '../components/PromotionalPopup';
 import Lottie from 'react-lottie';
 import loaderAnimation from '../Assets/animations/loading.json';
 import notFoundAnimation from '../Assets/animations/not_found.json';
+import logo from '../Assets/Images/image.png'; // Import the logo image
 
 // FilterSection component
 const FilterSection = ({ showFilters, setShowFilters, filters, setFilters, categories, productGroups, manufacturers }) => (
@@ -171,6 +172,7 @@ const LandingPage = () => {
     productGroupId: '',
     manufacturerId: ''
   });
+  const [showLoaderImage, setShowLoaderImage] = useState(!localStorage.getItem('hasSeenLoader'));
 
   const defaultOptions = {
     loop: true,
@@ -189,6 +191,16 @@ const LandingPage = () => {
       preserveAspectRatio: 'xMidYMid slice'
     }
   };
+
+  useEffect(() => {
+    if (showLoaderImage) {
+      const timer = setTimeout(() => {
+        setShowLoaderImage(false);
+        localStorage.setItem('hasSeenLoader', 'true');
+      }, 3000); // Show the loader image for 3 seconds
+      return () => clearTimeout(timer);
+    }
+  }, [showLoaderImage]);
 
   useEffect(() => {
     const fetchInitialData = async () => {
@@ -264,6 +276,27 @@ const LandingPage = () => {
     return () => clearTimeout(timeoutId);
   }, [filters]);
 
+  useEffect(() => {
+    const handleBeforeUnload = (event) => {
+      event.preventDefault();
+      event.returnValue = 'Do you really want to leave?';
+    };
+
+    const handleUnload = () => {
+      if (window.confirm('Do you really want to leave?')) {
+        localStorage.removeItem('hasSeenLoader');
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    window.addEventListener('unload', handleUnload);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      window.removeEventListener('unload', handleUnload);
+    };
+  }, []);
+
   const handleNavigateToProduct = (productId) => {
     navigate(`/productDetails?key=${productId}`);
   };
@@ -283,121 +316,127 @@ const LandingPage = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header 
-        onSearchChange={(value) => setFilters(prev => ({ ...prev, name: value }))}
-        onFilterClick={() => setShowFilters(!showFilters)}
-      />
-      
-      <main className="pb-6">
-        {/* Promotional Popup */}
-        <PromotionalPopup />
-
-        {/* Categories Scroll */}
-        <div className="bg-white mb-4">
-          <div className="overflow-x-auto">
-            <div className="flex gap-3 px-4 py-4">
-              <button
-                onClick={() => setFilters(prev => ({ ...prev, categoryId: '' }))}
-                className={`px-4 py-2 rounded-full text-sm whitespace-nowrap ${
-                  filters.categoryId === ''
-                    ? 'bg-yellow-500 text-white'
-                    : 'bg-gray-100 text-orange'
-                }`}
-              >
-                All
-              </button>
-              {categories.map(cat => (
-                <button
-                  key={cat.id}
-                  onClick={() => setFilters(prev => ({ ...prev, categoryId: cat.id }))}
-                  className={`px-4 py-2 rounded-full text-sm whitespace-nowrap ${
-                    filters.categoryId === cat.id
-                      ? 'bg-yellow-500 text-white'
-                      : 'bg-gray-100 text-orange'
-                  }`}
-                >
-                  {cat.name}
-                </button>
-              ))}
+      {showLoaderImage ? (
+        <div className="fixed inset-0 flex items-center justify-center bg-white z-50">
+          <div className="relative">
+            <img src={logo} alt="Logo" className="w-32 h-32" />
+            <div className="absolute inset-0 flex items-center justify-center" style={{ zIndex: -1 }}>
+              <Lottie options={defaultOptions} height={100} width={100} />
             </div>
           </div>
         </div>
-
-        {/* Main Content */}
-        {loading ? (
-          <div className="flex items-center justify-center py-12">
-            <Lottie options={defaultOptions} height={100} width={100} />
-          </div>
-        ) : error ? (
-          <div className="text-center py-12">
-            <p className="text-red-500">{error}</p>
-            <button 
-              onClick={() => window.location.reload()} 
-              className="mt-4 px-4 py-2 bg-yellow-500 text-white rounded-lg"
-            >
-              Retry
-            </button>
-          </div>
-        ) : (
-          <>
-            {/* Flash Sale Section */}
-            <div className="mb-6">
-              <div className="flex items-center justify-between mb-4 px-4">
-                <div>
-                  <h2 className="text-lg font-bold text-gray-900">Flash Sale</h2>
-                  <p className="text-sm text-gray-500">Don't miss out on these deals!</p>
-                </div>
-                <button className="flex items-center text-sm text-gray-500">
-                  View All
-                  <ChevronRight className="w-4 h-4 ml-1" />
-                </button>
-              </div>
-
+      ) : (
+        <>
+          <Header 
+            onSearchChange={(value) => setFilters(prev => ({ ...prev, name: value }))}
+            onFilterClick={() => setShowFilters(!showFilters)}
+          />
+          <main className="pb-6">
+            {/* Promotional Popup */}
+            <PromotionalPopup />
+            {/* Categories Scroll */}
+            <div className="bg-white mb-4">
               <div className="overflow-x-auto">
-                <div className="flex gap-3 px-4 pb-4">
-                  {products.slice(0, 6).map(product => (
-                    <div key={product.id} className="w-[160pxflex-shrink-0">
-                      {renderProductCard(product, true)}
-                    </div>
+                <div className="flex gap-3 px-4 py-4">
+                  <button
+                    onClick={() => setFilters(prev => ({ ...prev, categoryId: '' }))}
+                    className={`px-4 py-2 rounded-full text-sm whitespace-nowrap ${
+                      filters.categoryId === ''
+                        ? 'bg-yellow-500 text-white'
+                        : 'bg-gray-100 text-orange'
+                    }`}
+                  >
+                    All
+                  </button>
+                  {categories.map(cat => (
+                    <button
+                      key={cat.id}
+                      onClick={() => setFilters(prev => ({ ...prev, categoryId: cat.id }))}
+                      className={`px-4 py-2 rounded-full text-sm whitespace-nowrap ${
+                        filters.categoryId === cat.id
+                          ? 'bg-yellow-500 text-white'
+                          : 'bg-gray-100 text-orange'
+                      }`}
+                    >
+                      {cat.name}
+                    </button>
                   ))}
                 </div>
               </div>
             </div>
-
-            {/* All Products Grid */}
-            <div className="px-4">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-bold text-gray-900">All Products</h2>
-                <button className="flex items-center text-sm text-gray-500">
-                  Sort by
-                  <ChevronRight className="w-4 h-4 ml-1" />
+            {/* Main Content */}
+            {loading ? (
+              <div className="flex items-center justify-center py-12">
+                <Lottie options={defaultOptions} height={100} width={100} />
+              </div>
+            ) : error ? (
+              <div className="text-center py-12">
+                <p className="text-red-500">{error}</p>
+                <button 
+                  onClick={() => window.location.reload()} 
+                  className="mt-4 px-4 py-2 bg-yellow-500 text-white rounded-lg"
+                >
+                  Retry
                 </button>
               </div>
-              
-              <div className="grid grid-cols-2 gap-3">
-                {products.map(product => renderProductCard(product))}
-                {products.length === 0 && (
-                  <div className="col-span-2 text-center py-8">
-                    <Lottie options={notFoundOptions} height={150} width={150} />
-                    <p className="text-gray-600 mt-4">No products found matching your criteria</p>
+            ) : (
+              <>
+                {/* Flash Sale Section */}
+                <div className="mb-6">
+                  <div className="flex items-center justify-between mb-4 px-4">
+                    <div>
+                      <h2 className="text-lg font-bold text-gray-900">Flash Sale</h2>
+                      <p className="text-sm text-gray-500">Don't miss out on these deals!</p>
+                    </div>
+                    <button className="flex items-center text-sm text-gray-500">
+                      View All
+                      <ChevronRight className="w-4 h-4 ml-1" />
+                    </button>
                   </div>
-                )}
-              </div>
-            </div>
-          </>
-        )}
-
-        {/* Filter Section */}
-        <FilterSection 
-          showFilters={showFilters}
-          setShowFilters={setShowFilters}
-          filters={filters}
-          setFilters={setFilters}
-          categories={categories}
-          productGroups={productGroups}
-          manufacturers={manufacturers}
-        />
-      </main>
+                  <div className="overflow-x-auto">
+                    <div className="flex gap-3 px-4 pb-4">
+                      {products.slice(0, 6).map(product => (
+                        <div key={product.id} className="w-[160pxflex-shrink-0">
+                          {renderProductCard(product, true)}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+                {/* All Products Grid */}
+                <div className="px-4">
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-lg font-bold text-gray-900">All Products</h2>
+                    <button className="flex items-center text-sm text-gray-500">
+                      Sort by
+                      <ChevronRight className="w-4 h-4 ml-1" />
+                    </button>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    {products.map(product => renderProductCard(product))}
+                    {products.length === 0 && (
+                      <div className="col-span-2 text-center py-8">
+                        <Lottie options={notFoundOptions} height={150} width={150} />
+                        <p className="text-gray-600 mt-4">No products found matching your criteria</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </>
+            )}
+            {/* Filter Section */}
+            <FilterSection 
+              showFilters={showFilters}
+              setShowFilters={setShowFilters}
+              filters={filters}
+              setFilters={setFilters}
+              categories={categories}
+              productGroups={productGroups}
+              manufacturers={manufacturers}
+            />
+          </main>
+        </>
+      )}
     </div>
   );
 };
