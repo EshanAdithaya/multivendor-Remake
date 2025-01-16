@@ -103,7 +103,7 @@ const OrderDetailsScreen = () => {
               <h2 className="text-2xl font-semibold text-gray-800 mb-2">Order Not Found</h2>
               <p className="text-gray-600 mb-4">{error}</p>
               <button
-                onClick={() => navigate('/orders')}
+                onClick={() => navigate('/my-order')}
                 className="bg-yellow-400 hover:bg-yellow-500 text-white px-4 py-2 rounded-lg transition-colors"
               >
                 View All Orders
