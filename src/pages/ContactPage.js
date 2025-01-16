@@ -215,12 +215,22 @@ const ContactPage = () => {
             <MapPin className="w-5 h-5 text-gray-600" />
             <h2 className="text-xl font-semibold text-gray-900">Our Location</h2>
           </div>
-          <div className="aspect-video bg-gray-100 rounded-lg flex items-center justify-center">
-            <img 
-              src="/api/placeholder/800/400" 
-              alt="Map location" 
-              className="w-full h-full object-cover rounded-lg"
-            />
+          <div className="mapouter">
+            <div className="gmap-canvas">
+              <iframe
+                className="gmap-iframe"
+                frameBorder="0"
+                scrolling="no"
+                marginHeight="0"
+                marginWidth="0"
+                src="https://maps.google.com/maps?width=600&amp;height=400&amp;hl=en&amp;q=sliit%20city%20ubi&amp;t=&amp;z=14&amp;ie=UTF8&amp;iwloc=B&amp;output=embed"
+                style={{
+                  width: '100%',
+                  height: '400px',
+                  border: 0
+                }}
+              />
+            </div>
           </div>
           <p className="mt-4 text-gray-600">
             123 Pet Street, Animal District<br />
