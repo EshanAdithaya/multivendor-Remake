@@ -1,8 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Heart, ChevronRight, Minus, Plus } from 'lucide-react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
 import ProductReviews from '../components/ProductReviews';
+import Lottie from 'lottie-web';
+import addedToCartAnimation from '../Assets/animations/cutedog.json';
+import loaderAnimation from '../Assets/animations/loading.json';
+import { handleCartOperation } from '../utils/cartUtils';
 
 const API_REACT_APP_BASE_URL = process.env.REACT_APP_BASE_URL;
 
@@ -12,8 +16,92 @@ const ProductDetail = () => {
   const [selectedImage, setSelectedImage] = useState(0);
   const [product, setProduct] = useState(null);
   const [selectedVariation, setSelectedVariation] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isWishlistLoading, setIsWishlistLoading] = useState(false);
+  const [showAddedToCartPopup, setShowAddedToCartPopup] = useState(false);
+  const [isPopupVisible, setIsPopupVisible] = useState(false);
+  const [isPopupMounted, setIsPopupMounted] = useState(false);
   const location = useLocation();
-  
+  const navigate = useNavigate();
+  const lottieContainer = useRef(null);
+  const addedToCartAnimationRef = useRef(null);
+  const loaderContainer = useRef(null);
+
+  // Check wishlist status
+  const checkWishlistStatus = async () => {
+    try {
+      const token = localStorage.getItem('accessToken');
+      if (!token) return;
+
+      const response = await fetch(`${API_REACT_APP_BASE_URL}/api/wishlist/my-wishlist`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json'
+        },
+      });
+      
+      if (response.ok) {
+        const wishlist = await response.json();
+        setIsLiked(wishlist.some(item => item.product.id === product.id));
+      }
+    } catch (error) {
+      console.error('Error checking wishlist status:', error);
+    }
+  };
+
+  // Handle wishlist toggle
+  const handleWishlistToggle = async (e) => {
+    e.stopPropagation();
+    const token = localStorage.getItem('accessToken');
+    if (!token) {
+      navigate('/login');
+      return;
+    }
+
+    setIsWishlistLoading(true);
+    try {
+      if (isLiked) {
+        // Remove from wishlist
+        const response = await fetch(
+          `${API_REACT_APP_BASE_URL}/api/wishlist/product/${product.id}`,
+          {
+            method: 'DELETE',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Accept': 'application/json'
+            },
+          }
+        );
+
+        if (!response.ok) throw new Error('Failed to remove from wishlist');
+      } else {
+        // Add to wishlist
+        const response = await fetch(`${API_REACT_APP_BASE_URL}/api/wishlist`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+            'Accept': 'application/json'
+          },
+          body: JSON.stringify({
+            productId: product.id,
+            shopId: product.__shop__?.id
+          }),
+        });
+
+        if (!response.ok) throw new Error('Failed to add to wishlist');
+      }
+
+      setIsLiked(!isLiked);
+    } catch (error) {
+      console.error('Error updating wishlist:', error);
+      alert('Failed to update wishlist');
+    } finally {
+      setIsWishlistLoading(false);
+    }
+  };
+
+  // Fetch product details
   useEffect(() => {
     const fetchProduct = async () => {
       const params = new URLSearchParams(location.search);
@@ -24,11 +112,15 @@ const ProductDetail = () => {
         const response = await fetch(`${API_REACT_APP_BASE_URL}/api/products/${productId}`);
         if (!response.ok) throw new Error('Product not found');
         const data = await response.json();
+        
         // If there's only one variation, select it by default
         if (data.variations?.length === 1) {
           setSelectedVariation(data.variations[0]);
         }
         setProduct(data);
+        
+        // Check wishlist status
+        checkWishlistStatus();
       } catch (error) {
         console.error('Failed to fetch product:', error);
       }
@@ -37,8 +129,87 @@ const ProductDetail = () => {
     fetchProduct();
   }, [location]);
 
-  if (!product) return <div className="flex justify-center items-center min-h-screen">Loading...</div>;
+  // Lottie animation for added to cart popup
+  useEffect(() => {
+    if (showAddedToCartPopup && lottieContainer.current) {
+      addedToCartAnimationRef.current = Lottie.loadAnimation({
+        container: lottieContainer.current,
+        renderer: 'svg',
+        loop: false,
+        autoplay: true,
+        animationData: addedToCartAnimation
+      });
 
+      return () => {
+        if (addedToCartAnimationRef.current) {
+          addedToCartAnimationRef.current.destroy();
+        }
+      };
+    }
+  }, [showAddedToCartPopup]);
+
+  // Lottie animation for loading screen
+  useEffect(() => {
+    if (isLoading && loaderContainer.current) {
+      const loaderAnimationInstance = Lottie.loadAnimation({
+        container: loaderContainer.current,
+        renderer: 'svg',
+        loop: true,
+        autoplay: true,
+        animationData: loaderAnimation
+      });
+
+      return () => {
+        if (loaderAnimationInstance) {
+          loaderAnimationInstance.destroy();
+        }
+      };
+    }
+  }, [isLoading]);
+
+  // Handle add to cart
+  const handleAddToCart = async () => {
+    if (!selectedVariation) {
+      alert('Please select a variation');
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const cartItem = {
+        ...selectedVariation,
+        name: product.name,
+        quantity: quantity,
+        shop: product.__shop__ || null
+      };
+      
+      const result = await handleCartOperation(cartItem);
+      
+      if (result.success) {
+        setIsPopupMounted(true);
+        setTimeout(() => setIsPopupVisible(true), 50);
+        
+        // Auto hide after 3 seconds
+        setTimeout(() => {
+          handleClosePopup();
+        }, 3000);
+      } else {
+        alert(result.error);
+      }
+    } catch (error) {
+      console.error('Failed to add to cart:', error);
+      alert('Failed to add to cart');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleClosePopup = () => {
+    setIsPopupVisible(false);
+    setTimeout(() => setIsPopupMounted(false), 300); // Wait for fade out animation
+  };
+
+  // Helper functions
   const getVariationDisplayText = (variation) => {
     const attributes = [];
     if (variation.size) attributes.push(variation.size);
@@ -56,13 +227,48 @@ const ProductDetail = () => {
     }).format(price);
   };
 
+  if (!product) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <div ref={loaderContainer} className="w-32 h-32"></div>
+      </div>
+    );
+  }
+
   const images = [
     selectedVariation?.imageUrl || product.imageUrl || '/api/placeholder/400/400',
     '/api/placeholder/400/400'
   ];
 
   return (
-    <div className="flex flex-col min-h-screen bg-white">
+    <div className="flex flex-col min-h-screen bg-white relative">
+      {/* Added to Cart Popup */}
+      {isPopupMounted && (
+        <div 
+          className={`fixed top-0 left-0 w-full h-full flex items-center justify-center z-50 bg-black/50 transition-opacity duration-300 ${
+            isPopupVisible ? 'opacity-100' : 'opacity-0'
+          }`}
+          onClick={handleClosePopup}
+        >
+          <div 
+            className={`bg-white rounded-lg shadow-lg p-6 text-center relative transform transition-all duration-300 ${
+              isPopupVisible ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'
+            }`}
+            onClick={e => e.stopPropagation()}
+          >
+            <button 
+              onClick={handleClosePopup}
+              className="absolute top-2 right-2 w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100"
+            >
+              <span className="text-gray-500 text-xl">&times;</span>
+            </button>
+            <div ref={lottieContainer} className="w-32 h-32 mx-auto mb-4"></div>
+            <h3 className="text-lg font-semibold">Added to Cart</h3>
+            <p className="text-gray-600">Your item has been successfully added to the cart.</p>
+          </div>
+        </div>
+      )}
+
       <Header />
 
       <div className="relative px-4 mb-4">
@@ -95,9 +301,14 @@ const ProductDetail = () => {
           <h1 className="text-xl font-semibold">{product.name}</h1>
           <button
             className={`p-2 rounded-full ${isLiked ? 'text-yellow-400' : 'text-gray-400'}`}
-            onClick={() => setIsLiked(!isLiked)}
+            onClick={handleWishlistToggle}
+            disabled={isWishlistLoading}
           >
-            <Heart className="w-6 h-6" fill={isLiked ? "currentColor" : "none"} />
+            {isWishlistLoading ? (
+              <div className="w-6 h-6 border-2 border-gray-300 border-t-yellow-400 rounded-full animate-spin" />
+            ) : (
+              <Heart className="w-6 h-6" fill={isLiked ? "currentColor" : "none"} />
+            )}
           </button>
         </div>
 
@@ -171,18 +382,22 @@ const ProductDetail = () => {
         {/* Add to Cart Button */}
         <button
           className={`w-full py-3 rounded-lg font-medium
-            ${selectedVariation?.stockQuantity > 0
+            ${selectedVariation?.stockQuantity > 0 && !isLoading
               ? 'bg-yellow-400 text-white hover:bg-yellow-500'
               : 'bg-gray-100 text-gray-400 cursor-not-allowed'
             }`}
-          disabled={!selectedVariation || selectedVariation.stockQuantity === 0}
+          disabled={!selectedVariation || selectedVariation.stockQuantity === 0 || isLoading}
+          onClick={handleAddToCart}
         >
-          {!selectedVariation
-            ? 'Select Option'
-            : selectedVariation.stockQuantity === 0
-              ? 'Out of Stock'
-              : 'Add to Cart'
-          }
+          {isLoading ? (
+            <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin mx-auto" />
+          ) : (
+            !selectedVariation
+              ? 'Select Option'
+              : selectedVariation.stockQuantity === 0
+                ? 'Out of Stock'
+                : 'Add to Cart'
+          )}
         </button>
 
         {/* Shop Details */}
@@ -210,8 +425,8 @@ const ProductDetail = () => {
         )}
       </div>
       <div className="px-4 mb-20">
-  <ProductReviews productId={product.id} />
-</div>
+        <ProductReviews productId={product.id} />
+      </div>
     </div>
   );
 };
