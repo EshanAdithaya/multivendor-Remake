@@ -54,8 +54,13 @@ const ShoppingCart = ({ onClose }) => {
           }
         });
         const data = await response.json();
-        if (Array.isArray(data)) {
+        
+        if (response.ok && Array.isArray(data)) {
           setCarts(data);
+        } else if (response.status === 404) {
+          setCarts([]);
+          // Modified error message
+          setError('No carts found');
         } else {
           setError('Unexpected data format');
         }
@@ -141,25 +146,40 @@ const ShoppingCart = ({ onClose }) => {
   if (error) {
     return (
       <div className="fixed inset-0 bg-white z-50 h-screen">
-        <div className="h-full flex items-center justify-center">
-          <div className="text-center">
-            <div className="text-red-500 mb-4">{error}</div>
-            {error === 'Unexpected data format' && (
+        <div className="h-full flex flex-col items-center justify-center">
+          <div className="text-center max-w-md px-4">
+            {error === 'Unexpected data format' ? (
               <>
-                <div ref={animationContainer} className="w-64 h-64" />
+                <div ref={animationContainer} className="w-64 h-64 mx-auto" />
                 <p className="text-gray-500 mt-4">Unexpected data format. Please contact admin.</p>
               </>
-            )}
-            {!localStorage.getItem('accessToken') && (
+            ) : !localStorage.getItem('accessToken') ? (
               <>
-                <div ref={animationContainer} className="w-64 h-64" />
+                <div ref={animationContainer} className="w-64 h-64 mx-auto" />
                 <p className="text-gray-500 mt-4">Please log in to view your cart</p>
                 <button
-                  className="mt-4 px-4 py-2 bg-yellow-600 text-white rounded"
+                  className="mt-4 px-4 py-2 bg-yellow-600 text-white rounded hover:bg-yellow-700"
                   onClick={() => navigate('/login')}
                 >
                   Login
                 </button>
+              </>
+            ) : error === 'No carts found' ? (
+              <>
+                <div ref={animationContainer} className="w-64 h-64 mx-auto" />
+                <p className="text-gray-500 mt-4">You don't have any carts yet.</p>
+                <p className="text-gray-400 text-sm mt-2">Start shopping to create your first cart!</p>
+                <button
+                  className="mt-4 px-4 py-2 bg-yellow-600 text-white rounded hover:bg-yellow-700"
+                  onClick={() => navigate('/')}
+                >
+                  Browse Products
+                </button>
+              </>
+            ) : (
+              <>
+                <div ref={animationContainer} className="w-64 h-64 mx-auto" />
+                <p className="text-gray-500 mt-4">{error}</p>
               </>
             )}
           </div>
