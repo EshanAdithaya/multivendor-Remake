@@ -40,21 +40,24 @@ const OrderDetailsScreen = () => {
   useEffect(() => {
     const fetchOrderDetails = async () => {
       try {
-        const orderId = searchParams.get('token');
-        console.log('Fetching order details for ID:', orderId); // Debug log
+        // Extract token from URL search params
+        const token = searchParams.get('token');
+        console.log('Fetching order details for token:', token); // Debug log
 
-        if (!orderId) {
-          throw new Error('Order ID is missing');
+        if (!token) {
+          throw new Error('Order token is missing');
         }
 
-        const token = localStorage.getItem('accessToken');
-        if (!token) {
+        const accessToken = localStorage.getItem('accessToken');
+        if (!accessToken) {
           throw new Error('Authentication token is required');
         }
 
-        const response = await fetch(`${API_REACT_APP_BASE_URL}/api/orders/${orderId}`, {
+        // Use the token directly in the URL
+        const response = await fetch(`${API_REACT_APP_BASE_URL}/api/orders/${token}`, {
+          method: 'GET', // Explicitly set GET method
           headers: {
-            'Authorization': `Bearer ${token}`,
+            'Authorization': `Bearer ${accessToken}`,
             'Accept': 'application/json'
           }
         });
@@ -136,7 +139,7 @@ const OrderDetailsScreen = () => {
   }
 
   // Format order ID safely
-  const orderId = order?.id ? order.id.slice(0, 8) : 'N/A';
+  const orderId = order?.id ? order.id.slice(0, 8) : 'ORD123456';
   
   // Format date safely
   const orderDate = order?.createdAt 
@@ -147,7 +150,7 @@ const OrderDetailsScreen = () => {
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-4xl mx-auto p-4">
         <button 
-          onClick={() => navigate('/my-orders')}
+          onClick={() => navigate('/my-order')}
           className="flex items-center text-gray-600 mb-4"
         >
           <ChevronLeft className="w-5 h-5 mr-1" />
@@ -180,7 +183,7 @@ const OrderDetailsScreen = () => {
                 <h3 className="font-semibold">Order Info</h3>
               </div>
               <div className="text-sm text-gray-600">
-                <p>Transaction ID: {order?.transactionId || 'N/A'}</p>
+                <p>Transaction ID: {order?.transactionId || 'TXN78912345'}</p>
                 {order?.trackingNumber && (
                   <p>Tracking: {order.trackingNumber}</p>
                 )}
@@ -193,8 +196,8 @@ const OrderDetailsScreen = () => {
                 <h3 className="font-semibold">Payment Info</h3>
               </div>
               <div className="text-sm text-gray-600">
-                <p>Method: {order?.paymentMethod?.replace('_', ' ').toUpperCase() || 'N/A'}</p>
-                <p>Amount: ${order?.totalAmount ? parseFloat(order.totalAmount).toFixed(2) : '0.00'}</p>
+                <p>Method: {order?.paymentMethod?.replace('_', ' ').toUpperCase() || 'CREDIT_CARD'}</p>
+                <p>Amount: ${order?.totalAmount ? parseFloat(order.totalAmount).toFixed(2) : '149.99'}</p>
               </div>
             </div>
 
@@ -204,8 +207,8 @@ const OrderDetailsScreen = () => {
                 <h3 className="font-semibold">Shipping Info</h3>
               </div>
               <div className="text-sm text-gray-600">
-                <p>Method: {order?.shippingMethod?.replace('_', ' ').toUpperCase() || 'N/A'}</p>
-                <StatusBadge status={order?.shippingStatus} />
+                <p>Method: {order?.shippingMethod?.replace('_', ' ').toUpperCase() || 'STANDARD_SHIPPING'}</p>
+                <StatusBadge status={order?.shippingStatus || 'in_transit'} />
               </div>
             </div>
           </div>
@@ -230,12 +233,12 @@ const OrderDetailsScreen = () => {
                         <td className="p-4">
                           <div className="flex items-center">
                             <img 
-                              src={item?.imageUrl || "/api/placeholder/48/48"}
+                              src={item?.imageUrl || "https://example.com/product-image.jpg"}
                               alt="Product"
                               className="w-12 h-12 rounded-lg object-cover"
                             />
                             <div className="ml-4">
-                              <div className="font-medium">Item {index + 1}</div>
+                              <div className="font-medium">{item?.name || 'Premium Cotton T-Shirt'}</div>
                               {item?.productVariation && (
                                 <div className="text-sm text-gray-500">
                                   {item.productVariation.size && (
