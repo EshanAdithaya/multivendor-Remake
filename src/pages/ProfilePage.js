@@ -24,9 +24,12 @@ const ProfilePage = () => {
       shipping: ''
     }
   });
+  const [addresses, setAddresses] = useState([]);
+  const [addressesLoading, setAddressesLoading] = useState(false);
 
   useEffect(() => {
     fetchUserProfile();
+    fetchAddresses();
   }, []);
 
   const fetchUserProfile = async () => {
@@ -67,6 +70,30 @@ const ProfilePage = () => {
       console.error('Error fetching profile:', err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchAddresses = async () => {
+    try {
+      setAddressesLoading(true);
+      const token = localStorage.getItem('accessToken');
+      const response = await fetch(`${API_REACT_APP_BASE_URL}/api/orders/addresses`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'accept': '*/*'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch addresses');
+      }
+
+      const addressData = await response.json();
+      setAddresses(addressData);
+    } catch (err) {
+      console.error('Error fetching addresses:', err);
+    } finally {
+      setAddressesLoading(false);
     }
   };
 
@@ -153,6 +180,28 @@ const ProfilePage = () => {
     } catch (err) {
       console.error(`Error updating ${field}:`, err);
       alert(`Failed to update ${field}`);
+    }
+  };
+
+  const handleDeleteAddress = async (id) => {
+    try {
+      const token = localStorage.getItem('accessToken');
+      const response = await fetch(`${API_REACT_APP_BASE_URL}/api/orders/delete-address/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'accept': '*/*'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete address');
+      }
+
+      // Refresh addresses after deletion
+      fetchAddresses();
+    } catch (err) {
+      console.error('Error deleting address:', err);
     }
   };
 
@@ -321,17 +370,35 @@ const ProfilePage = () => {
             <button className="text-yellow-400">+ Add</button>
           </div>
           
-          {/* Billing Address */}
-          <div className="bg-gray-50 p-4 rounded-lg space-y-1">
-            <h3 className="font-medium">Billing</h3>
-            <p className="text-gray-600 text-sm">{profile.addresses.billing}</p>
-          </div>
-
-          {/* Shipping Address */}
-          <div className="bg-gray-50 p-4 rounded-lg space-y-1">
-            <h3 className="font-medium">Shipping</h3>
-            <p className="text-gray-600 text-sm">{profile.addresses.shipping}</p>
-          </div>
+          {addressesLoading ? (
+            <div className="text-center py-4">
+              <div className="w-8 h-8 border-2 border-yellow-400 border-t-transparent rounded-full animate-spin mx-auto" />
+            </div>
+          ) : addresses.length > 0 ? (
+            addresses.map((address) => (
+              <div key={address.id} className="bg-gray-50 p-4 rounded-lg space-y-1">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <h3 className="font-medium">{address.street}</h3>
+                    <p className="text-gray-600 text-sm">
+                      {address.city}, {address.state}, {address.postalCode}
+                    </p>
+                    <p className="text-gray-600 text-sm">{address.country}</p>
+                  </div>
+                  <button 
+                    onClick={() => handleDeleteAddress(address.id)}
+                    className="text-red-500 hover:text-red-700"
+                  >
+                    Delete
+                  </button>
+                </div>
+              </div>
+            ))
+          ) : (
+            <div className="text-center py-4 text-gray-500">
+              No addresses found
+            </div>
+          )}
         </div>
       </div>
     </div>
