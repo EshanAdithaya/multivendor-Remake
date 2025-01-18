@@ -155,7 +155,6 @@ const LandingPage = () => {
 
       if (response.status === 401) {
         toast.error('You have to login');
-        navigate('/login');
         return;
       }
 
@@ -194,7 +193,8 @@ const LandingPage = () => {
         );
 
         if (response.status === 401) {
-          toast.error('You have to login');
+          localStorage.removeItem('accessToken');
+          toast.error('You have to login to your account again');
           navigate('/login');
           return;
         }
@@ -216,7 +216,8 @@ const LandingPage = () => {
         });
 
         if (response.status === 401) {
-          toast.error('You have to login');
+          localStorage.removeItem('accessToken');
+          toast.error('You have to login to your account again');
           navigate('/login');
           return;
         }
