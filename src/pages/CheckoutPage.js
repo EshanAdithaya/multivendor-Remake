@@ -153,43 +153,33 @@ const CheckoutPage = () => {
   const handlePlaceOrder = async () => {
     const token = localStorage.getItem('accessToken');
     const orderNumbers = [];
+    const failedOrders = [];
     
-    // Add check for zero subtotal
     if (calculateTotal().subtotal <= 0) {
       setError('Cannot place order with empty cart');
       return;
     }
-
-    // Validate coupon before placing order
+  
+    // Validate coupon if present
     if (appliedCoupon) {
       try {
         const couponResponse = await fetch(`${API_REACT_APP_BASE_URL}/api/coupons/coupon-name/${appliedCoupon.code}`, {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
+          headers: { 'Authorization': `Bearer ${token}` }
         });
-
-        if (!couponResponse.ok) {
-          // If coupon is invalid, remove it and continue with order
+        
+        if (!couponResponse.ok || new Date(appliedCoupon.expiresAt) < new Date()) {
           setAppliedCoupon(null);
           setCouponError('Coupon is no longer valid');
-        } else {
-          const couponData = await couponResponse.json();
-          if (new Date(couponData.expiresAt) < new Date()) {
-            // If coupon is expired, remove it and continue with order
-            setAppliedCoupon(null);
-            setCouponError('Coupon has expired');
-          }
         }
       } catch (err) {
-        // If there's an error checking the coupon, continue without it
         setAppliedCoupon(null);
         setCouponError('Error validating coupon');
       }
     }
     
-    try {
-      for (const cart of carts) {
+    // Process each cart individually
+    for (const cart of carts) {
+      try {
         const orderNumber = `ORD${Date.now()}${Math.floor(Math.random() * 1000)}`;
         const orderData = {
           status: "pending",
@@ -207,12 +197,11 @@ const CheckoutPage = () => {
             quantity: item.quantity
           }))
         };
-
-        // Only add coupon to order if it's still valid
+  
         if (appliedCoupon) {
           orderData.couponId = appliedCoupon.id;
         }
-
+  
         const response = await fetch(`${API_REACT_APP_BASE_URL}/api/orders`, {
           method: 'POST',
           headers: {
@@ -221,27 +210,44 @@ const CheckoutPage = () => {
           },
           body: JSON.stringify(orderData)
         });
-
+  
         if (!response.ok) {
           throw new Error(`Failed to create order for ${cart.shop.name}`);
         }
-
+  
         orderNumbers.push(orderNumber);
+      } catch (err) {
+        failedOrders.push({
+          shopName: cart.shop.name,
+          error: err.message
+        });
       }
-
+    }
+  
+    if (failedOrders.length > 0) {
+      // Some orders failed
+      if (orderNumbers.length === 0) {
+        // All orders failed
+        setError('Failed to create any orders. Please try again.');
+        return;
+      }
+      // Some orders succeeded, some failed
+      setError(`Some orders could not be processed: ${failedOrders.map(f => f.shopName).join(', ')}`);
+    }
+  
+    // Navigate to success page if at least one order was created
+    if (orderNumbers.length > 0) {
       const userEmail = localStorage.getItem('userEmail');
-
       navigate('/order-success', {
         state: {
           orderDetails: {
             orderNumber: orderNumbers.join(', '),
             email: userEmail,
-            total: calculateTotal().total
+            total: calculateTotal().total,
+            partialSuccess: failedOrders.length > 0
           }
         }
       });
-    } catch (err) {
-      setError(err.message);
     }
   };
 
