@@ -8,7 +8,9 @@ import Lottie from 'lottie-react';
 import noProductAnimation from '../Assets/animations/not_found.json';
 import { toast } from 'react-toastify';
 
-// Filter Popup Component remains the same as in your original code
+const API_REACT_APP_BASE_URL = process.env.REACT_APP_BASE_URL;
+
+// Filter Popup Component remains the same...
 const FilterPopup = ({ isOpen, onClose, filters, setFilters, categories }) => {
   if (!isOpen) return null;
 
@@ -23,6 +25,7 @@ const FilterPopup = ({ isOpen, onClose, filters, setFilters, categories }) => {
             </button>
           </div>
 
+          {/* Same filter content as before */}
           <div className="flex-1 overflow-y-auto">
             <div className="p-4 border-b">
               <h3 className="text-sm font-medium mb-3">Categories</h3>
@@ -30,11 +33,12 @@ const FilterPopup = ({ isOpen, onClose, filters, setFilters, categories }) => {
                 {categories.map(category => (
                   <button
                     key={category.id}
-                    className={`px-4 py-2 rounded-full text-sm ${
-                      filters.categoryId === category.id
-                        ? 'bg-yellow-400 text-white'
-                        : 'bg-gray-100 text-gray-600'
-                    }`}
+                    className={
+                      "px-4 py-2 rounded-full text-sm " +
+                      (filters.categoryId === category.id
+                        ? "bg-yellow-400 text-white"
+                        : "bg-gray-100 text-gray-600")
+                    }
                     onClick={() => setFilters(prev => ({ ...prev, categoryId: category.id }))}
                   >
                     {category.name}
@@ -72,7 +76,7 @@ const FilterPopup = ({ isOpen, onClose, filters, setFilters, categories }) => {
   );
 };
 
-// Shop Section Component with updated navigation
+// Shop Section Component remains largely the same...
 const ShopSection = ({ shop, products, onNavigate, wishlistItems, onWishlistToggle, wishlistLoading }) => {
   if (!products?.length) return null;
 
@@ -121,8 +125,6 @@ const ShopSection = ({ shop, products, onNavigate, wishlistItems, onWishlistTogg
   );
 };
 
-const POLLING_INTERVAL = 2000; // Polling interval in milliseconds
-
 // Main Landing Page Component
 const LandingPage = () => {
   const [products, setProducts] = useState([]);
@@ -135,8 +137,6 @@ const LandingPage = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [wishlistItems, setWishlistItems] = useState([]);
   const [wishlistLoading, setWishlistLoading] = useState(null);
-  const [cart, setCart] = useState([]);
-  const [pollingInterval] = useState(POLLING_INTERVAL);
   const navigate = useNavigate();
 
   // Fetch wishlist items
@@ -145,7 +145,7 @@ const LandingPage = () => {
       const token = localStorage.getItem('accessToken');
       if (!token) return;
 
-      const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/wishlist/my-wishlist`, {
+      const response = await fetch(`${API_REACT_APP_BASE_URL}/api/wishlist/my-wishlist`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Accept': 'application/json'
@@ -181,9 +181,8 @@ const LandingPage = () => {
       const isInWishlist = wishlistItems.some(item => item.product.id === product.id);
 
       if (isInWishlist) {
-        // Remove from wishlist
         const response = await fetch(
-          `${process.env.REACT_APP_BASE_URL}/api/wishlist/product/${product.id}`,
+          `${API_REACT_APP_BASE_URL}/api/wishlist/product/${product.id}`,
           {
             method: 'DELETE',
             headers: {
@@ -202,8 +201,7 @@ const LandingPage = () => {
         if (!response.ok) throw new Error('Failed to remove from wishlist');
         setWishlistItems(prev => prev.filter(item => item.product.id !== product.id));
       } else {
-        // Add to wishlist
-        const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/wishlist`, {
+        const response = await fetch(`${API_REACT_APP_BASE_URL}/api/wishlist`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -223,7 +221,7 @@ const LandingPage = () => {
         }
 
         if (!response.ok) throw new Error('Failed to add to wishlist');
-        await fetchWishlist(); // Refresh wishlist after adding
+        await fetchWishlist();
       }
     } catch (error) {
       console.error('Error updating wishlist:', error);
@@ -241,7 +239,7 @@ const LandingPage = () => {
         if (searchQuery) queryParams.append('name', searchQuery);
         if (filters.categoryId) queryParams.append('categoryId', filters.categoryId);
         
-        const url = `${process.env.REACT_APP_BASE_URL}/api/products/get-all-with-filters${
+        const url = `${API_REACT_APP_BASE_URL}/api/products/get-all-with-filters${
           queryParams.toString() ? `?${queryParams.toString()}` : ''
         }`;
         
@@ -260,39 +258,10 @@ const LandingPage = () => {
     return () => clearTimeout(timeoutId);
   }, [searchQuery, filters]);
 
-  // Fetch cart items
-  const fetchCart = async () => {
-    try {
-      const token = localStorage.getItem('accessToken');
-      if (!token) return;
-
-      const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/carts/user`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Accept': 'application/json'
-        }
-      });
-
-      if (response.status === 401) {
-        toast.error('You have to login');
-        navigate('/login');
-        return;
-      }
-
-      if (response.ok) {
-        const data = await response.json();
-        setCart(data);
-      }
-    } catch (error) {
-      console.error('Error fetching cart:', error);
-    }
-  };
-
-  // Polling for cart updates
+  // Initial wishlist fetch
   useEffect(() => {
-    const intervalId = setInterval(fetchCart, pollingInterval);
-    return () => clearInterval(intervalId);
-  }, [pollingInterval]);
+    fetchWishlist();
+  }, []);
 
   // Group products by shop
   const groupedProducts = _.groupBy(products, product => product.__shop__?.id);

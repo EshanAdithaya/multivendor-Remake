@@ -34,86 +34,88 @@ import AddressManagement from './pages/AddressManagement';
 import ProtectedRoute from './components/ProtectedRoute';
 import ShoppingCart from './pages/ShoppingCart';
 import OrderSuccess from './components/OrderSuccess';
+import { CartProvider } from './components/CartContext';
 
 function App() {
   return (
     <Router>
-      <Layout>
-        <Routes>
-          {/* Public routes */}
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/signup" element={<Signup />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/productDetails" element={<ProductDetail />} />
-          <Route path="/shopShow" element={<ShopDetails />} />
-          <Route path='/offers' element={<PromotionsPage />} />
-          <Route path='/refund-policy' element={<RefundPolicyPage />} />
-          <Route path="/contact" element={<ContactPage />} />
-          <Route path="/manufacturers" element={<ManufacturersPage />} />
-          <Route path="/authors" element={<AuthorsPage />} />
-          <Route path="/shops" element={<ShopsList />} />
-          <Route path='/flash-sale' element={<FlashSalesPage />} />
-          <Route path='/faq' element={<FAQPage />} />
-          <Route path='/terms' element={<TermsAndConditionsPage />} />
-          <Route path='/order-success' element={<OrderSuccess />} />
+      <CartProvider>
+        <Layout>
+          <Routes>
+            {/* Public routes */}
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/signup" element={<Signup />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/productDetails" element={<ProductDetail />} />
+            <Route path="/shopShow" element={<ShopDetails />} />
+            <Route path='/offers' element={<PromotionsPage />} />
+            <Route path='/refund-policy' element={<RefundPolicyPage />} />
+            <Route path="/contact" element={<ContactPage />} />
+            <Route path="/manufacturers" element={<ManufacturersPage />} />
+            <Route path="/authors" element={<AuthorsPage />} />
+            <Route path="/shops" element={<ShopsList />} />
+            <Route path='/flash-sale' element={<FlashSalesPage />} />
+            <Route path='/faq' element={<FAQPage />} />
+            <Route path='/terms' element={<TermsAndConditionsPage />} />
+            <Route path='/order-success' element={<OrderSuccess />} />
 
-          {/* Protected routes (right side nav bar) */}
-          <Route path='/Profile' element={
-            <ProtectedRoute>
-              <ProfilePage />
-            </ProtectedRoute>
-          } />
-          <Route path='/my-order' element={
-            <ProtectedRoute>
-              <MyOrdersScreen />
-            </ProtectedRoute>
-          } />
-          <Route path='/wishlists' element={
-            <ProtectedRoute>
-              <WishlistPage />
-            </ProtectedRoute>
-          } />
-          <Route path='/change-password' element={
-            <ProtectedRoute>
-              <PasswordChangeScreen />
-            </ProtectedRoute>
-          } />
-          <Route path='/cards' element={
-            <ProtectedRoute>
-              <MyCardScreen />
-            </ProtectedRoute>
-          } />
-          <Route path='/questions' element={
-            <ProtectedRoute>
-              <QuestionsPage />
-            </ProtectedRoute>
-          } />
-          <Route path='/checkout' element={
-            <ProtectedRoute>
-              <CheckoutPage />
-            </ProtectedRoute>
-          } />
-          <Route path="/refunds" element={
-            <ProtectedRoute>
-              <RefundsScreen />
-            </ProtectedRoute>
-          } />
-          
-          <Route path="/address" element={
-            <ProtectedRoute>
-              <AddressManagement />
-            </ProtectedRoute>
-          } />
-          <Route path="/order-details" element={
-            <ProtectedRoute>
-              <OrderDetailsScreen />
-            </ProtectedRoute>
-          } />
-          
-
-          <Route path="*" element={<div>Page not found</div>} />
-        </Routes>
-      </Layout>
+            {/* Protected routes (right side nav bar) */}
+            <Route path='/Profile' element={
+              <ProtectedRoute>
+                <ProfilePage />
+              </ProtectedRoute>
+            } />
+            <Route path='/my-order' element={
+              <ProtectedRoute>
+                <MyOrdersScreen />
+              </ProtectedRoute>
+            } />
+            <Route path='/wishlists' element={
+              <ProtectedRoute>
+                <WishlistPage />
+              </ProtectedRoute>
+            } />
+            <Route path='/change-password' element={
+              <ProtectedRoute>
+                <PasswordChangeScreen />
+              </ProtectedRoute>
+            } />
+            <Route path='/cards' element={
+              <ProtectedRoute>
+                <MyCardScreen />
+              </ProtectedRoute>
+            } />
+            <Route path='/questions' element={
+              <ProtectedRoute>
+                <QuestionsPage />
+              </ProtectedRoute>
+            } />
+            <Route path='/checkout' element={
+              <ProtectedRoute>
+                <CheckoutPage />
+              </ProtectedRoute>
+            } />
+            <Route path="/refunds" element={
+              <ProtectedRoute>
+                <RefundsScreen />
+              </ProtectedRoute>
+            } />
+            
+            <Route path="/address" element={
+              <ProtectedRoute>
+                <AddressManagement />
+              </ProtectedRoute>
+            } />
+            <Route path="/order-details" element={
+              <ProtectedRoute>
+                <OrderDetailsScreen />
+              </ProtectedRoute>
+            } />
+            
+            <Route path="*" element={<div>Page not found</div>} />
+          </Routes>
+        </Layout>
+      </CartProvider>
     </Router>
   );
 }

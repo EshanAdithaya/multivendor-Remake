@@ -1,15 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Menu, Home, ShoppingBag, User, X } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import ShoppingCart from '../pages/ShoppingCart';
-
-const API_REACT_APP_BASE_URL = process.env.REACT_APP_BASE_URL;
+import { useCart } from './CartContext'; // Import the cart context hook
 
 const NavigationWithMenus = () => {
   const [isLeftSidebarOpen, setLeftSidebarOpen] = useState(false);
   const [isRightSidebarOpen, setRightSidebarOpen] = useState(false);
   const [isShoppingCartOpen, setShoppingCartOpen] = useState(false);
-  const [cartItemCount, setCartItemCount] = useState(0);
+  const { cartCount } = useCart(); // Use the cart count from context
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -18,47 +17,7 @@ const NavigationWithMenus = () => {
     window.location.href = "https://multivendor-remake.vercel.app/login";
   };
 
-  // Fetch cart items count
-  useEffect(() => {
-    const fetchCartItemCount = async () => {
-      const token = localStorage.getItem('accessToken');
-      if (!token) {
-        setCartItemCount(0);
-        return;
-      }
-
-      try {
-        const response = await fetch(`${API_REACT_APP_BASE_URL}/api/carts/user`, {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Accept': '*/*'
-          }
-        });
-
-        if (response.ok) {
-          const carts = await response.json();
-          const totalItems = carts.reduce((total, cart) => 
-            total + cart.cartItems.reduce((sum, item) => sum + item.quantity, 0), 
-          0);
-          setCartItemCount(totalItems);
-        } else {
-          setCartItemCount(0);
-        }
-      } catch (error) {
-        console.error('Error fetching cart items:', error);
-        setCartItemCount(0);
-      }
-    };
-
-    // Fetch on initial load and when cart opens
-    fetchCartItemCount();
-
-    // Set up interval to periodically check cart items
-    const intervalId = setInterval(fetchCartItemCount, 60000); // Every minute
-
-    // Clean up interval on component unmount
-    return () => clearInterval(intervalId);
-  }, [isShoppingCartOpen]);
+  // Remove cartItemCount state and useEffect for fetching cart items
 
   const leftMenuItems = [
     { name: 'Shops', path: '/shops' },
@@ -66,7 +25,6 @@ const NavigationWithMenus = () => {
     { name: 'Contact', path: '/contact' },
     { name: 'Flash Sale', path: '/flash-sale' },
     { name: 'Manufacturers/Publishers', path: '/manufacturers' },
-    // { name: 'Authors', path: '/authors' },
     { name: 'FAQ', path: '/faq' },
     { name: 'Terms & Conditions', path: '/terms' },
     { name: 'Refund Policy', path: '/refund-policy' }
@@ -80,7 +38,6 @@ const NavigationWithMenus = () => {
     { name: 'My Wishlists', path: '/wishlists' },
     { name: 'My Reviews', path: '/review' },
     { name: 'My Refunds', path: '/refunds' },
-    // { name: 'My Reports', path: '/reports' },
     { name: 'Checkout', path: '/checkout' },
     { name: 'Change Password', path: '/change-password' },
     { name: 'Logout', path: '#', onClick: handleLogout }
@@ -263,9 +220,9 @@ const NavigationWithMenus = () => {
           }`}
         >
           <ShoppingBag className="w-6 h-6" />
-          {cartItemCount > 0 && (
+          {cartCount > 0 && (
             <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-              {cartItemCount > 99 ? '99+' : cartItemCount}
+              {cartCount > 99 ? '99+' : cartCount}
             </span>
           )}
         </button>
