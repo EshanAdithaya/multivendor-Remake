@@ -121,6 +121,8 @@ const ShopSection = ({ shop, products, onNavigate, wishlistItems, onWishlistTogg
   );
 };
 
+const POLLING_INTERVAL = 2000; // Polling interval in milliseconds
+
 // Main Landing Page Component
 const LandingPage = () => {
   const [products, setProducts] = useState([]);
@@ -133,6 +135,8 @@ const LandingPage = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [wishlistItems, setWishlistItems] = useState([]);
   const [wishlistLoading, setWishlistLoading] = useState(null);
+  const [cart, setCart] = useState([]);
+  const [pollingInterval] = useState(POLLING_INTERVAL);
   const navigate = useNavigate();
 
   // Fetch wishlist items
@@ -256,6 +260,40 @@ const LandingPage = () => {
     return () => clearTimeout(timeoutId);
   }, [searchQuery, filters]);
 
+  // Fetch cart items
+  const fetchCart = async () => {
+    try {
+      const token = localStorage.getItem('accessToken');
+      if (!token) return;
+
+      const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/carts/user`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json'
+        }
+      });
+
+      if (response.status === 401) {
+        toast.error('You have to login');
+        navigate('/login');
+        return;
+      }
+
+      if (response.ok) {
+        const data = await response.json();
+        setCart(data);
+      }
+    } catch (error) {
+      console.error('Error fetching cart:', error);
+    }
+  };
+
+  // Polling for cart updates
+  useEffect(() => {
+    const intervalId = setInterval(fetchCart, pollingInterval);
+    return () => clearInterval(intervalId);
+  }, [pollingInterval]);
+
   // Group products by shop
   const groupedProducts = _.groupBy(products, product => product.__shop__?.id);
   
@@ -267,7 +305,7 @@ const LandingPage = () => {
 
   // Handle product navigation
   const handleProductNavigation = (productId) => {
-    navigate(`/product?key=${productId}`);
+    navigate(`/productDetails?key=${productId}`);
   };
 
   return (
