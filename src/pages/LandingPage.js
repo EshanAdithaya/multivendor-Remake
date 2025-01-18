@@ -6,6 +6,7 @@ import Header from '../components/Header';
 import _ from 'lodash';
 import Lottie from 'lottie-react';
 import noProductAnimation from '../Assets/animations/not_found.json';
+import loadingAnimation from '../Assets/animations/loading.json';
 import { toast } from 'react-toastify';
 
 const API_REACT_APP_BASE_URL = process.env.REACT_APP_BASE_URL;
@@ -309,7 +310,13 @@ const LandingPage = () => {
 
       {loading ? (
         <div className="flex items-center justify-center min-h-[60vh]">
-          <div className="w-8 h-8 border-4 border-gray-200 border-t-yellow-400 rounded-full animate-spin"></div>
+          <div className="w-64 h-64">
+            <Lottie 
+              animationData={loadingAnimation}
+              loop={true}
+              autoplay={true}
+            />
+          </div>
         </div>
       ) : products.length === 0 ? (
         <div className="flex flex-col items-center justify-center min-h-[60vh]">
