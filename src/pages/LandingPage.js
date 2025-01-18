@@ -4,8 +4,11 @@ import { ChevronRight, Filter, X } from 'lucide-react';
 import CompactProductCard from '../components/ProductCard';
 import Header from '../components/Header';
 import _ from 'lodash';
+import Lottie from 'lottie-react';
+import noProductAnimation from '../Assets/animations/not_found.json';
+import { toast } from 'react-toastify';
 
-// Filter Popup Component
+// Filter Popup Component remains the same as in your original code
 const FilterPopup = ({ isOpen, onClose, filters, setFilters, categories }) => {
   if (!isOpen) return null;
 
@@ -21,7 +24,6 @@ const FilterPopup = ({ isOpen, onClose, filters, setFilters, categories }) => {
           </div>
 
           <div className="flex-1 overflow-y-auto">
-            {/* Categories */}
             <div className="p-4 border-b">
               <h3 className="text-sm font-medium mb-3">Categories</h3>
               <div className="flex flex-wrap gap-2">
@@ -41,7 +43,6 @@ const FilterPopup = ({ isOpen, onClose, filters, setFilters, categories }) => {
               </div>
             </div>
 
-            {/* Sort By */}
             <div className="p-4">
               <h3 className="text-sm font-medium mb-3">Sort By</h3>
               <div className="space-y-2">
@@ -71,13 +72,12 @@ const FilterPopup = ({ isOpen, onClose, filters, setFilters, categories }) => {
   );
 };
 
-// Shop Section Component
-const ShopSection = ({ shop, products, onNavigate }) => {
+// Shop Section Component with updated navigation
+const ShopSection = ({ shop, products, onNavigate, wishlistItems, onWishlistToggle, wishlistLoading }) => {
   if (!products?.length) return null;
 
   return (
     <div className="mb-4 bg-white">
-      {/* Shop Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b">
         <div className="flex items-center gap-2">
           <div className="w-12 h-12 rounded-full overflow-hidden bg-gray-100">
@@ -103,7 +103,6 @@ const ShopSection = ({ shop, products, onNavigate }) => {
         </div>
       </div>
 
-      {/* Products Scroll */}
       <div className="overflow-x-auto scrollbar-hide">
         <div className="flex gap-3 p-4">
           {products.map(product => (
@@ -111,6 +110,9 @@ const ShopSection = ({ shop, products, onNavigate }) => {
               key={product.id}
               product={product}
               onNavigate={() => onNavigate(product.id)}
+              isInWishlist={wishlistItems.some(item => item.product.id === product.id)}
+              isWishlistLoading={wishlistLoading === product.id}
+              onWishlistToggle={() => onWishlistToggle(product)}
             />
           ))}
         </div>
@@ -129,8 +131,104 @@ const LandingPage = () => {
     sortBy: 'recommended'
   });
   const [searchQuery, setSearchQuery] = useState('');
+  const [wishlistItems, setWishlistItems] = useState([]);
+  const [wishlistLoading, setWishlistLoading] = useState(null);
   const navigate = useNavigate();
 
+  // Fetch wishlist items
+  const fetchWishlist = async () => {
+    try {
+      const token = localStorage.getItem('accessToken');
+      if (!token) return;
+
+      const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/wishlist/my-wishlist`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json'
+        }
+      });
+
+      if (response.status === 401) {
+        toast.error('You have to login');
+        navigate('/login');
+        return;
+      }
+
+      if (response.ok) {
+        const data = await response.json();
+        setWishlistItems(data);
+      }
+    } catch (error) {
+      console.error('Error fetching wishlist:', error);
+    }
+  };
+
+  // Handle wishlist toggle
+  const handleWishlistToggle = async (product) => {
+    const token = localStorage.getItem('accessToken');
+    if (!token) {
+      toast.error('You have to login');
+      navigate('/login');
+      return;
+    }
+
+    setWishlistLoading(product.id);
+    try {
+      const isInWishlist = wishlistItems.some(item => item.product.id === product.id);
+
+      if (isInWishlist) {
+        // Remove from wishlist
+        const response = await fetch(
+          `${process.env.REACT_APP_BASE_URL}/api/wishlist/product/${product.id}`,
+          {
+            method: 'DELETE',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Accept': 'application/json'
+            }
+          }
+        );
+
+        if (response.status === 401) {
+          toast.error('You have to login');
+          navigate('/login');
+          return;
+        }
+
+        if (!response.ok) throw new Error('Failed to remove from wishlist');
+        setWishlistItems(prev => prev.filter(item => item.product.id !== product.id));
+      } else {
+        // Add to wishlist
+        const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/wishlist`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+            'Accept': 'application/json'
+          },
+          body: JSON.stringify({
+            productId: product.id,
+            shopId: product.__shop__?.id
+          })
+        });
+
+        if (response.status === 401) {
+          toast.error('You have to login');
+          navigate('/login');
+          return;
+        }
+
+        if (!response.ok) throw new Error('Failed to add to wishlist');
+        await fetchWishlist(); // Refresh wishlist after adding
+      }
+    } catch (error) {
+      console.error('Error updating wishlist:', error);
+    } finally {
+      setWishlistLoading(null);
+    }
+  };
+
+  // Fetch products
   useEffect(() => {
     const fetchProducts = async () => {
       setLoading(true);
@@ -167,15 +265,18 @@ const LandingPage = () => {
     'id'
   );
 
+  // Handle product navigation
+  const handleProductNavigation = (productId) => {
+    navigate(`/product?key=${productId}`);
+  };
+
   return (
     <div className="min-h-screen bg-gray-100">
-      {/* Header */}
       <Header 
         onSearchChange={setSearchQuery}
         onFilterClick={() => setShowFilters(true)}
       />
 
-      {/* Categories */}
       <div className="bg-white shadow-sm sticky top-[48px] z-30">
         <div className="overflow-x-auto scrollbar-hide">
           <div className="flex items-center gap-2 px-4 py-2">
@@ -199,10 +300,20 @@ const LandingPage = () => {
         </div>
       </div>
 
-      {/* Main Content */}
       {loading ? (
         <div className="flex items-center justify-center min-h-[60vh]">
           <div className="w-8 h-8 border-4 border-gray-200 border-t-yellow-400 rounded-full animate-spin"></div>
+        </div>
+      ) : products.length === 0 ? (
+        <div className="flex flex-col items-center justify-center min-h-[60vh]">
+          <div className="w-64 h-64">
+            <Lottie 
+              animationData={noProductAnimation}
+              loop={true}
+              autoplay={true}
+            />
+          </div>
+          <p className="text-gray-500 text-lg mt-4">No products found</p>
         </div>
       ) : (
         <div className="pb-20 pt-2">
@@ -213,14 +324,16 @@ const LandingPage = () => {
                 key={shopId}
                 shop={shop}
                 products={shopProducts}
-                onNavigate={(productId) => navigate(`/product/${productId}`)}
+                onNavigate={handleProductNavigation}
+                wishlistItems={wishlistItems}
+                onWishlistToggle={handleWishlistToggle}
+                wishlistLoading={wishlistLoading}
               />
             );
           })}
         </div>
       )}
 
-      {/* Filter Popup */}
       <FilterPopup
         isOpen={showFilters}
         onClose={() => setShowFilters(false)}
