@@ -36,6 +36,7 @@ import ShoppingCart from './pages/ShoppingCart';
 import OrderSuccess from './components/OrderSuccess';
 import { CartProvider } from './components/CartContext';
 
+
 function App() {
   return (
     <Router>
@@ -58,6 +59,7 @@ function App() {
             <Route path='/faq' element={<FAQPage />} />
             <Route path='/terms' element={<TermsAndConditionsPage />} />
             <Route path='/order-success' element={<OrderSuccess />} />
+           
 
             {/* Protected routes (right side nav bar) */}
             <Route path='/Profile' element={
@@ -85,6 +87,7 @@ function App() {
                 <MyCardScreen />
               </ProtectedRoute>
             } />
+            
             <Route path='/questions' element={
               <ProtectedRoute>
                 <QuestionsPage />
