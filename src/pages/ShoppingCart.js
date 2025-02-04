@@ -39,7 +39,7 @@ const ShoppingCart = ({ onClose }) => {
   React.useEffect(() => {
     const token = localStorage.getItem('accessToken');
     if (!token) {
-      setError('');
+      setError('unauthorized');
       setIsLoading(false);
       playAnimation(catWaitingAnimation);
       return;
@@ -53,13 +53,19 @@ const ShoppingCart = ({ onClose }) => {
             'Accept': '*/*'
           }
         });
+        
+        if (response.status === 401) {
+          setError('unauthorized');
+          playAnimation(catWaitingAnimation);
+          return;
+        }
+        
         const data = await response.json();
         
         if (response.ok && Array.isArray(data)) {
           setCarts(data);
         } else if (response.status === 404) {
           setCarts([]);
-          // Modified error message
           setError('No carts found');
         } else {
           setError('Unexpected data format');
@@ -145,44 +151,42 @@ const ShoppingCart = ({ onClose }) => {
 
   if (error) {
     return (
-      <div className="fixed inset-0 bg-white z-50 h-screen">
-        <div className="h-full flex flex-col items-center justify-center">
-          <div className="text-center max-w-md px-4">
-            {error === 'Unexpected data format' ? (
-              <>
-                <div ref={animationContainer} className="w-64 h-64 mx-auto" />
-                <p className="text-gray-500 mt-4">Unexpected data format. Please contact admin.</p>
-              </>
-            ) : !localStorage.getItem('accessToken') ? (
-              <>
-                <div ref={animationContainer} className="w-64 h-64 mx-auto" />
-                <p className="text-gray-500 mt-4">Please log in to view your cart</p>
-                <button
-                  className="mt-4 px-4 py-2 bg-yellow-600 text-white rounded hover:bg-yellow-700"
-                  onClick={() => navigate('/login')}
-                >
-                  Login
-                </button>
-              </>
-            ) : error === 'No carts found' ? (
-              <>
-                <div ref={animationContainer} className="w-64 h-64 mx-auto" />
-                <p className="text-gray-500 mt-4">You don't have any carts yet.</p>
-                <p className="text-gray-400 text-sm mt-2">Start shopping to create your first cart!</p>
-                <button
-                  className="mt-4 px-4 py-2 bg-yellow-600 text-white rounded hover:bg-yellow-700"
-                  onClick={() => navigate('/')}
-                >
-                  Browse Products
-                </button>
-              </>
-            ) : (
-              <>
-                <div ref={animationContainer} className="w-64 h-64 mx-auto" />
-                <p className="text-gray-500 mt-4">{error}</p>
-              </>
-            )}
-          </div>
+      <div className="fixed inset-0 bg-white z-50 h-screen flex items-center justify-center">
+        <div className="w-full max-w-md px-4 flex flex-col items-center">
+          {error === 'Unexpected data format' ? (
+            <>
+              <div ref={animationContainer} style={{ width: '80vmin', height: '80vmin', maxWidth: '400px', maxHeight: '400px' }} />
+              <p className="text-gray-500 mt-4 text-center">Unexpected data format. Please contact admin.</p>
+            </>
+          ) : error === 'unauthorized' ? (
+            <>
+              <div ref={animationContainer} style={{ width: '80vmin', height: '80vmin', maxWidth: '400px', maxHeight: '400px' }} />
+              <p className="text-gray-500 mt-4 text-center">Please log in to view your cart</p>
+              <button
+                className="mt-4 px-6 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700"
+                onClick={() => navigate('/login')}
+              >
+                Login
+              </button>
+            </>
+          ) : error === 'No carts found' ? (
+            <>
+              <div ref={animationContainer} style={{ width: '80vmin', height: '80vmin', maxWidth: '400px', maxHeight: '400px' }} />
+              <p className="text-gray-500 mt-4 text-center">You don't have any carts yet.</p>
+              <p className="text-gray-400 text-sm mt-2 text-center">Start shopping to create your first cart!</p>
+              <button
+                className="mt-4 px-6 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700"
+                onClick={() => navigate('/')}
+              >
+                Browse Products
+              </button>
+            </>
+          ) : (
+            <>
+              <div ref={animationContainer} style={{ width: '80vmin', height: '80vmin', maxWidth: '400px', maxHeight: '400px' }} />
+              <p className="text-gray-500 mt-4 text-center">{error}</p>
+            </>
+          )}
         </div>
       </div>
     );
