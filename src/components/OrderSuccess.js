@@ -39,7 +39,7 @@ const OrderSuccess = () => {
         setOrderDetails({
           orderNumber: data.uniqueOrderId,
           total: data.totalAmount,
-          email: data.customer.email
+          email: data.customer?.email || 'N/A' // Ensure data.customer is defined
         });
 
         // Fetch user details
@@ -63,7 +63,7 @@ const OrderSuccess = () => {
             'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
           },
           body: JSON.stringify({
-            to: [userData.email],
+            to: [userData.email || ''],
             subject: `Order Confirmation #${data.uniqueOrderId}`,
             htmlContent: `
               <h1>Thank you for your order!</h1>
