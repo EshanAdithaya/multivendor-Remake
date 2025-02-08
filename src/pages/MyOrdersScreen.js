@@ -19,7 +19,7 @@ const OrderCard = ({ order, onClick }) => {
     >
       <div className="flex justify-between items-center mb-3">
         <h3 className="text-lg font-semibold text-gray-800">
-          Order #{order.id.slice(0, 6)}
+          Order #{order.id}
         </h3>
         <span className={`px-3 py-1 rounded-full text-sm ${
           order.shippingStatus === 'shipped' 
@@ -58,6 +58,10 @@ const MyOrdersScreen = () => {
   const [error, setError] = useState(null);
   const navigate = useNavigate();
 
+  const handleOrderClick = (orderId) => {
+    navigate(`/order-details?token=${orderId}`);
+  };
+
   useEffect(() => {
     const fetchOrders = async () => {
       try {
@@ -88,12 +92,6 @@ const MyOrdersScreen = () => {
 
     fetchOrders();
   }, []);
-
-// In MyOrdersScreen.jsx
-const handleOrderClick = (orderId) => {
-  // Updated to use the correct route - make sure this matches your router configuration
-  navigate(`/order-details?token=${orderId}`);
-};
 
   if (loading) {
     return (
