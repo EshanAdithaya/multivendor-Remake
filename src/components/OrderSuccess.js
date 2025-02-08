@@ -1,4 +1,3 @@
-// OrderSuccess.jsx
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import Lottie from 'lottie-react';
@@ -10,12 +9,12 @@ const OrderSuccess = () => {
   const [searchParams] = useSearchParams();
   const [emailSent, setEmailSent] = useState(false);
   const [orderDetails, setOrderDetails] = useState(null);
+  const [userEmail, setUserEmail] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   
   useEffect(() => {
-    const fetchOrderDetails = async () => {
-      // Get order ID from query parameters or state
+    const fetchUserAndOrderDetails = async () => {
       const orderId = searchParams.get('key') || location.state?.orderId;
       
       if (!orderId) {
@@ -24,25 +23,7 @@ const OrderSuccess = () => {
       }
 
       try {
-        // Fetch order details
-        const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/orders/${orderId}`, {
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
-          }
-        });
-
-        if (!response.ok) {
-          throw new Error('Failed to fetch order details');
-        }
-
-        const data = await response.json();
-        setOrderDetails({
-          orderNumber: data.uniqueOrderId,
-          total: data.totalAmount,
-          email: data.customer?.email || 'N/A' // Ensure data.customer is defined
-        });
-
-        // Fetch user details
+        // First fetch user details to get the email
         const userResponse = await fetch(`${process.env.REACT_APP_BASE_URL}/api/auth/me`, {
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
@@ -54,29 +35,49 @@ const OrderSuccess = () => {
         }
 
         const userData = await userResponse.json();
-        
-        // Send confirmation email
-        const emailResponse = await fetch(`${process.env.REACT_APP_BASE_URL}/api/email/send`, {
-          method: 'POST',
+        setUserEmail(userData.email);
+
+        // Then fetch order details
+        const orderResponse = await fetch(`${process.env.REACT_APP_BASE_URL}/api/orders/${orderId}`, {
           headers: {
-            'Content-Type': 'application/json',
             'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
-          },
-          body: JSON.stringify({
-            to: [userData.email || ''],
-            subject: `Order Confirmation #${data.uniqueOrderId}`,
-            htmlContent: `
-              <h1>Thank you for your order!</h1>
-              <p>Your order #${data.uniqueOrderId} has been confirmed.</p>
-              <p>We'll notify you when your order ships.</p>
-              <br>
-              <p>Order Total: $${data.totalAmount}</p>
-            `
-          })
+          }
         });
 
-        if (emailResponse.ok) {
-          setEmailSent(true);
+        if (!orderResponse.ok) {
+          throw new Error('Failed to fetch order details');
+        }
+
+        const orderData = await orderResponse.json();
+        setOrderDetails({
+          orderNumber: orderData.uniqueOrderId || orderId,
+          total: orderData.totalAmount
+        });
+
+        // Send confirmation email
+        if (userData.email) {
+          const emailResponse = await fetch(`${process.env.REACT_APP_BASE_URL}/api/email/send`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+            },
+            body: JSON.stringify({
+              to: [userData.email],
+              subject: `Order Confirmation #${orderData.uniqueOrderId || orderId}`,
+              htmlContent: `
+                <h1>Thank you for your order!</h1>
+                <p>Your order #${orderData.uniqueOrderId || orderId} has been confirmed.</p>
+                <p>We'll notify you when your order ships.</p>
+                <br>
+                <p>Order Total: $${orderData.totalAmount || '0.00'}</p>
+              `
+            })
+          });
+
+          if (emailResponse.ok) {
+            setEmailSent(true);
+          }
         }
       } catch (err) {
         setError(err.message);
@@ -86,7 +87,7 @@ const OrderSuccess = () => {
       }
     };
 
-    fetchOrderDetails();
+    fetchUserAndOrderDetails();
   }, [location, navigate, searchParams]);
 
   if (loading) {
@@ -137,8 +138,8 @@ const OrderSuccess = () => {
             Order number: #{orderDetails.orderNumber}
           </p>
           <p className="text-sm text-gray-500">
-            {emailSent
-              ? `Confirmation email sent to ${orderDetails.email}`
+            {emailSent && userEmail
+              ? `Confirmation email sent to ${userEmail}`
               : 'Sending confirmation email...'}
           </p>
         </div>
