@@ -1,5 +1,6 @@
+// OrderSuccess.jsx
 import React, { useEffect, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import Lottie from 'lottie-react';
 import orderSuccessAnimation from '../Assets/animations/packing.json';
 
@@ -7,48 +8,109 @@ const OrderSuccess = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [emailSent, setEmailSent] = useState(false);
-  const orderDetails = location.state?.orderDetails;
-
+  const [orderDetails, setOrderDetails] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  
   useEffect(() => {
-    if (!orderDetails) {
-      navigate('/');
-      return;
-    }
+    const fetchOrderDetails = async () => {
+      // Get order ID from URL parameters or state
+      const orderId = location.state?.orderId || location.pathname.split('/').pop();
+      
+      if (!orderId) {
+        navigate('/');
+        return;
+      }
 
-    const sendConfirmationEmail = async () => {
       try {
-        const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/email/send`, {
+        // Fetch order details
+        const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/orders/${orderId}`, {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+          }
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch order details');
+        }
+
+        const data = await response.json();
+        setOrderDetails({
+          orderNumber: data.uniqueOrderId,
+          total: data.totalAmount,
+          email: data.customer.email
+        });
+
+        // Fetch user details
+        const userResponse = await fetch(`${process.env.REACT_APP_BASE_URL}/api/auth/me`, {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+          }
+        });
+
+        if (!userResponse.ok) {
+          throw new Error('Failed to fetch user details');
+        }
+
+        const userData = await userResponse.json();
+        
+        // Send confirmation email
+        const emailResponse = await fetch(`${process.env.REACT_APP_BASE_URL}/api/email/send`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
           },
           body: JSON.stringify({
-            to: [orderDetails.email],
-            subject: `Order Confirmation #${orderDetails.orderNumber}`,
+            to: [userData.email],
+            subject: `Order Confirmation #${data.uniqueOrderId}`,
             htmlContent: `
               <h1>Thank you for your order!</h1>
-              <p>Your order #${orderDetails.orderNumber} has been confirmed.</p>
+              <p>Your order #${data.uniqueOrderId} has been confirmed.</p>
               <p>We'll notify you when your order ships.</p>
               <br>
-              <p>Order Total: $${orderDetails.total}</p>
+              <p>Order Total: $${data.totalAmount}</p>
             `
           })
         });
 
-        if (response.ok) {
+        if (emailResponse.ok) {
           setEmailSent(true);
         }
-      } catch (error) {
-        console.error('Failed to send confirmation email:', error);
+      } catch (err) {
+        setError(err.message);
+        console.error('Error:', err);
+      } finally {
+        setLoading(false);
       }
     };
 
-    sendConfirmationEmail();
-  }, [orderDetails, navigate]);
+    fetchOrderDetails();
+  }, [location, navigate]);
 
-  if (!orderDetails) {
-    return null;
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-4 border-yellow-500 border-t-transparent"></div>
+      </div>
+    );
+  }
+
+  if (error || !orderDetails) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <div className="bg-white rounded-lg shadow-lg p-8 max-w-md w-full text-center">
+          <h1 className="text-2xl font-bold text-red-600 mb-4">Something went wrong</h1>
+          <p className="text-gray-600 mb-6">{error || 'Order details not found'}</p>
+          <button
+            onClick={() => navigate('/')}
+            className="bg-yellow-400 text-white font-semibold py-2 px-4 rounded-md hover:bg-yellow-500 transition-colors"
+          >
+            Return to Home
+          </button>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -74,21 +136,21 @@ const OrderSuccess = () => {
             Order number: #{orderDetails.orderNumber}
           </p>
           <p className="text-sm text-gray-500">
-            {emailSent 
+            {emailSent
               ? `Confirmation email sent to ${orderDetails.email}`
               : 'Sending confirmation email...'}
           </p>
         </div>
 
         <div className="space-y-3">
-          <button 
-            onClick={() => navigate(`/my-order`)}
+          <button
+            onClick={() => navigate('/my-order')}
             className="w-full text-yellow-500 hover:text-yellow-600 font-semibold py-2 px-4 rounded-md transition-colors"
           >
             Track Order
           </button>
 
-          <button 
+          <button
             onClick={() => navigate('/')}
             className="w-full bg-white hover:bg-gray-50 text-gray-700 font-semibold py-2 px-4 rounded-md border border-gray-300 transition-colors"
           >

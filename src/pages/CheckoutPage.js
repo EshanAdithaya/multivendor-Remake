@@ -152,7 +152,7 @@ const CheckoutPage = () => {
 
   const handlePlaceOrder = async () => {
     const token = localStorage.getItem('accessToken');
-    const orderNumbers = [];
+    const orderIds = [];
     const failedOrders = [];
     
     if (calculateTotal().subtotal <= 0) {
@@ -170,17 +170,18 @@ const CheckoutPage = () => {
         if (!couponResponse.ok || new Date(appliedCoupon.expiresAt) < new Date()) {
           setAppliedCoupon(null);
           setCouponError('Coupon is no longer valid');
+          return;
         }
       } catch (err) {
         setAppliedCoupon(null);
         setCouponError('Error validating coupon');
+        return;
       }
     }
     
     // Process each cart individually
     for (const cart of carts) {
       try {
-        const orderNumber = `ORD${Date.now()}${Math.floor(Math.random() * 1000)}`;
         const orderData = {
           status: "pending",
           paymentStatus: "pending",
@@ -191,7 +192,7 @@ const CheckoutPage = () => {
           shopId: cart.shop.id,
           shippingStatus: "pending",
           shippingMethod: "standard",
-          orderNumber: orderNumber,
+          orderNumber: `ORD${Date.now()}${Math.floor(Math.random() * 1000)}`,
           items: cart.cartItems.map(item => ({
             productVariationId: item.productVariation.id,
             quantity: item.quantity
@@ -215,7 +216,8 @@ const CheckoutPage = () => {
           throw new Error(`Failed to create order for ${cart.shop.name}`);
         }
   
-        orderNumbers.push(orderNumber);
+        const orderResponse = await response.json();
+        orderIds.push(orderResponse.id); // Store the order ID
       } catch (err) {
         failedOrders.push({
           shopName: cart.shop.name,
@@ -225,27 +227,19 @@ const CheckoutPage = () => {
     }
   
     if (failedOrders.length > 0) {
-      // Some orders failed
-      if (orderNumbers.length === 0) {
-        // All orders failed
+      if (orderIds.length === 0) {
         setError('Failed to create any orders. Please try again.');
         return;
       }
-      // Some orders succeeded, some failed
       setError(`Some orders could not be processed: ${failedOrders.map(f => f.shopName).join(', ')}`);
     }
   
-    // Navigate to success page if at least one order was created
-    if (orderNumbers.length > 0) {
-      const userEmail = localStorage.getItem('userEmail');
-      navigate('/order-success', {
+    // Navigate to success page with the first order ID
+    if (orderIds.length > 0) {
+      navigate(`/order-success/${orderIds[0]}`, {
         state: {
-          orderDetails: {
-            orderNumber: orderNumbers.join(', '),
-            email: userEmail,
-            total: calculateTotal().total,
-            partialSuccess: failedOrders.length > 0
-          }
+          orderId: orderIds[0],
+          partialSuccess: failedOrders.length > 0
         }
       });
     }
