@@ -234,9 +234,9 @@ const CheckoutPage = () => {
       setError(`Some orders could not be processed: ${failedOrders.map(f => f.shopName).join(', ')}`);
     }
   
-    // Navigate to success page with the first order ID
+    // Navigate to success page with all order IDs separated by commas
     if (orderIds.length > 0) {
-      navigate(`/order-success/${orderIds[0]}`, {
+      navigate(`/order-success?key=${orderIds[0]}`, {
         state: {
           orderId: orderIds[0],
           partialSuccess: failedOrders.length > 0

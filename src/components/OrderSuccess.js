@@ -1,12 +1,13 @@
 // OrderSuccess.jsx
 import React, { useEffect, useState } from 'react';
-import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import Lottie from 'lottie-react';
 import orderSuccessAnimation from '../Assets/animations/packing.json';
 
 const OrderSuccess = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [emailSent, setEmailSent] = useState(false);
   const [orderDetails, setOrderDetails] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -14,8 +15,8 @@ const OrderSuccess = () => {
   
   useEffect(() => {
     const fetchOrderDetails = async () => {
-      // Get order ID from URL parameters or state
-      const orderId = location.state?.orderId || location.pathname.split('/').pop();
+      // Get order ID from query parameters or state
+      const orderId = searchParams.get('key') || location.state?.orderId;
       
       if (!orderId) {
         navigate('/');
@@ -86,7 +87,7 @@ const OrderSuccess = () => {
     };
 
     fetchOrderDetails();
-  }, [location, navigate]);
+  }, [location, navigate, searchParams]);
 
   if (loading) {
     return (
