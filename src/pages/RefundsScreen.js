@@ -1,7 +1,28 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Header from '../components/Header';
+import axios from 'axios';
 
 const RefundsScreen = () => {
+  const [refunds, setRefunds] = useState([]);
+
+  useEffect(() => {
+    const fetchRefunds = async () => {
+      try {
+        const token = localStorage.getItem('accessToken');
+        const response = await axios.get('https://pawsome.soluzent.com/api/refunds', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        setRefunds(response.data);
+      } catch (error) {
+        console.error('Error fetching refunds:', error);
+      }
+    };
+
+    fetchRefunds();
+  }, []);
+
   return (
     <div className="min-h-screen bg-white">
       {/* Logo Header */}
@@ -26,11 +47,13 @@ const RefundsScreen = () => {
             <div className="text-gray-700 font-medium">Refund Reason</div>
           </div>
 
-          {/* Table Row */}
-          <div className="grid grid-cols-2 gap-4 p-4 bg-white">
-            <div className="text-gray-600">#26373</div>
-            <div className="text-gray-600">Urgent refund</div>
-          </div>
+          {/* Table Rows */}
+          {refunds.map((refund) => (
+            <div key={refund.id} className="grid grid-cols-2 gap-4 p-4 bg-white">
+              <div className="text-gray-600">{refund.id}</div>
+              <div className="text-gray-600">{refund.reason}</div>
+            </div>
+          ))}
         </div>
       </div>
     </div>
