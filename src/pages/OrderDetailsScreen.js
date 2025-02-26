@@ -16,7 +16,7 @@ const OrderDetailsScreen = () => {
   const fetchOrderDetails = async () => {
     try {
       const orderId = searchParams.get('token');
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('accessToken');
       
       if (!orderId || !token) {
         throw new Error('Missing required parameters');
@@ -211,7 +211,7 @@ const OrderDetailsScreen = () => {
   return (
     <div className="min-h-screen bg-white">
       <div className="px-6 pt-6">
-        <h1 className="text-xl font-bold text-gray-800 mb-4">Order #{order.id.slice(0, 6)}</h1>
+        <h1 className="text-xl font-bold text-gray-800 mb-4">Order #{order.id}</h1>
 
         <div className="bg-white rounded-xl shadow-sm mb-4">
           <div className="p-4 border-b border-gray-100">
