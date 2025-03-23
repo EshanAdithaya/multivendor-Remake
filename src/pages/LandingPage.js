@@ -271,7 +271,7 @@ const LandingPage = () => {
       <div className="mt-4 bg-white">
         <div className="flex justify-between px-4 py-4 overflow-x-auto scrollbar-hide">
           <CategoryButton 
-            icon={<img src="/api/placeholder/32/32" alt="Dog Food" className="w-10 h-10" />}
+            icon={<img src="../Assets\Images\landing_page\landing_page_shortcuts_dog_food.png" alt="Dog Food" className="w-10 h-10" />}
             label="Dog Food"
             onClick={() => handleCategoryClick('dog-food')}
           />
