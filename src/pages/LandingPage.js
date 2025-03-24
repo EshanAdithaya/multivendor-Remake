@@ -196,49 +196,59 @@ const LandingPage = () => {
     <div className="min-h-screen bg-yellow-50 pb-20">
       {/* Top Navigation Bar */}
       <div className="bg-yellow-400 py-4 px-4 rounded-b-3xl">
-        <div className="flex justify-around mb-3">
-          <button className="flex flex-col items-center">
-            <div className="bg-yellow-500 w-10 h-10 rounded-full flex items-center justify-center">
-              <Award className="w-5 h-5 text-white" />
+      <div className="flex justify-around mb-6">
+          <button className="flex flex-col items-center relative">
+            <div className="bg-yellow-500 w-14 h-14 rounded-full flex items-center justify-center flex-col">
+              <img 
+                src="/api/placeholder/24/24" 
+                alt="Location" 
+                className="w-6 h-6 mb-1" 
+              />
+              <ChevronRight className="w-4 h-4 text-white transform rotate-90" />
             </div>
-            <span className="text-xs mt-1 text-yellow-800">Daily Bonus</span>
+            <span className="text-xs mt-1 text-yellow-800 font-medium bg-yellow-200 px-3 py-0.5 rounded-md">Addresses</span>
           </button>
           
           <button className="flex flex-col items-center">
-            <div className="bg-yellow-500 w-10 h-10 rounded-full flex items-center justify-center relative">
-              <Heart className="w-5 h-5 text-white" />
-              <div className="absolute -top-1 -right-1 bg-white text-yellow-600 text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+            <div className="bg-yellow-500 w-14 h-14 rounded-full flex items-center justify-center relative">
+              <Heart className="w-7 h-7 text-white" />
+              <div className="absolute -top-1 -right-1 bg-white text-yellow-600 text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center shadow-sm">
                 20
               </div>
             </div>
-            <span className="text-xs mt-1 text-yellow-800">Wishlist</span>
+            <span className="text-xs mt-1 text-yellow-800 font-medium bg-yellow-200 px-3 py-0.5 rounded-md">Wishlist</span>
           </button>
           
           <button className="flex flex-col items-center">
-            <div className="bg-yellow-500 w-10 h-10 rounded-full flex items-center justify-center relative">
-              <CheckCircle className="w-5 h-5 text-white" />
-              <div className="absolute -top-1 -right-1 bg-white text-yellow-600 text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+            <div className="bg-yellow-500 w-14 h-14 rounded-full flex items-center justify-center relative">
+              <img 
+                src="/api/placeholder/28/28" 
+                alt="Orders" 
+                className="w-7 h-7" 
+              />
+              <div className="absolute -top-1 -right-1 bg-white text-yellow-600 text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center shadow-sm">
                 20
               </div>
             </div>
-            <span className="text-xs mt-1 text-yellow-800">Checkins</span>
+            <span className="text-xs mt-1 text-yellow-800 font-medium bg-yellow-200 px-3 py-0.5 rounded-md">Orders</span>
           </button>
           
           <button className="flex flex-col items-center">
-            <div className="bg-yellow-500 w-10 h-10 rounded-full flex items-center justify-center relative">
-              <ShoppingBag className="w-5 h-5 text-white" />
-              <div className="absolute -top-1 -right-1 bg-white text-yellow-600 text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+            <div className="bg-yellow-500 w-14 h-14 rounded-full flex items-center justify-center relative">
+              <ShoppingBag className="w-7 h-7 text-white" />
+              <div className="absolute -top-1 -right-1 bg-white text-yellow-600 text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center shadow-sm">
                 20
               </div>
             </div>
-            <span className="text-xs mt-1 text-yellow-800">Cart</span>
+            <span className="text-xs mt-1 text-yellow-800 font-medium bg-yellow-200 px-3 py-0.5 rounded-md">Cart</span>
           </button>
+          </div>
         </div>
-        
         {/* Search Bar */}
+        <div className="bg-yellow-400 py-4 px-4 rounded-b-3xl">
         <form onSubmit={handleSearch} className="relative">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
             <input
               type="text"
               placeholder="Pet Foods"
@@ -248,7 +258,8 @@ const LandingPage = () => {
             />
           </div>
         </form>
-      </div>
+        </div>
+      
       
       {/* Main Banner */}
       <div className="px-4 mt-4">
@@ -271,27 +282,27 @@ const LandingPage = () => {
       <div className="mt-4 bg-white">
         <div className="flex justify-between px-4 py-4 overflow-x-auto scrollbar-hide">
           <CategoryButton 
-            icon={<img src="../Assets\Images\landing_page\landing_page_shortcuts_dog_food.png" alt="Dog Food" className="w-10 h-10" />}
+            icon={<img src="https://pawsome-testing.sgp1.digitaloceanspaces.com/Application_CDN_Assets/landing_page_shortcuts_dog_food.png" alt="Dog Food" className="w-10 h-10" />}
             label="Dog Food"
             onClick={() => handleCategoryClick('dog-food')}
           />
           <CategoryButton 
-            icon={<img src="/api/placeholder/32/32" alt="Cat Food" className="w-10 h-10" />}
+            icon={<img src="https://pawsome-testing.sgp1.digitaloceanspaces.com/Application_CDN_Assets/landing_page_shortcuts_cat_food.png" alt="Cat Food" className="w-10 h-10" />}
             label="Cat Food"
             onClick={() => handleCategoryClick('cat-food')}
           />
           <CategoryButton 
-            icon={<img src="/api/placeholder/32/32" alt="Pet Toys" className="w-10 h-10" />}
+            icon={<img src="https://pawsome-testing.sgp1.digitaloceanspaces.com/Application_CDN_Assets/landing_page_shortcuts_toys.png" alt="Pet Toys" className="w-10 h-10" />}
             label="Pet Toys"
             onClick={() => handleCategoryClick('pet-toys')}
           />
           <CategoryButton 
-            icon={<img src="/api/placeholder/32/32" alt="Litter" className="w-10 h-10" />}
+            icon={<img src="https://pawsome-testing.sgp1.digitaloceanspaces.com/Application_CDN_Assets/landing_page_shortcuts_litter.png" alt="Litter" className="w-10 h-10" />}
             label="Litter"
             onClick={() => handleCategoryClick('litter')}
           />
           <CategoryButton 
-            icon={<img src="/api/placeholder/32/32" alt="Treats" className="w-10 h-10" />}
+            icon={<img src="https://pawsome-testing.sgp1.digitaloceanspaces.com/Application_CDN_Assets/landing_page_shortcuts_treats.png" alt="Treats" className="w-10 h-10" />}
             label="Treats"
             onClick={() => handleCategoryClick('treats')}
           />
@@ -304,14 +315,14 @@ const LandingPage = () => {
           <p className="text-sm text-gray-700">Available Points</p>
           <div className="flex items-center gap-2 mt-1">
             <p className="font-bold text-lg">{points.available}</p>
-            <img src="/api/placeholder/16/16" alt="Coin" className="w-5 h-5" />
+            <img src="https://pawsome-testing.sgp1.digitaloceanspaces.com/Application_CDN_Assets/landing_page_shortcuts_points.png" alt="Coin" className="w-5 h-5" />
           </div>
         </div>
         <div className="bg-yellow-100 rounded-lg p-3 flex-1">
           <p className="text-sm text-gray-700">Used Points</p>
           <div className="flex items-center gap-2 mt-1">
             <p className="font-bold text-lg">{points.used}</p>
-            <img src="/api/placeholder/16/16" alt="Award" className="w-5 h-5" />
+            <img src="https://pawsome-testing.sgp1.digitaloceanspaces.com/Application_CDN_Assets/landing_page_shortcuts_used_points.png" alt="Award" className="w-5 h-5" />
           </div>
         </div>
       </div>
