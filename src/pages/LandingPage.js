@@ -148,6 +148,16 @@ const LandingPage = () => {
     { id: 9, name: 'Pawsavenue', totalItems: 100, rating: 4.5, logoUrl: '/api/placeholder/120/120', isFavorite: false }
   ]);
   
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const carouselImages = [
+    "https://pawsome-testing.sgp1.digitaloceanspaces.com/Application_CDN_Assets/carousel_image1.jpg",
+    "https://pawsome-testing.sgp1.digitaloceanspaces.com/Application_CDN_Assets/carousel_image2.jpg",
+    "https://pawsome-testing.sgp1.digitaloceanspaces.com/Application_CDN_Assets/carousel_image3.jpg",
+    "https://pawsome-testing.sgp1.digitaloceanspaces.com/Application_CDN_Assets/carousel_image4.jpg",
+    "https://pawsome-testing.sgp1.digitaloceanspaces.com/Application_CDN_Assets/carousel_image5.webp",
+    "https://pawsome-testing.sgp1.digitaloceanspaces.com/Application_CDN_Assets/carousel_image6.webp"
+  ];
+
   const navigate = useNavigate();
 
   // Fetch data from API (if needed)
@@ -172,6 +182,14 @@ const LandingPage = () => {
     
     fetchData();
   }, []);
+
+  // Auto scroll carousel effect
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentSlide((prev) => (prev === carouselImages.length - 1 ? 0 : prev + 1));
+    }, 3000);
+    return () => clearInterval(interval);
+  }, [carouselImages.length]);
 
   const handleStoreClick = (storeId) => {
     // Navigate to store page
@@ -276,18 +294,34 @@ const LandingPage = () => {
       </div>
       
       
-      {/* Main Banner */}
+      {/* Main Banner Carousel */}
       <div className="px-4 mt-4">
-        <div className="bg-orange-100 rounded-lg overflow-hidden">
-          <div className="p-4">
-            <h2 className="text-2xl font-bold text-brown-800">FEED THEM AS FAMILY</h2>
-            <p className="text-sm font-bold text-brown-700">FRESH, RAW, REAL FOOD FOR PETS</p>
-            <div className="mt-2">
-              <img 
-                src="/api/placeholder/60/60"
-                alt="Dog"
-                className="w-16 h-16 object-cover rounded-full"
-              />
+        <div className="bg-white rounded-lg overflow-hidden shadow-sm">
+          <div className="relative w-full h-48">
+            {carouselImages.map((image, index) => (
+              <div 
+                key={index}
+                className={`absolute top-0 left-0 w-full h-full transition-opacity duration-500 ease-in-out ${
+                  index === currentSlide ? 'opacity-100 z-10' : 'opacity-0 z-0'
+                }`}
+              >
+                <img 
+                  src={image} 
+                  alt={`Banner ${index + 1}`}
+                  className="w-full h-full object-cover rounded-lg"
+                />
+              </div>
+            ))}
+            <div className="absolute bottom-2 left-0 right-0 z-20 flex justify-center gap-1">
+              {carouselImages.map((_, index) => (
+                <button
+                  key={index}
+                  className={`w-2 h-2 rounded-full ${
+                    index === currentSlide ? 'bg-white' : 'bg-white/50'
+                  }`}
+                  onClick={() => setCurrentSlide(index)}
+                />
+              ))}
             </div>
           </div>
         </div>
