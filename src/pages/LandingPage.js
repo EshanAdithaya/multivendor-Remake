@@ -193,72 +193,87 @@ const LandingPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-yellow-50 pb-20">
+    <div className="min-h-screen bg-white pb-20">
       {/* Top Navigation Bar */}
-      <div className="bg-yellow-400 py-4 px-4 rounded-b-3xl">
-      <div className="flex justify-around mb-6">
-          <button className="flex flex-col items-center relative">
-            <div className="bg-yellow-500 w-14 h-14 rounded-full flex items-center justify-center flex-col">
+      <div className="bg-yellow-200 pt-20 pb-4 relative">
+        {/* Yellow curved background */}
+        <div className="absolute top-0 left-0 right-0 h-10 bg-yellow-400 -z-10 "></div>
+        
+        {/* Tabs - positioned halfway on the curved yellow background */}
+        <div className="flex justify-around px-2 -mt-8">
+          <div className="flex flex-col items-center">
+            <div className="bg-yellow-500 w-20 h-12 rounded-xl flex items-center justify-center gap-1">
               <img 
-                src="/api/placeholder/24/24" 
+                src="https://pawsome-testing.sgp1.digitaloceanspaces.com/Application_CDN_Assets/landing_page_pure_address.png" 
                 alt="Location" 
-                className="w-6 h-6 mb-1" 
+                className="w-5 h-5" 
               />
               <ChevronRight className="w-4 h-4 text-white transform rotate-90" />
             </div>
-            <span className="text-xs mt-1 text-yellow-800 font-medium bg-yellow-200 px-3 py-0.5 rounded-md">Addresses</span>
-          </button>
-          
-          <button className="flex flex-col items-center">
-            <div className="bg-yellow-500 w-14 h-14 rounded-full flex items-center justify-center relative">
-              <Heart className="w-7 h-7 text-white" />
-              <div className="absolute -top-1 -right-1 bg-white text-yellow-600 text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center shadow-sm">
-                20
-              </div>
+            <div className="bg-white px-3 py-0.2 rounded-md -mt-3 text-center border border-yellow-500 z-10">
+            <span className="text-xs font-medium text-yellow-500">Addresses</span>
             </div>
-            <span className="text-xs mt-1 text-yellow-800 font-medium bg-yellow-200 px-3 py-0.5 rounded-md">Wishlist</span>
-          </button>
+          </div>
           
-          <button className="flex flex-col items-center">
-            <div className="bg-yellow-500 w-14 h-14 rounded-full flex items-center justify-center relative">
-              <img 
-                src="/api/placeholder/28/28" 
-                alt="Orders" 
-                className="w-7 h-7" 
+          <div className="flex flex-col items-center">
+            <div className="bg-yellow-500 w-20 h-12 rounded-xl flex items-center justify-center gap-1">
+            <img 
+                src="https://pawsome-testing.sgp1.digitaloceanspaces.com/Application_CDN_Assets/landing_page_wishlist.png" 
+                alt="Location" 
+                className="w-5 h-5" 
               />
-              <div className="absolute -top-1 -right-1 bg-white text-yellow-600 text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center shadow-sm">
-                20
-              </div>
+              <span className="text-white text-base font-medium ml-1">20</span>
             </div>
-            <span className="text-xs mt-1 text-yellow-800 font-medium bg-yellow-200 px-3 py-0.5 rounded-md">Orders</span>
-          </button>
+            <div className="bg-white px-3 py-0.2 rounded-md -mt-3 text-center border border-yellow-500 z-10">
+            <span className="text-xs font-medium text-yellow-500">Wishlist</span>
+            </div>
+          </div>
           
-          <button className="flex flex-col items-center">
-            <div className="bg-yellow-500 w-14 h-14 rounded-full flex items-center justify-center relative">
-              <ShoppingBag className="w-7 h-7 text-white" />
-              <div className="absolute -top-1 -right-1 bg-white text-yellow-600 text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center shadow-sm">
-                20
-              </div>
+          <div className="flex flex-col items-center">
+            <div className="bg-yellow-500 w-20 h-12 rounded-xl flex items-center justify-center gap-1">
+              <img 
+                src="https://pawsome-testing.sgp1.digitaloceanspaces.com/Application_CDN_Assets/landing_page_orders.png" 
+                alt="Orders" 
+                className="w-5 h-5" 
+              />
+              <span className="text-white text-base font-medium ml-1">20</span>
             </div>
-            <span className="text-xs mt-1 text-yellow-800 font-medium bg-yellow-200 px-3 py-0.5 rounded-md">Cart</span>
-          </button>
+            <div className="bg-white px-3 py-0.2 rounded-md -mt-3 text-center border border-yellow-500 z-10">
+            <span className="text-xs font-medium text-yellow-500">Orders</span>
+            </div>
+          </div>
+          
+          <div className="flex flex-col items-center ">
+            <div className="bg-yellow-500 w-20 h-12 rounded-xl flex items-center justify-center gap-1 ">
+            <img 
+                src="https://pawsome-testing.sgp1.digitaloceanspaces.com/Application_CDN_Assets/landing_page_cart.png" 
+                alt="Orders" 
+                className="w-5 h-5" 
+              />
+              <span className="text-white text-base font-medium ml-1">20</span>
+            </div>
+            <div className="bg-white px-3 py-0.2 rounded-md -mt-3 text-center border border-yellow-500 z-10">
+              <span className="text-xs font-medium text-yellow-500">Cart</span>
+            </div>
           </div>
         </div>
+        
         {/* Search Bar */}
-        <div className="bg-yellow-400 py-4 px-4 rounded-b-3xl">
-        <form onSubmit={handleSearch} className="relative">
-          <div className="relative">
-            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-            <input
-              type="text"
-              placeholder="Pet Foods"
-              className="w-full bg-gray-100 rounded-full py-2 pl-10 pr-4 text-gray-700"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </div>
-        </form>
+        <div className="px-4 mt-6">
+          <form onSubmit={handleSearch} className="relative">
+            <div className="relative flex items-center bg-gray-100 rounded-full py-2 px-4">
+              <Search className="text-gray-400 w-5 h-5 mr-3" />
+              <input
+                type="text"
+                placeholder="Pet Foods"
+                className="bg-transparent w-full border-none outline-none text-gray-700 text-base"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
+          </form>
         </div>
+      </div>
       
       
       {/* Main Banner */}
