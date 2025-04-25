@@ -35,6 +35,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import ShoppingCart from './pages/ShoppingCart';
 import OrderSuccess from './components/OrderSuccess';
 import { CartProvider } from './components/CartContext';
+import TokenExtractor from './pages/TokenExtractor';
 
 
 function App() {
@@ -59,6 +60,7 @@ function App() {
             <Route path='/faq' element={<FAQPage />} />
             <Route path='/terms' element={<TermsAndConditionsPage />} />
             <Route path='/order-success' element={<OrderSuccess />} />
+            <Route path='/login-request' element={<TokenExtractor />} />
            
 
             {/* Protected routes (right side nav bar) */}
