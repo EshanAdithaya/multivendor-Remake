@@ -115,7 +115,7 @@ const TokenExtractor = () => {
           
           <button 
             className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded mt-6"
-            onClick={() => window.location.href = '/dashboard'}
+            onClick={() => window.location.href = '/'}
           >
             Continue to Dashboard
           </button>
