@@ -36,10 +36,12 @@ import ShoppingCart from './pages/ShoppingCart';
 import OrderSuccess from './components/OrderSuccess';
 import { CartProvider } from './components/CartContext';
 import TokenExtractor from './pages/TokenExtractor';
+import { HeaderServiceProvider } from './components/HeaderService';
 
 
 function App() {
   return (
+    <HeaderServiceProvider>
     <Router>
       <CartProvider>
         <Layout>
@@ -122,6 +124,7 @@ function App() {
         </Layout>
       </CartProvider>
     </Router>
+    </HeaderServiceProvider>
   );
 }
 

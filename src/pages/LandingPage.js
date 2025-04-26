@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Search, Heart, ChevronRight, ShoppingBag, Award, CheckCircle } from 'lucide-react';
 import _ from 'lodash';
 import { toast } from 'react-toastify';
+import { HeaderBar } from '../components/HeaderBar';
 
 const API_REACT_APP_BASE_URL = process.env.REACT_APP_BASE_URL;
 
@@ -213,68 +214,12 @@ const LandingPage = () => {
   return (
     <div className="min-h-screen bg-white pb-20">
       {/* Top Navigation Bar */}
-      <div className="bg-yellow-200 pt-20 pb-4 relative">
+      <div className="bg-yellow-200 pt-4 pb-4 relative">
         {/* Yellow curved background */}
-        <div className="absolute top-0 left-0 right-0 h-10 bg-yellow-400 -z-10 "></div>
+        <div className="absolute top-0 left-0 right-0 h-10 bg-yellow-400 -z-10"></div>
         
-        {/* Tabs - positioned halfway on the curved yellow background */}
-        <div className="flex justify-around px-2 -mt-8">
-          <div className="flex flex-col items-center">
-            <div className="bg-yellow-500 w-20 h-12 rounded-xl flex items-center justify-center gap-1">
-              <img 
-                src="https://pawsome-testing.sgp1.digitaloceanspaces.com/Application_CDN_Assets/landing_page_pure_address.png" 
-                alt="Location" 
-                className="w-5 h-5" 
-              />
-              <ChevronRight className="w-4 h-4 text-white transform rotate-90" />
-            </div>
-            <div className="bg-white px-3 py-0.2 rounded-md -mt-3 text-center border border-yellow-500 z-10">
-            <span className="text-xs font-medium text-yellow-500">Addresses</span>
-            </div>
-          </div>
-          
-          <div className="flex flex-col items-center">
-            <div className="bg-yellow-500 w-20 h-12 rounded-xl flex items-center justify-center gap-1">
-            <img 
-                src="https://pawsome-testing.sgp1.digitaloceanspaces.com/Application_CDN_Assets/landing_page_wishlist.png" 
-                alt="Location" 
-                className="w-5 h-5" 
-              />
-              <span className="text-white text-base font-medium ml-1">20</span>
-            </div>
-            <div className="bg-white px-3 py-0.2 rounded-md -mt-3 text-center border border-yellow-500 z-10">
-            <span className="text-xs font-medium text-yellow-500">Wishlist</span>
-            </div>
-          </div>
-          
-          <div className="flex flex-col items-center">
-            <div className="bg-yellow-500 w-20 h-12 rounded-xl flex items-center justify-center gap-1">
-              <img 
-                src="https://pawsome-testing.sgp1.digitaloceanspaces.com/Application_CDN_Assets/landing_page_orders.png" 
-                alt="Orders" 
-                className="w-5 h-5" 
-              />
-              <span className="text-white text-base font-medium ml-1">20</span>
-            </div>
-            <div className="bg-white px-3 py-0.2 rounded-md -mt-3 text-center border border-yellow-500 z-10">
-            <span className="text-xs font-medium text-yellow-500">Orders</span>
-            </div>
-          </div>
-          
-          <div className="flex flex-col items-center ">
-            <div className="bg-yellow-500 w-20 h-12 rounded-xl flex items-center justify-center gap-1 ">
-            <img 
-                src="https://pawsome-testing.sgp1.digitaloceanspaces.com/Application_CDN_Assets/landing_page_cart.png" 
-                alt="Orders" 
-                className="w-5 h-5" 
-              />
-              <span className="text-white text-base font-medium ml-1">20</span>
-            </div>
-            <div className="bg-white px-3 py-0.2 rounded-md -mt-3 text-center border border-yellow-500 z-10">
-              <span className="text-xs font-medium text-yellow-500">Cart</span>
-            </div>
-          </div>
-        </div>
+        {/* Use the HeaderBar component */}
+        <HeaderBar />
         
         {/* Search Bar */}
         <div className="px-4 mt-6">
@@ -292,7 +237,6 @@ const LandingPage = () => {
           </form>
         </div>
       </div>
-      
       
       {/* Main Banner Carousel */}
       <div className="px-4 mt-4">
@@ -358,6 +302,7 @@ const LandingPage = () => {
         </div>
       </div>
       
+      {/* Rest of the component remains the same... */}
       {/* Points */}
       <div className="px-4 mt-4 flex gap-3">
         <div className="bg-yellow-100 rounded-lg p-3 flex-1">
