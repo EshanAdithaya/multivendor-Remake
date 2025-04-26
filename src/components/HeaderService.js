@@ -41,17 +41,6 @@ const HeaderService = () => {
     lastFetched: null
   });
 
-  // Fetch all counts on mount and when auth token changes
-  useEffect(() => {
-    fetchCounts();
-    
-    // Setup interval to refresh counts periodically (every 5 minutes)
-    const intervalId = setInterval(fetchCounts, 5 * 60 * 1000);
-    
-    // Clear interval on unmount
-    return () => clearInterval(intervalId);
-  }, []);
-
   // Helper function to fetch from webhook endpoints
   const fetchWebhook = async (endpoint, token) => {
     try {
@@ -140,6 +129,18 @@ const HeaderService = () => {
       setLoading(false);
     }
   };
+
+  // Effect to fetch counts on mount and periodically
+  useEffect(() => {
+    // Initial fetch
+    fetchCounts();
+    
+    // Setup interval to refresh counts periodically (every 5 minutes)
+    const intervalId = setInterval(fetchCounts, 5 * 60 * 1000);
+    
+    // Clear interval on unmount
+    return () => clearInterval(intervalId);
+  }, []); // Empty dependency array ensures this only runs once on mount
 
   // Get data for a specific type, using cache if available
   const getWebhookData = async (type) => {
@@ -246,8 +247,11 @@ const HeaderService = () => {
   const WebhookDropdown = ({ type, icon, label, count, managePath, renderFunction }) => {
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(false);
+    const [isInitialized, setIsInitialized] = useState(false);
     
     const fetchData = async () => {
+      if (loading) return; // Prevent multiple simultaneous fetches
+      
       setLoading(true);
       try {
         const webhookData = await getWebhookData(type);
@@ -258,7 +262,7 @@ const HeaderService = () => {
             items = webhookData.data.items;
           } else if (type === 'orders' && webhookData.data.orders) {
             items = webhookData.data.orders;
-          } else if (type === 'cart') {
+          } else if (type === 'cart' && webhookData.data.carts) {
             // Flatten cart items from all carts
             items = webhookData.data.carts.flatMap(cart => 
               (cart.cartItems || []).map(item => ({
@@ -274,8 +278,17 @@ const HeaderService = () => {
         console.error(`Error fetching ${type} data:`, error);
       } finally {
         setLoading(false);
+        setIsInitialized(true);
       }
     };
+    
+    // Use useEffect to handle data fetching logic
+    useEffect(() => {
+      // Only fetch on initial render, then let dropdown handle subsequent fetches
+      if (!isInitialized) {
+        fetchData();
+      }
+    }, [isInitialized]); // Only fetch when isInitialized changes
     
     return (
       <HeaderDropdown

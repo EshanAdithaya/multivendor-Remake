@@ -10,9 +10,13 @@ import { useNavigate } from 'react-router-dom';
  * @param {React.ReactNode} props.icon - Icon to display in the dropdown button
  * @param {number} props.count - Number of items to display (e.g., wishlist count)
  * @param {string} props.label - Label for the dropdown (e.g., "Wishlist")
- * @param {string} props.fetchUrl - API URL to fetch items
+ * @param {string} props.fetchUrl - API URL to fetch items (for legacy API)
  * @param {string} props.managePath - Path to navigate when "Manage" button is clicked
  * @param {Function} props.renderItem - Function to render each item in the dropdown
+ * @param {string} props.authToken - Authentication token for API requests
+ * @param {Function} props.customFetch - Custom fetch function for webhook data
+ * @param {Array} props.customData - Custom data from webhook
+ * @param {boolean} props.customLoading - Custom loading state for webhook
  */
 const HeaderDropdown = ({ 
   type, 
@@ -21,7 +25,12 @@ const HeaderDropdown = ({
   label, 
   fetchUrl, 
   managePath,
-  renderItem 
+  renderItem,
+  authToken,
+  // New webhook props
+  customFetch,
+  customData,
+  customLoading 
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [items, setItems] = useState([]);
@@ -30,13 +39,19 @@ const HeaderDropdown = ({
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
   
-  // Fetch items from API
+  // Fetch items using legacy API method
   const fetchItems = async () => {
+    // If custom fetch function provided (for webhooks), use it
+    if (customFetch) {
+      customFetch();
+      return;
+    }
+
     setLoading(true);
     setError(null);
     
     try {
-      const accessToken = localStorage.getItem('accessToken');
+      const accessToken = authToken || localStorage.getItem('accessToken');
       
       if (!accessToken) {
         setError('You need to login to view your data');
@@ -104,7 +119,7 @@ const HeaderDropdown = ({
       // Maybe select this address
     } else if (type === 'wishlist') {
       navigate(`/product/${item.product?.id || item.productId}`);
-    } else if (type === 'order') {
+    } else if (type === 'order' || type === 'orders') {
       navigate(`/order-details/${item.id}`);
     } else if (type === 'cart') {
       navigate(`/product/${item.productVariation?.productId}`);
@@ -124,6 +139,10 @@ const HeaderDropdown = ({
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, []);
+
+  // Determine which data source to use (webhook or legacy)
+  const isLoadingData = customLoading !== undefined ? customLoading : loading;
+  const itemsToDisplay = customData !== undefined ? customData : items;
 
   return (
     <div ref={dropdownRef} className="relative">
@@ -153,14 +172,14 @@ const HeaderDropdown = ({
           </div>
           
           <div className="max-h-60 overflow-y-auto">
-            {loading ? (
+            {isLoadingData ? (
               <div className="p-4 text-center text-gray-500">Loading...</div>
             ) : error ? (
               <div className="p-4 text-center text-red-500">{error}</div>
-            ) : items.length === 0 ? (
+            ) : itemsToDisplay?.length === 0 ? (
               <div className="p-4 text-center text-gray-500">No {label.toLowerCase()} found</div>
             ) : (
-              items.map((item, index) => (
+              (itemsToDisplay || []).map((item, index) => (
                 <div 
                   key={item.id || `${type}-item-${index}`} 
                   className="p-3 border-b border-gray-100 hover:bg-gray-50 cursor-pointer"
