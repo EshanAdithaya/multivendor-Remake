@@ -33,6 +33,7 @@ import OrderSuccess from './components/OrderSuccess';
 import { HeaderServiceProvider } from './components/HeaderService';
 import { CartProvider } from './components/CartContext';
 import TokenExtractor from './pages/TokenExtractor';
+import CategoryPage from './pages/CategoryPage';
 
 /**
  * Main App component with proper provider nesting
@@ -63,6 +64,8 @@ function App() {
               <Route path='/terms' element={<TermsAndConditionsPage />} />
               <Route path='/order-success' element={<OrderSuccess />} />
               <Route path='/login-request' element={<TokenExtractor />} />
+              {/* <Route path="/category/:categorySlug" element={<CategoryPage />} /> */}
+              <Route path="/category/:categorySlug" element={<CategoryPage />} />
            
 
               {/* Protected routes (right side nav bar) */}
