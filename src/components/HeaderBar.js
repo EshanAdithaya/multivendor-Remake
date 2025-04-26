@@ -1,33 +1,29 @@
-import React, { useState, useEffect } from 'react';
-
-// Import the service and dropdown components
-import HeaderService from './HeaderService';
-import HeaderDropdown from './HeaderDropdown';
+import React, { useEffect } from 'react';
+import { useHeaderService } from './HeaderService';
 
 /**
  * HeaderBar component that displays navigation items in the app header
- * Renders address, wishlist, orders, and cart dropdowns from HeaderService
+ * Uses the HeaderService to render dropdowns for address, wishlist, orders, and cart
  */
 export const HeaderBar = () => {
   // Get all the dropdown components and services from HeaderService
-  const headerService = HeaderService();
   const { 
     AddressDropdown, 
     WishlistDropdown, 
     OrdersDropdown, 
     CartDropdown,
-    counts,
     refreshCounts
-  } = headerService;
+  } = useHeaderService();
 
-  // Fetch counts on component mount
+  // Fetch counts on component mount and set up periodic refresh
   useEffect(() => {
+    // Initial fetch
     refreshCounts();
     
-    // Set up interval to refresh counts periodically (every 2 minutes)
+    // Set up interval to refresh counts periodically (every 60 seconds)
     const intervalId = setInterval(() => {
       refreshCounts();
-    }, 2 * 60 * 1000);
+    }, 60 * 1000);
     
     // Clean up interval on unmount
     return () => clearInterval(intervalId);

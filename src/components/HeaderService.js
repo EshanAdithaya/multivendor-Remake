@@ -1,5 +1,7 @@
+// components/HeaderService.js
 import React, { useState, useEffect, useContext, createContext } from 'react';
 import HeaderDropdown from './HeaderDropdown';
+import { useCart, makeAuthenticatedRequest } from './CartContext';
 
 // Create a context for the header service
 const HeaderServiceContext = createContext(null);
@@ -26,84 +28,76 @@ export const useHeaderService = () => {
 
 // HeaderService handles fetching counts for addresses, wishlist, orders, and cart
 const HeaderService = () => {
+  const { cartCount } = useCart(); // Get cart count from CartContext
   const [counts, setCounts] = useState({
     wishlist: 0,
     orders: 0,
     cart: 0
   });
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  
+  // Sync cart count from CartContext
+  useEffect(() => {
+    setCounts(prev => ({
+      ...prev,
+      cart: cartCount
+    }));
+  }, [cartCount]);
   
   // Cache for webhook data to avoid unnecessary re-fetching
   const [webhookCache, setWebhookCache] = useState({
     wishlist: null,
     orders: null,
-    cart: null,
     lastFetched: null
   });
 
-  // Helper function to fetch from webhook endpoints
-  const fetchWebhook = async (endpoint, token) => {
-    try {
-      const response = await fetch(`https://pawsome.soluzent.com/api/webhooks/${endpoint}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'accept': 'application/json'
-        }
-      });
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error ${response.status}`);
-      }
-      
-      return await response.json();
-    } catch (error) {
-      console.error(`Error fetching webhook data for ${endpoint}:`, error);
-      return null;
-    }
-  };
-
-  // Fetch all counts from respective webhooks
+  // Fetch wishlist and orders counts from respective webhooks
   const fetchCounts = async () => {
     setLoading(true);
     
     try {
-      const accessToken = localStorage.getItem('accessToken');
+      const token = localStorage.getItem('accessToken');
       
-      if (!accessToken) {
-        setCounts({ wishlist: 0, orders: 0, cart: 0 });
+      if (!token) {
+        setCounts(prev => ({
+          ...prev,
+          wishlist: 0,
+          orders: 0
+        }));
         setLoading(false);
         return;
       }
       
-      // Check if we should use cached data (less than 2 minutes old)
+      // Check if we should use cached data (less than 30 seconds old)
       const now = Date.now();
       const cacheAge = webhookCache.lastFetched ? now - webhookCache.lastFetched : Infinity;
-      const useCachedData = cacheAge < 2 * 60 * 1000; // 2 minutes in milliseconds
+      const useCachedData = cacheAge < 30 * 1000; // 30 seconds in milliseconds
       
-      if (useCachedData && webhookCache.wishlist && webhookCache.orders && webhookCache.cart) {
+      if (useCachedData && webhookCache.wishlist && webhookCache.orders) {
         // Use cached counts
-        setCounts({
+        setCounts(prev => ({
+          ...prev,
           wishlist: webhookCache.wishlist.data.wishlistCount || 0,
-          orders: webhookCache.orders.data.orderCount || 0,
-          cart: webhookCache.cart.data.carts.reduce((total, cart) => 
-            total + (cart.totalItems || 0), 0)
-        });
+          orders: webhookCache.orders.data.orderCount || 0
+        }));
         setLoading(false);
         return;
       }
       
-      // Fetch all webhook data in parallel
-      const [wishlistData, ordersData, cartData] = await Promise.all([
-        fetchWebhook('wishlist', accessToken),
-        fetchWebhook('orders', accessToken),
-        fetchWebhook('cart', accessToken)
+      // Fetch wishlist and orders data in parallel
+      const [wishlistResponse, ordersResponse] = await Promise.all([
+        makeAuthenticatedRequest('/api/webhooks/wishlist'),
+        makeAuthenticatedRequest('/api/webhooks/orders')
       ]);
+      
+      const wishlistData = await wishlistResponse.json();
+      const ordersData = await ordersResponse.json();
       
       // Update cache
       setWebhookCache({
         wishlist: wishlistData,
         orders: ordersData,
-        cart: cartData,
         lastFetched: now
       });
       
@@ -111,62 +105,102 @@ const HeaderService = () => {
       const wishlistCount = wishlistData?.data?.wishlistCount || 0;
       const ordersCount = ordersData?.data?.orderCount || 0;
       
-      // Calculate total cart items from all carts
-      let cartCount = 0;
-      if (cartData?.data?.carts && Array.isArray(cartData.data.carts)) {
-        cartCount = cartData.data.carts.reduce((total, cart) => 
-          total + (cart.totalItems || 0), 0);
-      }
-      
-      setCounts({
+      setCounts(prev => ({
+        ...prev,
         wishlist: wishlistCount,
-        orders: ordersCount,
-        cart: cartCount
-      });
+        orders: ordersCount
+      }));
     } catch (error) {
       console.error('Error fetching counts:', error);
+      setError(error.message);
     } finally {
       setLoading(false);
     }
   };
 
-  // Effect to fetch counts on mount and periodically
+  // Force refresh a specific count type (wishlist, orders)
+  const refreshCount = async (type) => {
+    if (!type || !['wishlist', 'orders'].includes(type)) {
+      console.warn('Invalid count type to refresh');
+      return;
+    }
+    
+    try {
+      const token = localStorage.getItem('accessToken');
+      if (!token) return;
+      
+      const response = await makeAuthenticatedRequest(`/api/webhooks/${type}`);
+      const data = await response.json();
+      
+      // Update the specific cache item
+      setWebhookCache(prev => ({
+        ...prev,
+        [type]: data,
+        lastFetched: Date.now()
+      }));
+      
+      // Update the specific count based on type
+      if (type === 'wishlist') {
+        setCounts(prev => ({
+          ...prev,
+          wishlist: data?.data?.wishlistCount || 0
+        }));
+      } else if (type === 'orders') {
+        setCounts(prev => ({
+          ...prev,
+          orders: data?.data?.orderCount || 0
+        }));
+      }
+    } catch (error) {
+      console.error(`Error refreshing ${type} count:`, error);
+    }
+  };
+
+  // Effect to fetch counts on mount
   useEffect(() => {
-    // Initial fetch
     fetchCounts();
     
-    // Setup interval to refresh counts periodically (every 5 minutes)
-    const intervalId = setInterval(fetchCounts, 5 * 60 * 1000);
+    // Setup interval to refresh counts periodically (every 60 seconds)
+    const intervalId = setInterval(fetchCounts, 60 * 1000);
     
     // Clear interval on unmount
     return () => clearInterval(intervalId);
   }, []); // Empty dependency array ensures this only runs once on mount
 
-  // Get data for a specific type, using cache if available
+  // Get data for a specific type using webhook endpoint
   const getWebhookData = async (type) => {
-    const accessToken = localStorage.getItem('accessToken');
-    if (!accessToken) return null;
-    
-    // Check if we have recently cached data
-    const now = Date.now();
-    const cacheAge = webhookCache.lastFetched ? now - webhookCache.lastFetched : Infinity;
-    const useCachedData = cacheAge < 2 * 60 * 1000 && webhookCache[type]; // 2 minutes cache
-    
-    if (useCachedData) {
-      return webhookCache[type];
+    try {
+      setLoading(true);
+      const token = localStorage.getItem('accessToken');
+      if (!token) return null;
+      
+      // Check if we have recently cached data
+      const now = Date.now();
+      const cacheAge = webhookCache.lastFetched ? now - webhookCache.lastFetched : Infinity;
+      const useCachedData = cacheAge < 30 * 1000 && webhookCache[type]; // 30 seconds cache
+      
+      if (useCachedData) {
+        return webhookCache[type];
+      }
+      
+      // Fetch fresh data
+      const response = await makeAuthenticatedRequest(`/api/webhooks/${type}`);
+      const data = await response.json();
+      
+      // Update just this part of the cache
+      setWebhookCache(prev => ({
+        ...prev,
+        [type]: data,
+        lastFetched: now
+      }));
+      
+      return data;
+    } catch (error) {
+      console.error(`Error fetching ${type} data:`, error);
+      return null;
+    } finally {
+      setLoading(false);
     }
-    
-    // Fetch fresh data
-    const data = await fetchWebhook(type, accessToken);
-    
-    // Update just this part of the cache
-    setWebhookCache(prev => ({
-      ...prev,
-      [type]: data,
-      lastFetched: now
-    }));
-    
-    return data;
   };
 
   // Render functions for different dropdown types
@@ -243,144 +277,126 @@ const HeaderService = () => {
     </>
   );
 
-  // Custom dropdown for webhooks data
-  const WebhookDropdown = ({ type, icon, label, count, managePath, renderFunction }) => {
-    const [data, setData] = useState(null);
-    const [loading, setLoading] = useState(false);
-    const [isInitialized, setIsInitialized] = useState(false);
-    
-    const fetchData = async () => {
-      if (loading) return; // Prevent multiple simultaneous fetches
-      
-      setLoading(true);
-      try {
-        const webhookData = await getWebhookData(type);
-        if (webhookData?.success && webhookData?.data) {
-          // Extract items array based on type
-          let items = [];
-          if (type === 'wishlist' && webhookData.data.items) {
-            items = webhookData.data.items;
-          } else if (type === 'orders' && webhookData.data.orders) {
-            items = webhookData.data.orders;
-          } else if (type === 'cart' && webhookData.data.carts) {
-            // Flatten cart items from all carts
-            items = webhookData.data.carts.flatMap(cart => 
-              (cart.cartItems || []).map(item => ({
-                ...item,
-                shopId: cart.shopId,
-                shopName: cart.shopName
-              }))
-            );
-          }
-          setData(items);
+// This is now a proper React component (starts with uppercase)
+const WebhookDropdown = ({ type, icon, label, managePath, renderFunction }) => {
+  const [data, setData] = useState(null);
+  const [dropdownLoading, setDropdownLoading] = useState(false);
+  
+  const fetchDropdownData = async () => {
+    setDropdownLoading(true);
+    try {
+      const webhookData = await getWebhookData(type);
+      if (webhookData?.success && webhookData?.data) {
+        // Extract items array based on type
+        let items = [];
+        if (type === 'wishlist' && webhookData.data.items) {
+          items = webhookData.data.items;
+        } else if (type === 'orders' && webhookData.data.orders) {
+          items = webhookData.data.orders;
+        } else if (type === 'cart' && webhookData.data.carts) {
+          // Flatten cart items from all carts
+          items = webhookData.data.carts.flatMap(cart => 
+            (cart.cartItems || []).map(item => ({
+              ...item,
+              shopId: cart.shopId,
+              shopName: cart.shopName
+            }))
+          );
         }
-      } catch (error) {
-        console.error(`Error fetching ${type} data:`, error);
-      } finally {
-        setLoading(false);
-        setIsInitialized(true);
+        setData(items);
       }
-    };
-    
-    // Use useEffect to handle data fetching logic
-    useEffect(() => {
-      // Only fetch on initial render, then let dropdown handle subsequent fetches
-      if (!isInitialized) {
-        fetchData();
-      }
-    }, [isInitialized]); // Only fetch when isInitialized changes
-    
-    return (
-      <HeaderDropdown
-        type={type}
-        icon={icon}
-        count={count}
-        label={label}
-        managePath={managePath}
-        renderItem={renderFunction}
-        authToken={localStorage.getItem('accessToken')}
-        customFetch={fetchData}
-        customData={data}
-        customLoading={loading}
-      />
-    );
+    } catch (err) {
+      console.error(`Error fetching ${type} data:`, err);
+    } finally {
+      setDropdownLoading(false);
+    }
   };
+  
+  return (
+    <HeaderDropdown
+      type={type}
+      icon={icon}
+      count={counts[type] || 0}
+      label={label}
+      managePath={managePath}
+      renderItem={renderFunction}
+      authToken={localStorage.getItem('accessToken')}
+      customFetch={fetchDropdownData}
+      customData={data}
+      customLoading={dropdownLoading}
+    />
+  );
+};
 
-  return {
-    counts,
-    loading,
-    refreshCounts: fetchCounts,
-    
-    // Components for use in the header
-    AddressDropdown: () => (
-      <HeaderDropdown
-        type="address"
-        icon={
-          <img 
-            src="https://pawsome-testing.sgp1.digitaloceanspaces.com/Application_CDN_Assets/landing_page_pure_address.png" 
-            alt="Location" 
-            className="w-5 h-5" 
-          />
-        }
-        label="Addresses"
-        fetchUrl="https://pawsome.soluzent.com/api/orders/addresses"
-        managePath="/address"
-        renderItem={renderAddressItem}
-        authToken={localStorage.getItem('accessToken')}
-      />
-    ),
-    
-    WishlistDropdown: () => (
-      <WebhookDropdown
-        type="wishlist"
-        icon={
-          <img 
-            src="https://pawsome-testing.sgp1.digitaloceanspaces.com/Application_CDN_Assets/landing_page_wishlist.png" 
-            alt="Wishlist" 
-            className="w-5 h-5" 
-          />
-        }
-        count={counts.wishlist}
-        label="Wishlist"
-        managePath="/wishlists"
-        renderFunction={renderWishlistItem}
-      />
-    ),
-    
-    OrdersDropdown: () => (
-      <WebhookDropdown
-        type="orders"
-        icon={
-          <img 
-            src="https://pawsome-testing.sgp1.digitaloceanspaces.com/Application_CDN_Assets/landing_page_orders.png" 
-            alt="Orders" 
-            className="w-5 h-5" 
-          />
-        }
-        count={counts.orders}
-        label="Orders"
-        managePath="/my-order"
-        renderFunction={renderOrderItem}
-      />
-    ),
-    
-    CartDropdown: () => (
-      <WebhookDropdown
-        type="cart"
-        icon={
-          <img 
-            src="https://pawsome-testing.sgp1.digitaloceanspaces.com/Application_CDN_Assets/landing_page_cart.png" 
-            alt="Cart" 
-            className="w-5 h-5" 
-          />
-        }
-        count={counts.cart}
-        label="Cart"
-        managePath="/cart"
-        renderFunction={renderCartItem}
-      />
-    )
-  };
+return {
+  counts,
+  loading,
+  error,
+  refreshCounts: fetchCounts,
+  refreshCount,
+  
+  // Components for use in the header
+  AddressDropdown: () => (
+    <HeaderDropdown
+      type="address"
+      icon={
+        <img 
+          src="https://pawsome-testing.sgp1.digitaloceanspaces.com/Application_CDN_Assets/landing_page_pure_address.png" 
+          alt="Location" 
+          className="w-5 h-5" 
+        />
+      }
+      label="Addresses"
+      fetchUrl="https://pawsome.soluzent.com/api/orders/addresses"
+      managePath="/address"
+      renderItem={renderAddressItem}
+      authToken={localStorage.getItem('accessToken')}
+    />
+  ),
+  
+  // Use the WebhookDropdown component instead of the function
+  WishlistDropdown: () => (
+    <WebhookDropdown
+      type="wishlist"
+      icon={<img 
+        src="https://pawsome-testing.sgp1.digitaloceanspaces.com/Application_CDN_Assets/landing_page_wishlist.png" 
+        alt="Wishlist" 
+        className="w-5 h-5" 
+      />}
+      label="Wishlist"
+      managePath="/wishlists"
+      renderFunction={renderWishlistItem}
+    />
+  ),
+  
+  OrdersDropdown: () => (
+    <WebhookDropdown
+      type="orders"
+      icon={<img 
+        src="https://pawsome-testing.sgp1.digitaloceanspaces.com/Application_CDN_Assets/landing_page_orders.png" 
+        alt="Orders" 
+        className="w-5 h-5" 
+      />}
+      label="Orders"
+      managePath="/my-order"
+      renderFunction={renderOrderItem}
+    />
+  ),
+  
+  CartDropdown: () => (
+    <WebhookDropdown
+      type="cart"
+      icon={<img 
+        src="https://pawsome-testing.sgp1.digitaloceanspaces.com/Application_CDN_Assets/landing_page_cart.png" 
+        alt="Cart" 
+        className="w-5 h-5" 
+      />}
+      label="Cart"
+      managePath="/cart"
+      renderFunction={renderCartItem}
+    />
+  )
+};
 };
 
 export default HeaderService;

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ShoppingCart } from 'lucide-react';
 import Cookies from 'js-cookie';
+import { useCart } from './CartContext';
 
 const API_REACT_APP_BASE_URL = process.env.REACT_APP_BASE_URL;
 
@@ -55,6 +56,7 @@ const informAndRedirectToLogin = (navigate) => {
 export const useAddToCart = () => {
   const [addingToCart, setAddingToCart] = useState(false);
   const navigate = useNavigate();
+  const { refreshCart, makeAuthenticatedRequest } = useCart();
 
   const checkExistingCart = async (shopId, token) => {
     console.log('🔍 Checking existing cart for shop:', shopId);
@@ -226,6 +228,10 @@ export const useAddToCart = () => {
       }
 
       console.log('✅ Cart operation completed successfully');
+      
+      // Refresh cart count
+      await refreshCart();
+      
       alert('Product added to cart!');
       return true;
 
