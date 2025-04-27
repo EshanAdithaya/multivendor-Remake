@@ -1,5 +1,5 @@
 // components/HeaderService.js
-import React, { useState, useEffect, useContext, createContext } from 'react';
+import React, { useState, useEffect, useContext, createContext, useCallback } from 'react';
 import HeaderDropdown from './HeaderDropdown';
 import { useCart, makeAuthenticatedRequest } from './CartContext';
 
@@ -41,19 +41,19 @@ const HeaderService = () => {
   useEffect(() => {
     setCounts(prev => ({
       ...prev,
-      cart: cartCount
+      cart: cartCount || 0
     }));
   }, [cartCount]);
   
   // Cache for webhook data to avoid unnecessary re-fetching
   const [webhookCache, setWebhookCache] = useState({
-    wishlist: null,
-    orders: null,
+    wishlist: { data: { wishlistCount: 0, items: [] } },
+    orders: { data: { orderCount: 0, orders: [] } },
     lastFetched: null
   });
 
-  // Fetch wishlist and orders counts from respective webhooks
-  const fetchCounts = async () => {
+  // Fetch wishlist and orders counts - wrapped in useCallback for better reference stability
+  const fetchCounts = useCallback(async () => {
     setLoading(true);
     
     try {
@@ -78,7 +78,7 @@ const HeaderService = () => {
         // Use cached counts
         setCounts(prev => ({
           ...prev,
-          // Fix: Safely access nested properties with optional chaining and nullish coalescing
+          // Safely access nested properties with explicit fallbacks
           wishlist: webhookCache.wishlist?.data?.wishlistCount || 0,
           orders: webhookCache.orders?.data?.orderCount || 0
         }));
@@ -86,47 +86,58 @@ const HeaderService = () => {
         return;
       }
       
-      // Fetch wishlist and orders data in parallel
+      // Fetch wishlist and orders data with proper error handling
+      let wishlistData = { data: { wishlistCount: 0, items: [] } };
+      let ordersData = { data: { orderCount: 0, orders: [] } };
+      
       try {
-        const [wishlistResponse, ordersResponse] = await Promise.all([
-          makeAuthenticatedRequest('/api/webhooks/wishlist'),
-          makeAuthenticatedRequest('/api/webhooks/orders')
-        ]);
-        
-        const wishlistData = await wishlistResponse.json();
-        const ordersData = await ordersResponse.json();
-        
-        // Update cache
-        setWebhookCache({
-          wishlist: wishlistData,
-          orders: ordersData,
-          lastFetched: now
-        });
-        
-        // Extract counts from webhook data
-        // Fix: Safely access nested properties
-        const wishlistCount = wishlistData?.data?.wishlistCount || 0;
-        const ordersCount = ordersData?.data?.orderCount || 0;
-        
-        setCounts(prev => ({
-          ...prev,
-          wishlist: wishlistCount,
-          orders: ordersCount
-        }));
-      } catch (apiError) {
-        console.error('API error fetching counts:', apiError);
-        // Keep the existing counts on error
+        // Fetch wishlist 
+        const wishlistResponse = await makeAuthenticatedRequest('/api/webhooks/wishlist');
+        if (wishlistResponse.ok) {
+          wishlistData = await wishlistResponse.json();
+        }
+      } catch (wishlistError) {
+        console.error('Error fetching wishlist:', wishlistError);
+        // Continue with default empty data
       }
+      
+      try {
+        // Fetch orders
+        const ordersResponse = await makeAuthenticatedRequest('/api/webhooks/orders');
+        if (ordersResponse.ok) {
+          ordersData = await ordersResponse.json();
+        }
+      } catch (ordersError) {
+        console.error('Error fetching orders:', ordersError);
+        // Continue with default empty data
+      }
+      
+      // Update cache even if some requests failed
+      setWebhookCache({
+        wishlist: wishlistData,
+        orders: ordersData,
+        lastFetched: now
+      });
+      
+      // Extract counts from webhook data with explicit fallbacks
+      const wishlistCount = wishlistData?.data?.wishlistCount || 0;
+      const ordersCount = ordersData?.data?.orderCount || 0;
+      
+      setCounts(prev => ({
+        ...prev,
+        wishlist: wishlistCount,
+        orders: ordersCount
+      }));
     } catch (error) {
-      console.error('Error fetching counts:', error);
+      console.error('Error in fetchCounts:', error);
       setError(error.message);
     } finally {
       setLoading(false);
     }
-  };
+  }, [webhookCache]);
 
   // Force refresh a specific count type (wishlist, orders)
-  const refreshCount = async (type) => {
+  const refreshCount = useCallback(async (type) => {
     if (!type || !['wishlist', 'orders'].includes(type)) {
       console.warn('Invalid count type to refresh');
       return;
@@ -137,6 +148,11 @@ const HeaderService = () => {
       if (!token) return;
       
       const response = await makeAuthenticatedRequest(`/api/webhooks/${type}`);
+      if (!response.ok) {
+        console.warn(`API returned status ${response.status} for ${type}`);
+        return;
+      }
+      
       const data = await response.json();
       
       // Update the specific cache item
@@ -146,24 +162,22 @@ const HeaderService = () => {
         lastFetched: Date.now()
       }));
       
-      // Update the specific count based on type
+      // Update the specific count based on type with explicit fallbacks
       if (type === 'wishlist') {
         setCounts(prev => ({
           ...prev,
-          // Fix: Safely access nested properties
           wishlist: data?.data?.wishlistCount || 0
         }));
       } else if (type === 'orders') {
         setCounts(prev => ({
           ...prev,
-          // Fix: Safely access nested properties
           orders: data?.data?.orderCount || 0
         }));
       }
     } catch (error) {
       console.error(`Error refreshing ${type} count:`, error);
     }
-  };
+  }, []);
 
   // Effect to fetch counts on mount
   useEffect(() => {
@@ -174,14 +188,14 @@ const HeaderService = () => {
     
     // Clear interval on unmount
     return () => clearInterval(intervalId);
-  }, []); // Empty dependency array ensures this only runs once on mount
+  }, [fetchCounts]); // Dependency on fetchCounts is OK because it's wrapped in useCallback
 
-  // Get data for a specific type using webhook endpoint
-  const getWebhookData = async (type) => {
+  // Get data for a specific type using webhook endpoint - wrapped in useCallback
+  const getWebhookData = useCallback(async (type) => {
     try {
       setLoading(true);
       const token = localStorage.getItem('accessToken');
-      if (!token) return null;
+      if (!token) return { data: { items: [] } }; // Return a safe default
       
       // Check if we have recently cached data
       const now = Date.now();
@@ -193,24 +207,34 @@ const HeaderService = () => {
       }
       
       // Fetch fresh data
-      const response = await makeAuthenticatedRequest(`/api/webhooks/${type}`);
-      const data = await response.json();
-      
-      // Update just this part of the cache
-      setWebhookCache(prev => ({
-        ...prev,
-        [type]: data,
-        lastFetched: now
-      }));
-      
-      return data;
+      try {
+        const response = await makeAuthenticatedRequest(`/api/webhooks/${type}`);
+        if (!response.ok) {
+          console.warn(`API returned status ${response.status} for ${type}`);
+          return { data: { items: [] } }; // Return safe default on error
+        }
+        
+        const data = await response.json();
+        
+        // Update just this part of the cache
+        setWebhookCache(prev => ({
+          ...prev,
+          [type]: data,
+          lastFetched: now
+        }));
+        
+        return data;
+      } catch (apiError) {
+        console.error(`API error fetching ${type} data:`, apiError);
+        return { data: { items: [] } }; // Return safe default on error
+      }
     } catch (error) {
-      console.error(`Error fetching ${type} data:`, error);
-      return null;
+      console.error(`Error in getWebhookData for ${type}:`, error);
+      return { data: { items: [] } }; // Return safe default
     } finally {
       setLoading(false);
     }
-  };
+  }, [webhookCache]);
 
   // Render functions for different dropdown types
   const renderAddressItem = (address) => (
@@ -278,7 +302,7 @@ const HeaderService = () => {
               Qty: {item.quantity}
             </p>
             <p className="text-xs font-medium">
-              ${(parseFloat(item.price) * item.quantity).toFixed(2)}
+              ${(parseFloat(item.price || 0) * (item.quantity || 1)).toFixed(2)}
             </p>
           </div>
         </div>
@@ -286,126 +310,127 @@ const HeaderService = () => {
     </>
   );
 
-// This is now a proper React component (starts with uppercase)
-const WebhookDropdown = ({ type, icon, label, managePath, renderFunction }) => {
-  const [data, setData] = useState(null);
-  const [dropdownLoading, setDropdownLoading] = useState(false);
-  
-  const fetchDropdownData = async () => {
-    setDropdownLoading(true);
-    try {
-      const webhookData = await getWebhookData(type);
-      if (webhookData?.success && webhookData?.data) {
-        // Extract items array based on type
-        let items = [];
-        if (type === 'wishlist' && webhookData.data.items) {
-          items = webhookData.data.items;
-        } else if (type === 'orders' && webhookData.data.orders) {
-          items = webhookData.data.orders;
-        } else if (type === 'cart' && webhookData.data.carts) {
-          // Flatten cart items from all carts
-          items = webhookData.data.carts.flatMap(cart => 
-            (cart.cartItems || []).map(item => ({
-              ...item,
-              shopId: cart.shopId,
-              shopName: cart.shopName
-            }))
-          );
+  // Properly define WebhookDropdown as a memoized function to maintain stability
+  const WebhookDropdown = React.memo(({ type, icon, label, managePath, renderFunction }) => {
+    const [data, setData] = useState(null);
+    const [dropdownLoading, setDropdownLoading] = useState(false);
+    
+    const fetchDropdownData = async () => {
+      setDropdownLoading(true);
+      try {
+        const webhookData = await getWebhookData(type);
+        if (webhookData?.success && webhookData?.data) {
+          // Extract items array based on type with proper fallbacks
+          let items = [];
+          if (type === 'wishlist' && Array.isArray(webhookData.data.items)) {
+            items = webhookData.data.items;
+          } else if (type === 'orders' && Array.isArray(webhookData.data.orders)) {
+            items = webhookData.data.orders;
+          } else if (type === 'cart' && Array.isArray(webhookData.data.carts)) {
+            // Flatten cart items from all carts
+            items = webhookData.data.carts.flatMap(cart => 
+              (Array.isArray(cart.cartItems) ? cart.cartItems : []).map(item => ({
+                ...item,
+                shopId: cart.shopId,
+                shopName: cart.shopName
+              }))
+            );
+          }
+          setData(items);
         }
-        setData(items);
+      } catch (err) {
+        console.error(`Error fetching ${type} data:`, err);
+        setData([]); // Set safe default on error
+      } finally {
+        setDropdownLoading(false);
       }
-    } catch (err) {
-      console.error(`Error fetching ${type} data:`, err);
-    } finally {
-      setDropdownLoading(false);
-    }
-  };
-  
-  return (
-    <HeaderDropdown
-      type={type}
-      icon={icon}
-      count={counts[type] || 0}
-      label={label}
-      managePath={managePath}
-      renderItem={renderFunction}
-      authToken={localStorage.getItem('accessToken')}
-      customFetch={fetchDropdownData}
-      customData={data}
-      customLoading={dropdownLoading}
-    />
-  );
-};
+    };
+    
+    return (
+      <HeaderDropdown
+        type={type}
+        icon={icon}
+        count={counts[type] || 0}
+        label={label}
+        managePath={managePath}
+        renderItem={renderFunction}
+        authToken={localStorage.getItem('accessToken')}
+        customFetch={fetchDropdownData}
+        customData={data}
+        customLoading={dropdownLoading}
+      />
+    );
+  });
 
-return {
-  counts,
-  loading,
-  error,
-  refreshCounts: fetchCounts,
-  refreshCount,
-  
-  // Components for use in the header
-  AddressDropdown: () => (
-    <HeaderDropdown
-      type="address"
-      icon={
-        <img 
-          src="https://pawsome-testing.sgp1.digitaloceanspaces.com/Application_CDN_Assets/landing_page_pure_address.png" 
-          alt="Location" 
+  return {
+    counts,
+    loading,
+    error,
+    refreshCounts: fetchCounts,
+    refreshCount,
+    
+    // Components for use in the header
+    AddressDropdown: React.memo(() => (
+      <HeaderDropdown
+        type="address"
+        icon={
+          <img 
+            src="https://pawsome-testing.sgp1.digitaloceanspaces.com/Application_CDN_Assets/landing_page_pure_address.png" 
+            alt="Location" 
+            className="w-5 h-5" 
+          />
+        }
+        label="Addresses"
+        fetchUrl="https://pawsome.soluzent.com/api/orders/addresses"
+        managePath="/address"
+        renderItem={renderAddressItem}
+        authToken={localStorage.getItem('accessToken')}
+      />
+    )),
+    
+    // Use the WebhookDropdown component for wishlist, orders, and cart
+    WishlistDropdown: React.memo(() => (
+      <WebhookDropdown
+        type="wishlist"
+        icon={<img 
+          src="https://pawsome-testing.sgp1.digitaloceanspaces.com/Application_CDN_Assets/landing_page_wishlist.png" 
+          alt="Wishlist" 
           className="w-5 h-5" 
-        />
-      }
-      label="Addresses"
-      fetchUrl="https://pawsome.soluzent.com/api/orders/addresses"
-      managePath="/address"
-      renderItem={renderAddressItem}
-      authToken={localStorage.getItem('accessToken')}
-    />
-  ),
-  
-  // Use the WebhookDropdown component instead of the function
-  WishlistDropdown: () => (
-    <WebhookDropdown
-      type="wishlist"
-      icon={<img 
-        src="https://pawsome-testing.sgp1.digitaloceanspaces.com/Application_CDN_Assets/landing_page_wishlist.png" 
-        alt="Wishlist" 
-        className="w-5 h-5" 
-      />}
-      label="Wishlist"
-      managePath="/wishlists"
-      renderFunction={renderWishlistItem}
-    />
-  ),
-  
-  OrdersDropdown: () => (
-    <WebhookDropdown
-      type="orders"
-      icon={<img 
-        src="https://pawsome-testing.sgp1.digitaloceanspaces.com/Application_CDN_Assets/landing_page_orders.png" 
-        alt="Orders" 
-        className="w-5 h-5" 
-      />}
-      label="Orders"
-      managePath="/my-order"
-      renderFunction={renderOrderItem}
-    />
-  ),
-  
-  CartDropdown: () => (
-    <WebhookDropdown
-      type="cart"
-      icon={<img 
-        src="https://pawsome-testing.sgp1.digitaloceanspaces.com/Application_CDN_Assets/landing_page_cart.png" 
-        alt="Cart" 
-        className="w-5 h-5" 
-      />}
-      label="Cart"
-      managePath="/cart"
-      renderFunction={renderCartItem}
-    />
-  )
-};
+        />}
+        label="Wishlist"
+        managePath="/wishlists"
+        renderFunction={renderWishlistItem}
+      />
+    )),
+    
+    OrdersDropdown: React.memo(() => (
+      <WebhookDropdown
+        type="orders"
+        icon={<img 
+          src="https://pawsome-testing.sgp1.digitaloceanspaces.com/Application_CDN_Assets/landing_page_orders.png" 
+          alt="Orders" 
+          className="w-5 h-5" 
+        />}
+        label="Orders"
+        managePath="/my-order"
+        renderFunction={renderOrderItem}
+      />
+    )),
+    
+    CartDropdown: React.memo(() => (
+      <WebhookDropdown
+        type="cart"
+        icon={<img 
+          src="https://pawsome-testing.sgp1.digitaloceanspaces.com/Application_CDN_Assets/landing_page_cart.png" 
+          alt="Cart" 
+          className="w-5 h-5" 
+        />}
+        label="Cart"
+        managePath="/cart"
+        renderFunction={renderCartItem}
+      />
+    ))
+  };
 };
 
 export default HeaderService;

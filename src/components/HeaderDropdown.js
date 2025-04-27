@@ -3,20 +3,7 @@ import { ChevronRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 /**
- * Generic HeaderDropdown component used for Addresses, Wishlist, Orders, and Cart
- * 
- * @param {Object} props - Component props
- * @param {string} props.type - The type of dropdown ('address', 'wishlist', 'order', or 'cart')
- * @param {React.ReactNode} props.icon - Icon to display in the dropdown button
- * @param {number} props.count - Number of items to display (e.g., wishlist count)
- * @param {string} props.label - Label for the dropdown (e.g., "Wishlist")
- * @param {string} props.fetchUrl - API URL to fetch items (for legacy API)
- * @param {string} props.managePath - Path to navigate when "Manage" button is clicked
- * @param {Function} props.renderItem - Function to render each item in the dropdown
- * @param {string} props.authToken - Authentication token for API requests
- * @param {Function} props.customFetch - Custom fetch function for webhook data
- * @param {Array} props.customData - Custom data from webhook
- * @param {boolean} props.customLoading - Custom loading state for webhook
+ * Completely reworked HeaderDropdown component with robust click handling
  */
 const HeaderDropdown = ({ 
   type, 
@@ -27,21 +14,26 @@ const HeaderDropdown = ({
   managePath,
   renderItem,
   authToken,
-  // New webhook props
   customFetch,
   customData,
   customLoading 
 }) => {
+  // State management
   const [isOpen, setIsOpen] = useState(false);
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const dropdownRef = useRef(null);
+  
+  // Navigation
   const navigate = useNavigate();
   
-  // Fetch items using legacy API method
+  // Critical refs for click management
+  const dropdownRef = useRef(null);
+  const dropdownButtonRef = useRef(null);
+  
+  // Helper function to safely fetch items
   const fetchItems = async () => {
-    // If custom fetch function provided (for webhooks), use it
+    // If custom fetch function provided, use it
     if (customFetch) {
       customFetch();
       return;
@@ -101,24 +93,29 @@ const HeaderDropdown = ({
     }
   };
 
-  // Toggle dropdown
-  const toggleDropdown = (e) => {
-    // Stop propagation to prevent immediate closing
+  // Handle opening the dropdown
+  const handleOpenDropdown = (e) => {
+    // Critical: Stop event propagation to prevent immediate closing
     e.stopPropagation();
     
     // Only fetch items when opening the dropdown
     if (!isOpen) {
       fetchItems();
     }
+    
+    // Toggle the open state
     setIsOpen(!isOpen);
   };
 
-  // Handle clicking on an item
+  // Handle clicking on an item 
   const handleItemClick = (e, item) => {
-    // Prevent the dropdown from closing
+    // Critical: Stop event propagation
     e.stopPropagation();
     
-    // Navigate or perform action based on type
+    // Keep the dropdown open when clicking an item (optional)
+    // setIsOpen(false);
+    
+    // Navigate based on item type
     if (type === 'address') {
       // Maybe select this address
     } else if (type === 'wishlist') {
@@ -130,37 +127,53 @@ const HeaderDropdown = ({
     }
   };
 
-  // Close dropdown when clicking outside
+  // Handle manage button click
+  const handleManageClick = (e) => {
+    // Critical: Stop event propagation
+    e.stopPropagation();
+    
+    // Close dropdown
+    setIsOpen(false);
+    
+    // Navigate to management page
+    navigate(managePath);
+  };
+
+  // Handle clicks outside the dropdown
   useEffect(() => {
+    // Only add listener when dropdown is open
+    if (!isOpen) return;
+    
     const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+      // Check if click is outside both the dropdown AND the trigger button
+      const isOutsideDropdown = dropdownRef.current && !dropdownRef.current.contains(event.target);
+      const isOutsideButton = dropdownButtonRef.current && !dropdownButtonRef.current.contains(event.target);
+      
+      if (isOutsideDropdown && isOutsideButton) {
         setIsOpen(false);
       }
     };
     
-    document.addEventListener('mousedown', handleClickOutside);
+    // Add the event listener with capture phase to ensure it runs before other handlers
+    document.addEventListener('mousedown', handleClickOutside, true);
+    
+    // Clean up
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('mousedown', handleClickOutside, true);
     };
-  }, []);
+  }, [isOpen]);
 
   // Determine which data source to use (webhook or legacy)
   const isLoadingData = customLoading !== undefined ? customLoading : loading;
   const itemsToDisplay = customData !== undefined ? customData : items;
 
-  // Handle manage button click
-  const handleManageClick = (e) => {
-    // Prevent the dropdown from closing
-    e.stopPropagation();
-    setIsOpen(false);
-    navigate(managePath);
-  };
-
   return (
-    <div ref={dropdownRef} className="relative">
+    <div className="relative">
+      {/* Dropdown Trigger Button */}
       <div 
-        className="flex flex-col items-center cursor-pointer"
-        onClick={toggleDropdown}
+        ref={dropdownButtonRef}
+        className="flex flex-col items-center cursor-pointer" 
+        onClick={handleOpenDropdown}
       >
         <div className="bg-yellow-500 w-20 h-12 rounded-xl flex items-center justify-center gap-1">
           {icon}
@@ -176,9 +189,13 @@ const HeaderDropdown = ({
         </div>
       </div>
       
-      {/* Dropdown Content */}
+      {/* Dropdown Menu */}
       {isOpen && (
-        <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-64 bg-white rounded-lg shadow-lg z-50 border border-gray-200">
+        <div 
+          ref={dropdownRef}
+          className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-64 bg-white rounded-lg shadow-lg z-50 border border-gray-200"
+          onClick={(e) => e.stopPropagation()} // Critical: prevent clicks from bubbling
+        >
           <div className="p-3 border-b border-gray-100">
             <h3 className="text-sm font-semibold">My {label}</h3>
           </div>
