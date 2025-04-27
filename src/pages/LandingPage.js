@@ -1,11 +1,31 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Heart, ChevronRight, ShoppingBag, Award, CheckCircle } from 'lucide-react';
+import { Search, Heart, ChevronRight, ShoppingBag, Award, CheckCircle, AlertCircle } from 'lucide-react';
 import _ from 'lodash';
 import { toast } from 'react-toastify';
 import { HeaderBar } from '../components/HeaderBar';
 
 const API_REACT_APP_BASE_URL = process.env.REACT_APP_BASE_URL;
+
+// Unauthorized Modal Component
+const UnauthorizedModal = ({ onGoHome }) => {
+  return (
+    <div className="fixed inset-0 bg-white z-50 flex flex-col items-center justify-center p-6">
+      <AlertCircle className="w-16 h-16 text-red-500 mb-4" />
+      <h2 className="text-xl font-bold text-center mb-2">Session Expired</h2>
+      <p className="text-gray-600 text-center mb-6">
+        Your session has expired or you're not authorized.
+        Please go back to home and try again.
+      </p>
+      <button 
+        onClick={onGoHome}
+        className="px-6 py-3 bg-yellow-400 rounded-full font-medium shadow-sm"
+      >
+        Go to Home
+      </button>
+    </div>
+  );
+};
 
 // Category Button Component
 const CategoryButton = ({ icon, label, onClick }) => {
@@ -150,6 +170,7 @@ const LandingPage = () => {
   ]);
   
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [isUnauthorized, setIsUnauthorized] = useState(false);
   const carouselImages = [
     "https://pawsome-testing.sgp1.digitaloceanspaces.com/Application_CDN_Assets/carousel_image1.jpg",
     "https://pawsome-testing.sgp1.digitaloceanspaces.com/Application_CDN_Assets/carousel_image2.jpg",
@@ -170,10 +191,30 @@ const LandingPage = () => {
         
         // Example:
         // const pointsResponse = await fetch(`${API_REACT_APP_BASE_URL}/api/user/points`);
+        // if (pointsResponse.status === 401) {
+        //   setIsUnauthorized(true);
+        //   return;
+        // }
         // if (pointsResponse.ok) {
         //   const pointsData = await pointsResponse.json();
         //   setPoints(pointsData);
         // }
+        
+        // Handle unauthorized response for any API call
+        const handleUnauthorized = (response) => {
+          if (response.status === 401) {
+            setIsUnauthorized(true);
+            return true;
+          }
+          return false;
+        };
+        
+        // Example of how to use the handler with multiple API calls
+        // const pointsResponse = await fetch(`${API_REACT_APP_BASE_URL}/api/user/points`);
+        // if (handleUnauthorized(pointsResponse)) return;
+        
+        // const salesResponse = await fetch(`${API_REACT_APP_BASE_URL}/api/flash-sales`);
+        // if (handleUnauthorized(salesResponse)) return;
         
         // Similarly for other data...
       } catch (error) {
@@ -211,8 +252,17 @@ const LandingPage = () => {
     navigate(`/category/${category}`);
   };
 
+  const handleGoHome = () => {
+    setIsUnauthorized(false);
+    navigate('/');
+    window.location.reload(); // Force a full page reload
+  };
+
   return (
     <div className="min-h-screen bg-white pb-20">
+      {/* Unauthorized Modal */}
+      {isUnauthorized && <UnauthorizedModal onGoHome={handleGoHome} />}
+      
       {/* Top Navigation Bar */}
       <div className="bg-yellow-200 pt-4 pb-4 relative">
         {/* Yellow curved background */}
@@ -302,7 +352,6 @@ const LandingPage = () => {
         </div>
       </div>
       
-      {/* Rest of the component remains the same... */}
       {/* Points */}
       <div className="px-4 mt-4 flex gap-3">
         <div className="bg-yellow-100 rounded-lg p-3 flex-1">
