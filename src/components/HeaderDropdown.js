@@ -102,7 +102,10 @@ const HeaderDropdown = ({
   };
 
   // Toggle dropdown
-  const toggleDropdown = () => {
+  const toggleDropdown = (e) => {
+    // Stop propagation to prevent immediate closing
+    e.stopPropagation();
+    
     // Only fetch items when opening the dropdown
     if (!isOpen) {
       fetchItems();
@@ -111,18 +114,19 @@ const HeaderDropdown = ({
   };
 
   // Handle clicking on an item
-  const handleItemClick = (item) => {
-    setIsOpen(false);
+  const handleItemClick = (e, item) => {
+    // Prevent the dropdown from closing
+    e.stopPropagation();
     
     // Navigate or perform action based on type
     if (type === 'address') {
       // Maybe select this address
     } else if (type === 'wishlist') {
-      navigate(`/product/${item.product?.id || item.productId}`);
+      navigate(`/productDetails?key=${item.product?.id || item.productId}`);
     } else if (type === 'order' || type === 'orders') {
-      navigate(`/order-details/${item.id}`);
+      navigate(`/order-details?token=${item.id}`);
     } else if (type === 'cart') {
-      navigate(`/product/${item.productVariation?.productId}`);
+      navigate(`/productDetails?key=${item.productVariation?.productId}`);
     }
   };
 
@@ -143,6 +147,14 @@ const HeaderDropdown = ({
   // Determine which data source to use (webhook or legacy)
   const isLoadingData = customLoading !== undefined ? customLoading : loading;
   const itemsToDisplay = customData !== undefined ? customData : items;
+
+  // Handle manage button click
+  const handleManageClick = (e) => {
+    // Prevent the dropdown from closing
+    e.stopPropagation();
+    setIsOpen(false);
+    navigate(managePath);
+  };
 
   return (
     <div ref={dropdownRef} className="relative">
@@ -183,7 +195,7 @@ const HeaderDropdown = ({
                 <div 
                   key={item.id || `${type}-item-${index}`} 
                   className="p-3 border-b border-gray-100 hover:bg-gray-50 cursor-pointer"
-                  onClick={() => handleItemClick(item)}
+                  onClick={(e) => handleItemClick(e, item)}
                 >
                   {renderItem(item)}
                 </div>
@@ -194,10 +206,7 @@ const HeaderDropdown = ({
           <div className="p-3 border-t border-gray-100">
             <button 
               className="w-full py-2 bg-yellow-500 text-white rounded-lg text-sm font-medium"
-              onClick={() => {
-                setIsOpen(false);
-                navigate(managePath);
-              }}
+              onClick={handleManageClick}
             >
               Manage {label}
             </button>

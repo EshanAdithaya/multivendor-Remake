@@ -78,38 +78,45 @@ const HeaderService = () => {
         // Use cached counts
         setCounts(prev => ({
           ...prev,
-          wishlist: webhookCache.wishlist.data.wishlistCount || 0,
-          orders: webhookCache.orders.data.orderCount || 0
+          // Fix: Safely access nested properties with optional chaining and nullish coalescing
+          wishlist: webhookCache.wishlist?.data?.wishlistCount || 0,
+          orders: webhookCache.orders?.data?.orderCount || 0
         }));
         setLoading(false);
         return;
       }
       
       // Fetch wishlist and orders data in parallel
-      const [wishlistResponse, ordersResponse] = await Promise.all([
-        makeAuthenticatedRequest('/api/webhooks/wishlist'),
-        makeAuthenticatedRequest('/api/webhooks/orders')
-      ]);
-      
-      const wishlistData = await wishlistResponse.json();
-      const ordersData = await ordersResponse.json();
-      
-      // Update cache
-      setWebhookCache({
-        wishlist: wishlistData,
-        orders: ordersData,
-        lastFetched: now
-      });
-      
-      // Extract counts from webhook data
-      const wishlistCount = wishlistData?.data?.wishlistCount || 0;
-      const ordersCount = ordersData?.data?.orderCount || 0;
-      
-      setCounts(prev => ({
-        ...prev,
-        wishlist: wishlistCount,
-        orders: ordersCount
-      }));
+      try {
+        const [wishlistResponse, ordersResponse] = await Promise.all([
+          makeAuthenticatedRequest('/api/webhooks/wishlist'),
+          makeAuthenticatedRequest('/api/webhooks/orders')
+        ]);
+        
+        const wishlistData = await wishlistResponse.json();
+        const ordersData = await ordersResponse.json();
+        
+        // Update cache
+        setWebhookCache({
+          wishlist: wishlistData,
+          orders: ordersData,
+          lastFetched: now
+        });
+        
+        // Extract counts from webhook data
+        // Fix: Safely access nested properties
+        const wishlistCount = wishlistData?.data?.wishlistCount || 0;
+        const ordersCount = ordersData?.data?.orderCount || 0;
+        
+        setCounts(prev => ({
+          ...prev,
+          wishlist: wishlistCount,
+          orders: ordersCount
+        }));
+      } catch (apiError) {
+        console.error('API error fetching counts:', apiError);
+        // Keep the existing counts on error
+      }
     } catch (error) {
       console.error('Error fetching counts:', error);
       setError(error.message);
@@ -143,11 +150,13 @@ const HeaderService = () => {
       if (type === 'wishlist') {
         setCounts(prev => ({
           ...prev,
+          // Fix: Safely access nested properties
           wishlist: data?.data?.wishlistCount || 0
         }));
       } else if (type === 'orders') {
         setCounts(prev => ({
           ...prev,
+          // Fix: Safely access nested properties
           orders: data?.data?.orderCount || 0
         }));
       }
@@ -226,7 +235,7 @@ const HeaderService = () => {
           />
         </div>
         <div className="flex-1">
-          <p className="text-sm font-medium">{item.productName || 'Product'}</p>
+          <p className="text-sm font-medium">{item.productName || item.product?.name || 'Product'}</p>
           <p className="text-xs text-gray-600">
             ${item.product?.price?.toFixed(2) || '0.00'}
           </p>

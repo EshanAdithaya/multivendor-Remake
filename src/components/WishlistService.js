@@ -31,9 +31,13 @@ export const useWishlistService = () => {
       
       const result = await response.json();
       
-      // Refresh wishlist count
-      if (headerService && headerService.refreshCount) {
-        await headerService.refreshCount('wishlist');
+      // Refresh wishlist count - Fix: Use a try-catch to prevent errors
+      try {
+        if (headerService && typeof headerService.refreshCount === 'function') {
+          await headerService.refreshCount('wishlist');
+        }
+      } catch (refreshError) {
+        console.error('Error refreshing wishlist count:', refreshError);
       }
       
       return { success: true, data: result };
@@ -61,9 +65,13 @@ export const useWishlistService = () => {
       
       const result = await response.json();
       
-      // Refresh wishlist count
-      if (headerService && headerService.refreshCount) {
-        await headerService.refreshCount('wishlist');
+      // Refresh wishlist count - Fix: Use a try-catch to prevent errors
+      try {
+        if (headerService && typeof headerService.refreshCount === 'function') {
+          await headerService.refreshCount('wishlist');
+        }
+      } catch (refreshError) {
+        console.error('Error refreshing wishlist count:', refreshError);
       }
       
       return { success: true, data: result };
@@ -87,7 +95,9 @@ export const useWishlistService = () => {
       }
       
       const wishlist = await response.json();
-      return wishlist.some(item => item.product.id === productId);
+      return Array.isArray(wishlist) && wishlist.some(item => 
+        item.product && item.product.id === productId
+      );
     } catch (error) {
       console.error('Error checking wishlist:', error);
       return false;
