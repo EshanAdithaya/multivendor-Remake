@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Filter, Search, ArrowLeft, SlidersHorizontal } from 'lucide-react';
+import { Filter, Search, ArrowLeft, SlidersHorizontal, X, ChevronDown, ChevronUp } from 'lucide-react';
 import CompactProductCard from '../components/ProductCard';
 import { useWishlistService } from '../components/WishlistService';
 
@@ -10,7 +10,9 @@ const CategoryPage = () => {
   const { categorySlug } = useParams();
   const navigate = useNavigate();
   const wishlistService = useWishlistService();
+  const filterPanelRef = useRef(null);
   
+  // Basic states
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [categories, setCategories] = useState([]);
@@ -20,6 +22,38 @@ const CategoryPage = () => {
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [wishlistMap, setWishlistMap] = useState({});
   const [wishlistLoading, setWishlistLoading] = useState({});
+
+  // Filter states
+  const [showFilterPanel, setShowFilterPanel] = useState(false);
+  const [productGroups, setProductGroups] = useState([]);
+  const [manufacturers, setManufacturers] = useState([]);
+  const [selectedProductGroup, setSelectedProductGroup] = useState('');
+  const [selectedManufacturer, setSelectedManufacturer] = useState('');
+  const [priceRange, setPriceRange] = useState({ min: '', max: '' });
+  const [stockQuantity, setStockQuantity] = useState('');
+  const [activeFilters, setActiveFilters] = useState({});
+  const [expandedSections, setExpandedSections] = useState({
+    category: true,
+    productGroup: true,
+    manufacturer: true,
+    price: false,
+    stock: false
+  });
+
+  // Close filter panel on outside click
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (filterPanelRef.current && !filterPanelRef.current.contains(event.target) && 
+          !event.target.closest('.filter-button')) {
+        setShowFilterPanel(false);
+      }
+    }
+    
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   // Fetch categories
   useEffect(() => {
@@ -31,7 +65,7 @@ const CategoryPage = () => {
         const data = await response.json();
         setCategories(data);
         
-        // Find category that matches the slug (both by name and case-insensitive comparison)
+        // Find category that matches the slug
         const matchedCategory = data.find(
           category => 
             category.name.toLowerCase() === categorySlug.toLowerCase() || 
@@ -40,6 +74,7 @@ const CategoryPage = () => {
         
         if (matchedCategory) {
           setCurrentCategory(matchedCategory);
+          setActiveFilters(prev => ({ ...prev, categoryId: matchedCategory.id }));
         } else {
           setError(`Category "${categorySlug}" not found`);
         }
@@ -52,15 +87,52 @@ const CategoryPage = () => {
     fetchCategories();
   }, [categorySlug]);
 
-  // Fetch products for the current category
+  // Fetch product groups and manufacturers
+  useEffect(() => {
+    const fetchFilterData = async () => {
+      try {
+        // Fetch product groups
+        const groupsResponse = await fetch(`${API_REACT_APP_BASE_URL}/api/product-groups`);
+        if (groupsResponse.ok) {
+          const groupsData = await groupsResponse.json();
+          setProductGroups(groupsData);
+        }
+        
+        // Fetch manufacturers
+        const manufacturersResponse = await fetch(`${API_REACT_APP_BASE_URL}/api/manufacturers`);
+        if (manufacturersResponse.ok) {
+          const manufacturersData = await manufacturersResponse.json();
+          setManufacturers(manufacturersData);
+        }
+      } catch (err) {
+        console.error('Error fetching filter data:', err);
+      }
+    };
+
+    fetchFilterData();
+  }, []);
+
+  // Fetch products with filters
   useEffect(() => {
     const fetchProducts = async () => {
-      if (!currentCategory) return;
+      if (!currentCategory && !activeFilters.categoryId) return;
       
       try {
         setLoading(true);
+        
+        // Build query parameters
+        const params = new URLSearchParams();
+        
+        // Add all active filters to query params
+        Object.entries(activeFilters).forEach(([key, value]) => {
+          if (value) params.append(key, value);
+        });
+        
+        // Add search query if exists
+        if (searchQuery) params.append('name', searchQuery);
+        
         const response = await fetch(
-          `${API_REACT_APP_BASE_URL}/api/products/get-all-with-filters?categoryId=${currentCategory.id}`
+          `${API_REACT_APP_BASE_URL}/api/products/get-all-with-filters?${params.toString()}`
         );
         
         if (!response.ok) throw new Error('Failed to fetch products');
@@ -80,18 +152,7 @@ const CategoryPage = () => {
     };
 
     fetchProducts();
-  }, [currentCategory]);
-
-  // Filter products based on search query
-  useEffect(() => {
-    if (!products.length) return;
-    
-    const filtered = products.filter(product => 
-      product.name.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-    
-    setFilteredProducts(filtered);
-  }, [searchQuery, products]);
+  }, [activeFilters, currentCategory, searchQuery]);
 
   // Check wishlist status for each product
   const checkWishlistStatus = async (products) => {
@@ -162,11 +223,48 @@ const CategoryPage = () => {
     }
   };
 
+  // Handler for applying filters
+  const applyFilters = () => {
+    const newFilters = {
+      categoryId: currentCategory?.id,
+      ...(selectedProductGroup && { productGroupId: selectedProductGroup }),
+      ...(selectedManufacturer && { manufacturerId: selectedManufacturer }),
+      ...(stockQuantity && { stockQuantity }),
+      ...(priceRange.min && { minPrice: priceRange.min }),
+      ...(priceRange.max && { maxPrice: priceRange.max })
+    };
+    
+    setActiveFilters(newFilters);
+    setShowFilterPanel(false);
+  };
+
+  // Reset filters
+  const resetFilters = () => {
+    setSelectedProductGroup('');
+    setSelectedManufacturer('');
+    setPriceRange({ min: '', max: '' });
+    setStockQuantity('');
+    setActiveFilters({ categoryId: currentCategory?.id });
+  };
+
+  // Toggle filter panel section
+  const toggleSection = (section) => {
+    setExpandedSections(prev => ({
+      ...prev,
+      [section]: !prev[section]
+    }));
+  };
+
   const handleNavigateToProduct = (productId) => {
     navigate(`/productDetails?key=${productId}`);
   };
 
-  if (loading) {
+  // Count active filters
+  const activeFilterCount = Object.keys(activeFilters).filter(
+    key => key !== 'categoryId' && activeFilters[key]
+  ).length;
+
+  if (loading && !products.length) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-4 border-yellow-400 border-t-transparent"></div>
@@ -227,10 +325,257 @@ const CategoryPage = () => {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
-            <button className="ml-3 p-2 bg-gray-100 rounded-lg hover:bg-gray-200">
+            <button 
+              className="filter-button ml-3 p-2 bg-gray-100 rounded-lg hover:bg-gray-200 relative"
+              onClick={() => setShowFilterPanel(!showFilterPanel)}
+            >
               <SlidersHorizontal className="w-5 h-5 text-gray-600" />
+              {activeFilterCount > 0 && (
+                <span className="absolute -top-1 -right-1 w-5 h-5 bg-yellow-400 text-white text-xs rounded-full flex items-center justify-center">
+                  {activeFilterCount}
+                </span>
+              )}
             </button>
+            
+            {/* Filter Panel */}
+            {showFilterPanel && (
+              <div 
+                ref={filterPanelRef}
+                className="absolute right-0 top-full mt-2 w-80 bg-white rounded-lg shadow-lg border border-gray-200 z-20"
+              >
+                <div className="p-4">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="font-medium text-lg">Filters</h3>
+                    <button
+                      onClick={() => setShowFilterPanel(false)}
+                      className="text-gray-500 hover:text-gray-700"
+                    >
+                      <X className="w-5 h-5" />
+                    </button>
+                  </div>
+                  
+                  {/* Product Group Filter */}
+                  <div className="mb-4 border-b pb-3">
+                    <button 
+                      className="flex items-center justify-between w-full text-left font-medium mb-2"
+                      onClick={() => toggleSection('productGroup')}
+                    >
+                      <span>Product Group</span>
+                      {expandedSections.productGroup ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                    </button>
+                    
+                    {expandedSections.productGroup && (
+                      <div className="space-y-2 mt-2">
+                        <select
+                          className="w-full p-2 border border-gray-300 rounded-md"
+                          value={selectedProductGroup}
+                          onChange={(e) => setSelectedProductGroup(e.target.value)}
+                        >
+                          <option value="">All Product Groups</option>
+                          {productGroups.map(group => (
+                            <option key={group.id} value={group.id}>
+                              {group.name}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* Manufacturer Filter */}
+                  <div className="mb-4 border-b pb-3">
+                    <button 
+                      className="flex items-center justify-between w-full text-left font-medium mb-2"
+                      onClick={() => toggleSection('manufacturer')}
+                    >
+                      <span>Manufacturer</span>
+                      {expandedSections.manufacturer ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                    </button>
+                    
+                    {expandedSections.manufacturer && (
+                      <div className="space-y-2 mt-2">
+                        <select
+                          className="w-full p-2 border border-gray-300 rounded-md"
+                          value={selectedManufacturer}
+                          onChange={(e) => setSelectedManufacturer(e.target.value)}
+                        >
+                          <option value="">All Manufacturers</option>
+                          {manufacturers.map(manufacturer => (
+                            <option key={manufacturer.id} value={manufacturer.id}>
+                              {manufacturer.name}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* Price Range Filter */}
+                  <div className="mb-4 border-b pb-3">
+                    <button 
+                      className="flex items-center justify-between w-full text-left font-medium mb-2"
+                      onClick={() => toggleSection('price')}
+                    >
+                      <span>Price Range</span>
+                      {expandedSections.price ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                    </button>
+                    
+                    {expandedSections.price && (
+                      <div className="flex space-x-2 mt-2">
+                        <input
+                          type="number"
+                          placeholder="Min"
+                          className="w-1/2 p-2 border border-gray-300 rounded-md"
+                          value={priceRange.min}
+                          onChange={(e) => setPriceRange(prev => ({ ...prev, min: e.target.value }))}
+                        />
+                        <input
+                          type="number"
+                          placeholder="Max"
+                          className="w-1/2 p-2 border border-gray-300 rounded-md"
+                          value={priceRange.max}
+                          onChange={(e) => setPriceRange(prev => ({ ...prev, max: e.target.value }))}
+                        />
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* Stock Quantity Filter */}
+                  <div className="mb-4 border-b pb-3">
+                    <button 
+                      className="flex items-center justify-between w-full text-left font-medium mb-2"
+                      onClick={() => toggleSection('stock')}
+                    >
+                      <span>Stock Quantity</span>
+                      {expandedSections.stock ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                    </button>
+                    
+                    {expandedSections.stock && (
+                      <div className="mt-2">
+                        <input
+                          type="number"
+                          placeholder="Minimum stock"
+                          className="w-full p-2 border border-gray-300 rounded-md"
+                          value={stockQuantity}
+                          onChange={(e) => setStockQuantity(e.target.value)}
+                        />
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* Filter Actions */}
+                  <div className="flex justify-between pt-2">
+                    <button
+                      className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200"
+                      onClick={resetFilters}
+                    >
+                      Reset
+                    </button>
+                    <button
+                      className="px-4 py-2 bg-yellow-400 text-white rounded-md hover:bg-yellow-500"
+                      onClick={applyFilters}
+                    >
+                      Apply Filters
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
+          
+          {/* Active Filters Display */}
+          {activeFilterCount > 0 && (
+            <div className="mt-3 flex flex-wrap gap-2">
+              {selectedProductGroup && (
+                <div className="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-sm flex items-center">
+                  <span className="mr-1">
+                    {productGroups.find(group => group.id === selectedProductGroup)?.name || 'Product Group'}
+                  </span>
+                  <button 
+                    onClick={() => {
+                      setSelectedProductGroup('');
+                      setActiveFilters(prev => {
+                        const { productGroupId, ...rest } = prev;
+                        return rest;
+                      });
+                    }}
+                    className="ml-1"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </div>
+              )}
+              
+              {selectedManufacturer && (
+                <div className="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-sm flex items-center">
+                  <span className="mr-1">
+                    {manufacturers.find(m => m.id === selectedManufacturer)?.name || 'Manufacturer'}
+                  </span>
+                  <button 
+                    onClick={() => {
+                      setSelectedManufacturer('');
+                      setActiveFilters(prev => {
+                        const { manufacturerId, ...rest } = prev;
+                        return rest;
+                      });
+                    }}
+                    className="ml-1"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </div>
+              )}
+              
+              {(priceRange.min || priceRange.max) && (
+                <div className="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-sm flex items-center">
+                  <span className="mr-1">
+                    Price: {priceRange.min || '0'} - {priceRange.max || 'Any'}
+                  </span>
+                  <button 
+                    onClick={() => {
+                      setPriceRange({ min: '', max: '' });
+                      setActiveFilters(prev => {
+                        const { minPrice, maxPrice, ...rest } = prev;
+                        return rest;
+                      });
+                    }}
+                    className="ml-1"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </div>
+              )}
+              
+              {stockQuantity && (
+                <div className="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-sm flex items-center">
+                  <span className="mr-1">
+                    Stock: {stockQuantity}+
+                  </span>
+                  <button 
+                    onClick={() => {
+                      setStockQuantity('');
+                      setActiveFilters(prev => {
+                        const { stockQuantity, ...rest } = prev;
+                        return rest;
+                      });
+                    }}
+                    className="ml-1"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </div>
+              )}
+              
+              {activeFilterCount > 0 && (
+                <button 
+                  onClick={resetFilters}
+                  className="text-gray-600 text-sm underline hover:text-gray-900"
+                >
+                  Clear all filters
+                </button>
+              )}
+            </div>
+          )}
         </div>
       </div>
 
@@ -257,10 +602,14 @@ const CategoryPage = () => {
 
       {/* Products Grid */}
       <div className="max-w-4xl mx-auto p-4">
-        {filteredProducts.length === 0 ? (
+        {loading ? (
+          <div className="flex justify-center py-12">
+            <div className="animate-spin rounded-full h-8 w-8 border-2 border-yellow-400 border-t-transparent"></div>
+          </div>
+        ) : filteredProducts.length === 0 ? (
           <div className="bg-white rounded-lg p-8 text-center">
-            <p className="text-gray-500">No products found in this category.</p>
-            <p className="text-gray-400 mt-2">Try adjusting your search or browse another category.</p>
+            <p className="text-gray-500">No products found with the current filters.</p>
+            <p className="text-gray-400 mt-2">Try adjusting your search criteria or clearing some filters.</p>
           </div>
         ) : (
           <>
