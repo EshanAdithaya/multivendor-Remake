@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ShoppingBag, Trash2, X } from 'lucide-react';
+import { ShoppingBag, Trash2, X, Minus } from 'lucide-react';
 import lottie from 'lottie-web';
 import emptyCartAnimation from '../Assets/animations/empty_cart.json';
 import catWaitingAnimation from '../Assets/animations/cat_waiting.json';
@@ -12,6 +12,7 @@ const ShoppingCart = ({ onClose }) => {
   const [carts, setCarts] = React.useState([]);
   const [isLoading, setIsLoading] = React.useState(true);
   const [error, setError] = React.useState(null);
+  const [removingItem, setRemovingItem] = React.useState(null);
   const navigate = useNavigate();
   const animationContainer = React.useRef(null);
   const currentAnimation = React.useRef(null);
@@ -123,12 +124,71 @@ const ShoppingCart = ({ onClose }) => {
     }
   };
 
+  // Function to remove a specific item from a cart
+  const removeCartItem = async (cartId, shopId, variationId) => {
+    const confirmRemove = window.confirm('Are you sure you want to remove this item?');
+    if (!confirmRemove) return;
+
+    const token = localStorage.getItem('accessToken');
+    if (!token) {
+      setError('You need to log in to perform this action.');
+      return;
+    }
+
+    setRemovingItem(`${cartId}-${variationId}`);
+
+    try {
+      // Update cart with quantity 0 to remove the item
+      const response = await fetch(`${API_REACT_APP_BASE_URL}/api/carts`, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+          'Accept': '*/*'
+        },
+        body: JSON.stringify({
+          shopId: shopId,
+          updatedVariations: [{
+            variationId: variationId,
+            quantity: 0 // Setting quantity to 0 removes the item
+          }]
+        })
+      });
+
+      if (response.ok) {
+        // Update local state to reflect the removal
+        setCarts(carts.map(cart => {
+          if (cart.id === cartId) {
+            // Remove the specific item from cartItems
+            return {
+              ...cart,
+              cartItems: cart.cartItems.filter(item => 
+                item.productVariation.id !== variationId
+              )
+            };
+          }
+          return cart;
+        }));
+      } else {
+        setError('Failed to remove item from cart');
+      }
+    } catch (err) {
+      console.error('Failed to remove item:', err);
+      setError('Failed to remove item from cart');
+    } finally {
+      setRemovingItem(null);
+    }
+  };
+
+  const calculateCartTotal = (cart) => {
+    return cart.cartItems.reduce((sum, item) => {
+      return sum + (Number(item.price) * item.quantity);
+    }, 0);
+  };
+
   const calculateTotalPrice = () => {
     return carts.reduce((total, cart) => {
-      const cartTotal = cart.cartItems.reduce((sum, item) => {
-        return sum + (Number(item.price) * item.quantity);
-      }, 0);
-      return total + cartTotal;
+      return total + calculateCartTotal(cart);
     }, 0);
   };
 
@@ -257,17 +317,40 @@ const ShoppingCart = ({ onClose }) => {
                           <div key={item.id} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
                             <div>
                               <div className="font-medium">
-                                {item.productVariation.material || 'Product'}
+                                {item.productVariation.name || item.productVariation.material || 'Product'}
                               </div>
                               <div className="text-sm text-gray-500">
                                 Quantity: {item.quantity}
                               </div>
+                              <div className="text-yellow-600 font-medium">
+                                ${Number(item.price).toFixed(2)} per item
+                              </div>
                             </div>
-                            <div className="text-yellow-600 font-medium">
-                              ${Number(item.price).toFixed(2)}
+                            <div className="flex flex-col items-end gap-2">
+                              <div className="text-yellow-600 font-medium">
+                                Total: ${(Number(item.price) * item.quantity).toFixed(2)}
+                              </div>
+                              <button
+                                className="text-red-500 hover:text-red-600 p-1 hover:bg-red-50 rounded-full flex items-center gap-1 text-sm"
+                                onClick={() => removeCartItem(cart.id, cart.shop.id, item.productVariation.id)}
+                                disabled={removingItem === `${cart.id}-${item.productVariation.id}`}
+                              >
+                                {removingItem === `${cart.id}-${item.productVariation.id}` ? (
+                                  <div className="w-4 h-4 border-2 border-red-300 border-t-red-500 rounded-full animate-spin mr-1" />
+                                ) : (
+                                  <Minus className="w-4 h-4" />
+                                )}
+                                Remove
+                              </button>
                             </div>
                           </div>
                         ))}
+                        <div className="flex justify-between items-center pt-3 border-t mt-4">
+                          <span className="font-medium">Cart Total:</span>
+                          <span className="text-yellow-600 font-bold">
+                            ${calculateCartTotal(cart).toFixed(2)}
+                          </span>
+                        </div>
                       </div>
                     ) : (
                       <div className="text-gray-500 text-center py-3">
@@ -296,7 +379,7 @@ const ShoppingCart = ({ onClose }) => {
           <button
             className="w-full h-12 bg-yellow-600 text-white rounded-lg font-semibold hover:bg-yellow-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             onClick={handleCheckout}
-            disabled={carts.length === 0}
+            disabled={carts.length === 0 || carts.every(cart => cart.cartItems.length === 0)}
           >
             Checkout
           </button>
