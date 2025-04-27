@@ -6,7 +6,7 @@ import ProductReviews from '../components/ProductReviews';
 import Lottie from 'lottie-web';
 import addedToCartAnimation from '../Assets/animations/cutedog.json';
 import loaderAnimation from '../Assets/animations/loading.json';
-import { handleCartOperation } from '../utils/cartUtils';
+import { checkAuth, getAuthHeader, redirectToLogin } from '../utils/cartUtils';
 
 const API_REACT_APP_BASE_URL = process.env.REACT_APP_BASE_URL;
 
@@ -18,9 +18,8 @@ const ProductDetail = () => {
   const [selectedVariation, setSelectedVariation] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isWishlistLoading, setIsWishlistLoading] = useState(false);
-  const [showAddedToCartPopup, setShowAddedToCartPopup] = useState(false);
-  const [isPopupVisible, setIsPopupVisible] = useState(false);
   const [isPopupMounted, setIsPopupMounted] = useState(false);
+  const [isPopupVisible, setIsPopupVisible] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   const lottieContainer = useRef(null);
@@ -31,7 +30,7 @@ const ProductDetail = () => {
   const checkWishlistStatus = async () => {
     try {
       const token = localStorage.getItem('accessToken');
-      if (!token) return;
+      if (!token || !product) return;
 
       const response = await fetch(`${API_REACT_APP_BASE_URL}/api/wishlist/my-wishlist`, {
         headers: {
@@ -54,7 +53,7 @@ const ProductDetail = () => {
     e.stopPropagation();
     const token = localStorage.getItem('accessToken');
     if (!token) {
-      navigate('/login');
+      redirectToLogin(navigate);
       return;
     }
 
@@ -118,9 +117,6 @@ const ProductDetail = () => {
           setSelectedVariation(data.variations[0]);
         }
         setProduct(data);
-        
-        // Check wishlist status
-        checkWishlistStatus();
       } catch (error) {
         console.error('Failed to fetch product:', error);
       }
@@ -129,9 +125,16 @@ const ProductDetail = () => {
     fetchProduct();
   }, [location]);
 
+  // Check wishlist status when product is loaded
+  useEffect(() => {
+    if (product) {
+      checkWishlistStatus();
+    }
+  }, [product]);
+
   // Lottie animation for added to cart popup
   useEffect(() => {
-    if (showAddedToCartPopup && lottieContainer.current) {
+    if (isPopupMounted && lottieContainer.current) {
       addedToCartAnimationRef.current = Lottie.loadAnimation({
         container: lottieContainer.current,
         renderer: 'svg',
@@ -146,7 +149,7 @@ const ProductDetail = () => {
         }
       };
     }
-  }, [showAddedToCartPopup]);
+  }, [isPopupMounted]);
 
   // Lottie animation for loading screen
   useEffect(() => {
@@ -174,31 +177,96 @@ const ProductDetail = () => {
       return;
     }
 
+    // Check auth first
+    const isAuthenticated = await checkAuth();
+    if (!isAuthenticated) {
+      redirectToLogin(navigate);
+      return;
+    }
+
     setIsLoading(true);
     try {
-      const cartItem = {
-        ...selectedVariation,
-        name: product.name,
-        quantity: quantity,
-        shop: product.__shop__ || null
-      };
-      
-      const result = await handleCartOperation(cartItem);
-      
-      if (result.success) {
-        setIsPopupMounted(true);
-        setTimeout(() => setIsPopupVisible(true), 50);
-        
-        // Auto hide after 3 seconds
-        setTimeout(() => {
-          handleClosePopup();
-        }, 3000);
-      } else {
-        alert(result.error);
+      const shopId = product.__shop__?.id;
+      if (!shopId) {
+        throw new Error('Shop information not found');
       }
+
+      // Step 1: Check if there's an existing cart for this shop
+      const userCartsResponse = await fetch(
+        `${API_REACT_APP_BASE_URL}/api/carts/user`,
+        { headers: getAuthHeader() }
+      );
+
+      let existingCart = null;
+      if (userCartsResponse.ok) {
+        const userCarts = await userCartsResponse.json();
+        existingCart = userCarts.find(cart => cart.shop.id === shopId);
+      }
+
+      // Step 2: Based on whether cart exists, create or update
+      if (!existingCart) {
+        // Create new cart for this shop
+        const createResponse = await fetch(
+          `${API_REACT_APP_BASE_URL}/api/carts`,
+          {
+            method: 'POST',
+            headers: getAuthHeader(),
+            body: JSON.stringify({
+              shopId: shopId,
+              productVariations: [{
+                variationId: selectedVariation.id,
+                quantity: quantity
+              }]
+            })
+          }
+        );
+
+        if (!createResponse.ok) {
+          const errorData = await createResponse.json().catch(() => ({}));
+          throw new Error(errorData.message || 'Failed to create cart');
+        }
+      } else {
+        // Update existing cart
+        const existingItem = existingCart.cartItems.find(
+          item => item.productVariation.id === selectedVariation.id
+        );
+        
+        const updatedQuantity = existingItem 
+          ? existingItem.quantity + quantity 
+          : quantity;
+
+        const updateResponse = await fetch(
+          `${API_REACT_APP_BASE_URL}/api/carts`,
+          {
+            method: 'PATCH',
+            headers: getAuthHeader(),
+            body: JSON.stringify({
+              shopId: shopId,
+              updatedVariations: [{
+                variationId: selectedVariation.id,
+                quantity: updatedQuantity
+              }]
+            })
+          }
+        );
+
+        if (!updateResponse.ok) {
+          const errorData = await updateResponse.json().catch(() => ({}));
+          throw new Error(errorData.message || 'Failed to update cart');
+        }
+      }
+
+      // Show success popup
+      setIsPopupMounted(true);
+      setTimeout(() => setIsPopupVisible(true), 50);
+      
+      // Auto hide after 3 seconds
+      setTimeout(() => {
+        handleClosePopup();
+      }, 3000);
     } catch (error) {
       console.error('Failed to add to cart:', error);
-      alert('Failed to add to cart');
+      alert(error.message || 'Failed to add to cart');
     } finally {
       setIsLoading(false);
     }
@@ -366,7 +434,7 @@ const ProductDetail = () => {
           <span className="text-white font-medium">{quantity}</span>
           <button 
             className="p-2 text-white"
-            onClick={() => quantity < (selectedVariation?.stockQuantity || 0) && setQuantity(quantity + 1)}
+            onClick={() => selectedVariation && quantity < selectedVariation.stockQuantity && setQuantity(quantity + 1)}
           >
             <Plus className="w-5 h-5" />
           </button>
