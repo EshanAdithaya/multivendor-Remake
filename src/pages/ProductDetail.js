@@ -26,6 +26,15 @@ const ProductDetail = () => {
   const addedToCartAnimationRef = useRef(null);
   const loaderContainer = useRef(null);
 
+  // Add this new useEffect to scroll to top when page loads or product changes
+  useEffect(() => {
+    window.scrollTo({
+      top: 0,
+      left: 0,
+      behavior: 'smooth'
+    });
+  }, [location.search]); // Dependency on location.search to run when the product ID changes
+
   // Check wishlist status
   const checkWishlistStatus = async () => {
     try {
