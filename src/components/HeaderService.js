@@ -250,7 +250,7 @@ const HeaderService = () => {
 
   const renderWishlistItem = (item) => (
     <>
-      <div className="flex items-center gap-2">
+      <div className="flex items-center justify-center w-full gap-2">
         <div className="w-10 h-10 bg-gray-100 rounded overflow-hidden">
           <img 
             src={item.product?.imageUrl || '/api/placeholder/40/40'} 
@@ -258,7 +258,7 @@ const HeaderService = () => {
             className="w-full h-full object-cover"
           />
         </div>
-        <div className="flex-1">
+        <div className="flex-1 text-center">
           <p className="text-sm font-medium">{item.productName || item.product?.name || 'Product'}</p>
           <p className="text-xs text-gray-600">
             ${item.product?.price?.toFixed(2) || '0.00'}
@@ -270,16 +270,16 @@ const HeaderService = () => {
 
   const renderOrderItem = (order) => (
     <>
-      <div className="flex justify-between">
+      <div className="flex justify-between items-center w-full">
         <p className="text-sm font-medium">Order #{order.uniqueOrderId || order.id}</p>
         <p className="text-xs bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded-full">
           {order.status}
         </p>
       </div>
-      <p className="text-xs text-gray-600 mt-1">
+      <p className="text-xs text-gray-600 mt-1 text-center">
         Date: {new Date(order.createdAt).toLocaleDateString()}
       </p>
-      <p className="text-xs font-medium text-gray-800 mt-1">
+      <p className="text-xs font-medium text-gray-800 mt-1 text-center">
         Total: ${parseFloat(order.totalAmount).toFixed(2)}
       </p>
     </>
@@ -287,7 +287,7 @@ const HeaderService = () => {
 
   const renderCartItem = (item) => (
     <>
-      <div className="flex items-center gap-2">
+      <div className="flex items-center justify-center w-full gap-2">
         <div className="w-10 h-10 bg-gray-100 rounded overflow-hidden">
           <img 
             src={item.productVariation?.imageUrl || '/api/placeholder/40/40'} 
@@ -295,9 +295,9 @@ const HeaderService = () => {
             className="w-full h-full object-cover"
           />
         </div>
-        <div className="flex-1">
+        <div className="flex-1 text-center">
           <p className="text-sm font-medium">{item.productVariation?.name || 'Product'}</p>
-          <div className="flex justify-between">
+          <div className="flex justify-between items-center">
             <p className="text-xs text-gray-600">
               Qty: {item.quantity}
             </p>

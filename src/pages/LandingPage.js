@@ -4,6 +4,8 @@ import { Search, Heart, ChevronRight, ShoppingBag, Award, CheckCircle, AlertCirc
 import _ from 'lodash';
 import { toast } from 'react-toastify';
 import { HeaderBar } from '../components/HeaderBar';
+import CompactProductCard from '../components/ProductCard';
+import { useWishlistService } from '../components/WishlistService';
 
 const API_REACT_APP_BASE_URL = process.env.REACT_APP_BASE_URL;
 
@@ -129,6 +131,8 @@ const SectionHeader = ({ title, icon, onSeeAll }) => {
 
 // Main Landing Page Component
 const LandingPage = () => {
+  const navigate = useNavigate();
+  const wishlistService = useWishlistService();
   const [searchQuery, setSearchQuery] = useState('');
   const [points, setPoints] = useState({ available: 2500, used: 758 });
   const [flashSales, setFlashSales] = useState([
@@ -169,6 +173,14 @@ const LandingPage = () => {
     { id: 9, name: 'Pawsavenue', totalItems: 100, rating: 4.5, logoUrl: '/api/placeholder/120/120', isFavorite: false }
   ]);
   
+  // New states for products
+  const [foodProducts, setFoodProducts] = useState([]);
+  const [latestProducts, setLatestProducts] = useState([]);
+  const [toyProducts, setToyProducts] = useState([]);
+  const [wishlistMap, setWishlistMap] = useState({});
+  const [wishlistLoading, setWishlistLoading] = useState({});
+  const [loading, setLoading] = useState(true);
+  
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isUnauthorized, setIsUnauthorized] = useState(false);
   const carouselImages = [
@@ -180,49 +192,120 @@ const LandingPage = () => {
     "https://pawsome-testing.sgp1.digitaloceanspaces.com/Application_CDN_Assets/carousel_image6.webp"
   ];
 
-  const navigate = useNavigate();
+  // Fetch all wishlist items
+  const fetchWishlistItems = async () => {
+    try {
+      const response = await fetch(`${API_REACT_APP_BASE_URL}/api/wishlist/my-wishlist`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+          'Accept': 'application/json'
+        },
+      });
+      
+      if (response.ok) {
+        return await response.json();
+      }
+      return [];
+    } catch (error) {
+      console.error('Error fetching wishlist:', error);
+      return [];
+    }
+  };
 
-  // Fetch data from API (if needed)
+  // Check wishlist status for each product
+  const checkWishlistStatus = async (products) => {
+    try {
+      const token = localStorage.getItem('accessToken');
+      if (!token) return;
+      
+      const wishlistItems = await fetchWishlistItems();
+      const wishlistProductIds = new Set(wishlistItems.map(item => item.product.id));
+      
+      const wishlistStatus = {};
+      products.forEach(product => {
+        wishlistStatus[product.id] = wishlistProductIds.has(product.id);
+      });
+      
+      setWishlistMap(wishlistStatus);
+    } catch (error) {
+      console.error('Error checking wishlist status:', error);
+    }
+  };
+
+  // Handle wishlist toggle
+  const handleWishlistToggle = async (productId, shopId) => {
+    if (!localStorage.getItem('accessToken')) {
+      navigate('/login');
+      return;
+    }
+    
+    setWishlistLoading(prev => ({ ...prev, [productId]: true }));
+    
+    try {
+      const wasInWishlist = wishlistMap[productId];
+      
+      // Optimistic update
+      setWishlistMap(prev => ({ ...prev, [productId]: !wasInWishlist }));
+      
+      if (wasInWishlist) {
+        await wishlistService.removeFromWishlist(productId);
+      } else {
+        await wishlistService.addToWishlist(productId, shopId);
+      }
+    } catch (error) {
+      console.error('Error toggling wishlist:', error);
+      // Revert on error
+      setWishlistMap(prev => ({ ...prev, [productId]: !prev[productId] }));
+    } finally {
+      setWishlistLoading(prev => ({ ...prev, [productId]: false }));
+    }
+  };
+
+  // Fetch products for different sections
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchProducts = async () => {
       try {
-        // Fetch points, flash sales, pet stores, etc.
-        // This is a placeholder for actual API calls
-        
-        // Example:
-        // const pointsResponse = await fetch(`${API_REACT_APP_BASE_URL}/api/user/points`);
-        // if (pointsResponse.status === 401) {
-        //   setIsUnauthorized(true);
-        //   return;
-        // }
-        // if (pointsResponse.ok) {
-        //   const pointsData = await pointsResponse.json();
-        //   setPoints(pointsData);
-        // }
-        
-        // Handle unauthorized response for any API call
-        const handleUnauthorized = (response) => {
-          if (response.status === 401) {
-            setIsUnauthorized(true);
-            return true;
-          }
-          return false;
-        };
-        
-        // Example of how to use the handler with multiple API calls
-        // const pointsResponse = await fetch(`${API_REACT_APP_BASE_URL}/api/user/points`);
-        // if (handleUnauthorized(pointsResponse)) return;
-        
-        // const salesResponse = await fetch(`${API_REACT_APP_BASE_URL}/api/flash-sales`);
-        // if (handleUnauthorized(salesResponse)) return;
-        
-        // Similarly for other data...
+        setLoading(true);
+
+        // Fetch all products
+        const allProductsResponse = await fetch(`${API_REACT_APP_BASE_URL}/api/products/get-all-with-filters`);
+        if (allProductsResponse.ok) {
+          const allProducts = await allProductsResponse.json();
+          
+          // Filter food products (products tagged with "Dog Food", "Cat Food", or "Puppy Food")
+          const foodTagIds = ["fc475d04-482c-446e-9aca-492f9d05578c", "dd17fcb9-ae43-4fae-a2fe-122a4269bd19", "16dbfff8-cb64-4013-acbf-d1e278f31513"];
+          const foodProductsList = allProducts.filter(product => 
+            product.productTag.some(tag => foodTagIds.includes(tag.id))
+          ).slice(0, 6); // Limit to 6 products
+          setFoodProducts(foodProductsList);
+          
+          // Get latest products (sort by createdAt and take first 6)
+          const sortedByDate = [...allProducts].sort((a, b) => 
+            new Date(b.createdAt) - new Date(a.createdAt)
+          );
+          setLatestProducts(sortedByDate.slice(0, 6));
+          
+          // Filter toy products (products tagged with "pet toy" or in "Pet Toys" category)
+          const toyTagId = "c184c759-ccc8-433e-91de-f51cb672c082";
+          const petToysCategoryId = "767f7217-54b6-45ad-872a-9fe782bff010";
+          const toyProductsList = allProducts.filter(product => 
+            product.productTag.some(tag => tag.id === toyTagId) || 
+            product.category.id === petToysCategoryId
+          ).slice(0, 6); // Limit to 6 products
+          setToyProducts(toyProductsList);
+          
+          // Check wishlist status for all products
+          const allProductsList = [...foodProductsList, ...sortedByDate.slice(0, 6), ...toyProductsList];
+          checkWishlistStatus(allProductsList);
+        }
       } catch (error) {
-        console.error('Error fetching data:', error);
+        console.error('Error fetching products:', error);
+      } finally {
+        setLoading(false);
       }
     };
     
-    fetchData();
+    fetchProducts();
   }, []);
 
   // Auto scroll carousel effect
@@ -234,12 +317,10 @@ const LandingPage = () => {
   }, [carouselImages.length]);
 
   const handleStoreClick = (storeId) => {
-    // Navigate to store page
     navigate(`/store/${storeId}`);
   };
   
   const handleSaleClick = (saleId) => {
-    // Navigate to sale page
     navigate(`/sale/${saleId}`);
   };
   
@@ -252,10 +333,14 @@ const LandingPage = () => {
     navigate(`/category/${category}`);
   };
 
+  const handleNavigateToProduct = (productId) => {
+    navigate(`/productDetails?key=${productId}`);
+  };
+
   const handleGoHome = () => {
     setIsUnauthorized(false);
     navigate('/');
-    window.location.reload(); // Force a full page reload
+    window.location.reload();
   };
 
   return (
@@ -389,59 +474,95 @@ const LandingPage = () => {
         </div>
       </div>
       
-      {/* Pet Stores - Happy Tails */}
+      {/* Happy Tails, Full Bowls - Food Products */}
       <div className="mt-4">
         <SectionHeader 
           title="Happy Tails, Full Bowls" 
-          onSeeAll={() => navigate('/stores/happy-tails')}
+          onSeeAll={() => navigate('/category/food')}
         />
         <div className="pl-4 pb-4 overflow-x-auto">
           <div className="flex gap-3">
-            {petStores.map(store => (
-              <StoreCard 
-                key={store.id}
-                {...store}
-                onClick={() => handleStoreClick(store.id)}
-              />
-            ))}
+            {loading ? (
+              <div className="flex justify-center items-center w-full h-32">
+                <div className="animate-spin rounded-full h-8 w-8 border-2 border-yellow-400 border-t-transparent"></div>
+              </div>
+            ) : foodProducts.length > 0 ? (
+              foodProducts.map(product => (
+                <div key={product.id} className="min-w-[160px]">
+                  <CompactProductCard
+                    product={product}
+                    onNavigate={() => handleNavigateToProduct(product.id)}
+                    isWishlistLoading={wishlistLoading[product.id] || false}
+                    isInWishlist={wishlistMap[product.id] || false}
+                    onWishlistToggle={() => handleWishlistToggle(product.id, product.__shop__?.id)}
+                  />
+                </div>
+              ))
+            ) : (
+              <p className="text-gray-500">No food products available</p>
+            )}
           </div>
         </div>
       </div>
       
-      {/* Keep Discovering */}
+      {/* Keep Discovering - Latest Products */}
       <div className="mt-4">
         <SectionHeader 
           title="Keep Discovering ✓" 
-          onSeeAll={() => navigate('/stores/discover')}
+          onSeeAll={() => navigate('/products')}
         />
         <div className="pl-4 pb-4 overflow-x-auto">
           <div className="flex gap-3">
-            {discoverStores.map(store => (
-              <StoreCard 
-                key={store.id}
-                {...store}
-                onClick={() => handleStoreClick(store.id)}
-              />
-            ))}
+            {loading ? (
+              <div className="flex justify-center items-center w-full h-32">
+                <div className="animate-spin rounded-full h-8 w-8 border-2 border-yellow-400 border-t-transparent"></div>
+              </div>
+            ) : latestProducts.length > 0 ? (
+              latestProducts.map(product => (
+                <div key={product.id} className="min-w-[160px]">
+                  <CompactProductCard
+                    product={product}
+                    onNavigate={() => handleNavigateToProduct(product.id)}
+                    isWishlistLoading={wishlistLoading[product.id] || false}
+                    isInWishlist={wishlistMap[product.id] || false}
+                    onWishlistToggle={() => handleWishlistToggle(product.id, product.__shop__?.id)}
+                  />
+                </div>
+              ))
+            ) : (
+              <p className="text-gray-500">No products available</p>
+            )}
           </div>
         </div>
       </div>
       
-      {/* Playtime Starts Here */}
+      {/* Playtime Starts Here - Toy Products */}
       <div className="mt-4">
         <SectionHeader 
           title="Playtime Starts Here 🎾" 
-          onSeeAll={() => navigate('/stores/playtime')}
+          onSeeAll={() => navigate('/category/pet-toys')}
         />
         <div className="pl-4 pb-4 overflow-x-auto">
           <div className="flex gap-3">
-            {playtimeStores.map(store => (
-              <StoreCard 
-                key={store.id}
-                {...store}
-                onClick={() => handleStoreClick(store.id)}
-              />
-            ))}
+            {loading ? (
+              <div className="flex justify-center items-center w-full h-32">
+                <div className="animate-spin rounded-full h-8 w-8 border-2 border-yellow-400 border-t-transparent"></div>
+              </div>
+            ) : toyProducts.length > 0 ? (
+              toyProducts.map(product => (
+                <div key={product.id} className="min-w-[160px]">
+                  <CompactProductCard
+                    product={product}
+                    onNavigate={() => handleNavigateToProduct(product.id)}
+                    isWishlistLoading={wishlistLoading[product.id] || false}
+                    isInWishlist={wishlistMap[product.id] || false}
+                    onWishlistToggle={() => handleWishlistToggle(product.id, product.__shop__?.id)}
+                  />
+                </div>
+              ))
+            ) : (
+              <p className="text-gray-500">No toy products available</p>
+            )}
           </div>
         </div>
       </div>
