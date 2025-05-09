@@ -509,7 +509,7 @@ const LandingPage = () => {
       <div className="mt-4">
         <SectionHeader 
           title="Keep Discovering ✓" 
-          onSeeAll={() => navigate('/products')}
+          onSeeAll={() => navigate('/category')}
         />
         <div className="pl-4 pb-4 overflow-x-auto">
           <div className="flex gap-3">

@@ -121,6 +121,11 @@ function App() {
                   <CategoryPage />
                 </ProtectedRoute>
               } />
+              <Route path="/category" element={
+                <ProtectedRoute>
+                  <CategoryPage />
+                </ProtectedRoute>
+              } />
            
 
               {/* Protected routes (right side nav bar) */}
