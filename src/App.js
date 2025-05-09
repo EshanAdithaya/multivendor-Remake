@@ -45,27 +45,82 @@ function App() {
     <CartProvider>
       <HeaderServiceProvider>
         <Router>
-          <Layout>
-            <Routes>
+          <Layout>          <Routes>
               {/* Public routes */}
               <Route path="/" element={<LandingPage />} />
               <Route path="/signup" element={<Signup />} />
               <Route path="/login" element={<Login />} />
-              <Route path="/productDetails" element={<ProductDetail />} />
-              <Route path="/shopShow" element={<ShopDetails />} />
-              <Route path='/offers' element={<PromotionsPage />} />
-              <Route path='/refund-policy' element={<RefundPolicyPage />} />
-              <Route path="/contact" element={<ContactPage />} />
-              <Route path="/manufacturers" element={<ManufacturersPage />} />
-              <Route path="/authors" element={<AuthorsPage />} />
-              <Route path="/shops" element={<ShopsList />} />
-              <Route path='/flash-sale' element={<FlashSalesPage />} />
-              <Route path='/faq' element={<FAQPage />} />
-              <Route path='/terms' element={<TermsAndConditionsPage />} />
-              <Route path='/order-success' element={<OrderSuccess />} />
-              <Route path='/login-request' element={<TokenExtractor />} />
-              {/* <Route path="/category/:categorySlug" element={<CategoryPage />} /> */}
-              <Route path="/category/:categorySlug" element={<CategoryPage />} />
+              
+              {/* Protected routes - All other pages require authentication */}
+              <Route path="/productDetails" element={
+                <ProtectedRoute>
+                  <ProductDetail />
+                </ProtectedRoute>
+              } />
+              <Route path="/shopShow" element={
+                <ProtectedRoute>
+                  <ShopDetails />
+                </ProtectedRoute>
+              } />
+              <Route path='/offers' element={
+                <ProtectedRoute>
+                  <PromotionsPage />
+                </ProtectedRoute>
+              } />
+              <Route path='/refund-policy' element={
+                <ProtectedRoute>
+                  <RefundPolicyPage />
+                </ProtectedRoute>
+              } />
+              <Route path="/contact" element={
+                <ProtectedRoute>
+                  <ContactPage />
+                </ProtectedRoute>
+              } />
+              <Route path="/manufacturers" element={
+                <ProtectedRoute>
+                  <ManufacturersPage />
+                </ProtectedRoute>
+              } />
+              <Route path="/authors" element={
+                <ProtectedRoute>
+                  <AuthorsPage />
+                </ProtectedRoute>
+              } />
+              <Route path="/shops" element={
+                <ProtectedRoute>
+                  <ShopsList />
+                </ProtectedRoute>
+              } />
+              <Route path='/flash-sale' element={
+                <ProtectedRoute>
+                  <FlashSalesPage />
+                </ProtectedRoute>
+              } />
+              <Route path='/faq' element={
+                <ProtectedRoute>
+                  <FAQPage />
+                </ProtectedRoute>
+              } />
+              <Route path='/terms' element={
+                <ProtectedRoute>
+                  <TermsAndConditionsPage />
+                </ProtectedRoute>
+              } />
+              <Route path='/order-success' element={
+                <ProtectedRoute>
+                  <OrderSuccess />
+                </ProtectedRoute>
+              } />              <Route path='/login-request' element={
+                <ProtectedRoute>
+                  <TokenExtractor />
+                </ProtectedRoute>
+              } />
+              <Route path="/category/:categorySlug" element={
+                <ProtectedRoute>
+                  <CategoryPage />
+                </ProtectedRoute>
+              } />
            
 
               {/* Protected routes (right side nav bar) */}
@@ -122,7 +177,11 @@ function App() {
                 </ProtectedRoute>
               } />
               
-              <Route path="*" element={<div>Page not found</div>} />
+              <Route path="*" element={
+                <ProtectedRoute>
+                  <div>Page not found</div>
+                </ProtectedRoute>
+              } />
             </Routes>
           </Layout>
         </Router>

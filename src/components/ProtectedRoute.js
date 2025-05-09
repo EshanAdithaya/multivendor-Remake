@@ -69,7 +69,9 @@ const ProtectedRoute = ({ children }) => {
           <Lottie options={defaultOptions} height="100%" width="100%" />
         </div>
         <h2 className="text-2xl font-bold mb-2">We lost you.</h2>
-        <p className="text-gray-600 mb-4">Please go back to app and come again.</p>
+        <p className="text-gray-600 mb-4">Please go back to app and come again. 
+          For development purposes:- token expired or invalid token.
+        </p>
         <button 
           onClick={() => window.location.href = '/'}
           className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
