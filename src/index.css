@@ -16,3 +16,19 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+/* Footer animation for smooth auto-scroll */
+.footer-hide-animation {
+  animation: fadeOutFooter 0.5s forwards;
+}
+
+@keyframes fadeOutFooter {
+  0% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+}

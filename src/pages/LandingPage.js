@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, Heart, ChevronRight, ShoppingBag, Award, CheckCircle, AlertCircle } from 'lucide-react';
 import _ from 'lodash';
@@ -135,6 +135,8 @@ const LandingPage = () => {
   const wishlistService = useWishlistService();
   const [searchQuery, setSearchQuery] = useState('');
   const [points, setPoints] = useState({ available: 2500, used: 758 });
+  const footerRef = useRef(null);
+  const [isAtBottom, setIsAtBottom] = useState(false);
   const [flashSales, setFlashSales] = useState([
     {
       id: 1,
@@ -307,7 +309,6 @@ const LandingPage = () => {
     
     fetchProducts();
   }, []);
-
   // Auto scroll carousel effect
   useEffect(() => {
     const interval = setInterval(() => {
@@ -315,6 +316,83 @@ const LandingPage = () => {
     }, 3000);
     return () => clearInterval(interval);
   }, [carouselImages.length]);
+  
+  // Footer auto-hide effect
+  useEffect(() => {
+    let scrollTimeout;
+    let touchEndTimeout;
+    
+    const isNearBottom = () => {
+      const windowHeight = window.innerHeight;
+      const documentHeight = document.documentElement.scrollHeight;
+      const scrollTop = window.scrollY || document.documentElement.scrollTop;
+      
+      // Check if we're within 50px of the bottom
+      return documentHeight - (scrollTop + windowHeight) < 50;
+    };    const handleAutoScroll = () => {
+      if (isNearBottom() && footerRef.current) {
+        setIsAtBottom(true);
+        
+        // Calculate a position that will hide the footer completely
+        const footerHeight = footerRef.current.offsetHeight;
+        const viewportHeight = window.innerHeight;
+        const documentHeight = document.documentElement.scrollHeight;
+        
+        // Position to scroll to - hide the footer
+        const scrollTarget = Math.max(
+          window.scrollY - footerHeight - 20, // Target position that hides footer
+          documentHeight - viewportHeight - footerHeight - 50 // Ensure we don't scroll too far up
+        );
+        
+        // Add a slight delay so user notices the footer first
+        setTimeout(() => {
+          window.scrollTo({
+            top: scrollTarget,
+            behavior: 'smooth'
+          });
+          
+          // Reset the flag after the animation completes
+          setTimeout(() => {
+            setIsAtBottom(false);
+          }, 800);
+        }, 300);
+      }
+    };
+    
+    const handleScroll = () => {
+      // Clear previous timeout if it exists
+      if (scrollTimeout) {
+        clearTimeout(scrollTimeout);
+      }
+      
+      // Set a new timeout to check if scrolling has stopped
+      scrollTimeout = setTimeout(() => {
+        handleAutoScroll();
+      }, 150); // Wait 150ms after scrolling stops
+    };
+    
+    const handleTouchEnd = () => {
+      // For mobile devices, check after touch ends
+      touchEndTimeout = setTimeout(handleAutoScroll, 100);
+    };
+    
+    // Add event listeners
+    window.addEventListener('scroll', handleScroll);
+    window.addEventListener('touchend', handleTouchEnd);
+    
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('touchend', handleTouchEnd);
+      
+      if (scrollTimeout) {
+        clearTimeout(scrollTimeout);
+      }
+      
+      if (touchEndTimeout) {
+        clearTimeout(touchEndTimeout);
+      }
+    };
+  }, []);
 
   const handleStoreClick = (storeId) => {
     navigate(`/store/${storeId}`);
@@ -565,10 +643,13 @@ const LandingPage = () => {
             )}
           </div>
         </div>
-      </div>
-      
-      {/* Footer */}
-      <div className="mt-8 px-4 text-center text-xs text-gray-500">
+      </div>      {/* Footer */}
+      <div 
+        ref={footerRef}
+        className={`mt-8 px-4 pb-10 text-center text-xs text-gray-500 transition-all duration-300 ${
+          isAtBottom ? 'footer-hide-animation' : ''
+        }`}
+      >
         <p>We've got you covered for now.</p>
         <p className="mt-1">Stay tuned for more updates</p>
       </div>

@@ -111,11 +111,10 @@ function App() {
                 <ProtectedRoute>
                   <OrderSuccess />
                 </ProtectedRoute>
-              } />              <Route path='/login-request' element={
-                <ProtectedRoute>
-                  <TokenExtractor />
-                </ProtectedRoute>
-              } />
+              } />              
+              
+              <Route path='/login-request' element={<TokenExtractor />} />
+              
               <Route path="/category/:categorySlug" element={
                 <ProtectedRoute>
                   <CategoryPage />
