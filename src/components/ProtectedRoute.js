@@ -1,9 +1,7 @@
 import { useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { useState, useEffect } from 'react';
-import Lottie from 'react-lottie'; // Add this import for Lottie
-
-// If you don't have the lottie files imported yet, you'll need to install: npm install react-lottie
+import Lottie from 'react-lottie';
 import lostAnimation from '../Assets/animations/lost.json'; // Adjust path as needed
 
 const API_REACT_APP_BASE_URL = process.env.REACT_APP_BASE_URL;
@@ -48,8 +46,8 @@ const ProtectedRoute = ({ children }) => {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+      <div className="flex items-center justify-center min-h-screen bg-white">
+        <div className="animate-spin rounded-full h-8 w-8 border-2 border-yellow-400 border-t-transparent"></div>
       </div>
     );
   }
@@ -63,16 +61,18 @@ const ProtectedRoute = ({ children }) => {
       rendererSettings: {
         preserveAspectRatio: 'xMidYMid slice'
       }
-    };    return (
-      <div className="flex flex-col items-center justify-center min-h-screen p-4 text-center">
+    };
+
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen p-4 text-center bg-white">
         <div className="w-75 h-64 mx-auto mb-4 mr-12">
           <Lottie options={defaultOptions} height="100%" width="100%" />
         </div>
-        <h2 className="text-2xl font-bold mb-2">We lost you.</h2>
-        <p className="text-gray-600 mb-4">Please go back to app and come again.</p>
+        <h2 className="text-2xl font-bold mb-4 text-gray-900">We lost you.</h2>
+        <p className="text-gray-600 mb-6">Please go back to app and come again.</p>
         <button 
           onClick={() => window.location.href = '/'}
-          className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+          className="px-6 py-3 bg-yellow-400 text-black font-medium rounded-full shadow-sm hover:bg-yellow-500 transition-all duration-300 transform hover:-translate-y-0.5"
         >
           Return to App
         </button>
