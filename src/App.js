@@ -34,6 +34,7 @@ import { HeaderServiceProvider } from './components/HeaderService';
 import { CartProvider } from './components/CartContext';
 import TokenExtractor from './pages/TokenExtractor';
 import CategoryPage from './pages/CategoryPage';
+import NotFoundPage from './components/NotFoundPage';
 
 /**
  * Main App component with proper provider nesting
@@ -114,7 +115,8 @@ function App() {
               } />              
               
               <Route path='/login-request' element={<TokenExtractor />} />
-              
+              <Route path="*" element={<NotFoundPage />} />
+
               <Route path="/category/:categorySlug" element={
                 <ProtectedRoute>
                   <CategoryPage />
