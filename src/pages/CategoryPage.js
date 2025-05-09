@@ -610,22 +610,32 @@ const CategoryPage = () => {
             <p className="text-gray-500">No products found with the current filters.</p>
             <p className="text-gray-400 mt-2">Try adjusting your search criteria or clearing some filters.</p>
           </div>
-        ) : (
-          <>
+        ) : (          <>
             <p className="text-gray-500 mb-4">
               {filteredProducts.length} product{filteredProducts.length !== 1 ? 's' : ''} found
             </p>
             
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-              {filteredProducts.map(product => (
-                <div key={product.id} className="w-full">
-                  <CompactProductCard
-                    product={product}
-                    onNavigate={() => handleNavigateToProduct(product.id)}
-                    isWishlistLoading={wishlistLoading[product.id] || false}
-                    isInWishlist={wishlistMap[product.id] || false}
-                    onWishlistToggle={() => handleWishlistToggle(product.id, product.__shop__?.id)}
-                  />
+            <div className="flex flex-wrap">
+              {/* Group products in rows of 3 */}
+              {Array.from({ length: Math.ceil(filteredProducts.length / 3) }).map((_, rowIndex) => (
+                <div key={rowIndex} className="w-full flex justify-between mb-4">
+                  {filteredProducts.slice(rowIndex * 3, rowIndex * 3 + 3).map((product, index) => (
+                    <div key={product.id} className={`w-[32%] ${index < 2 ? 'mr-[2%]' : ''}`}>
+                      <CompactProductCard
+                        product={product}
+                        onNavigate={() => handleNavigateToProduct(product.id)}
+                        isWishlistLoading={wishlistLoading[product.id] || false}
+                        isInWishlist={wishlistMap[product.id] || false}
+                        onWishlistToggle={() => handleWishlistToggle(product.id, product.__shop__?.id)}
+                      />
+                    </div>
+                  ))}
+                  {/* Add placeholder divs to maintain 3 columns if needed */}
+                  {rowIndex === Math.ceil(filteredProducts.length / 3) - 1 && 
+                   filteredProducts.length % 3 !== 0 && 
+                   Array.from({ length: 3 - (filteredProducts.length % 3) }).map((_, i) => (
+                    <div key={`empty-${i}`} className="w-[32%]"></div>
+                  ))}
                 </div>
               ))}
             </div>

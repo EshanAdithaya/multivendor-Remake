@@ -16,10 +16,9 @@ const CompactProductCard = ({
     if (!price) return '0.00';
     return typeof price === 'string' ? parseFloat(price).toFixed(2) : price.toFixed(2);
   };
-
   return (
     <div 
-      className="w-32 flex-shrink-0 bg-white rounded-lg overflow-hidden hover:shadow-md transition-shadow cursor-pointer"
+      className="w-full bg-white rounded-lg overflow-hidden hover:shadow-md transition-shadow cursor-pointer"
       onClick={onNavigate}
     >
       {/* Image */}
