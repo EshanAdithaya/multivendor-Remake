@@ -53,9 +53,7 @@ const CategoryPage = () => {
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, []);
-
-  // Fetch categories
+  }, []);  // Fetch categories
   useEffect(() => {
     const fetchCategories = async () => {
       try {
@@ -64,6 +62,13 @@ const CategoryPage = () => {
         
         const data = await response.json();
         setCategories(data);
+        
+        // If no categorySlug is provided, don't set any category filter
+        if (!categorySlug) {
+          setCurrentCategory(null);
+          setActiveFilters({}); // Reset filters when no category is selected
+          return;
+        }
         
         // Find category that matches the slug
         const matchedCategory = data.find(
@@ -110,13 +115,9 @@ const CategoryPage = () => {
     };
 
     fetchFilterData();
-  }, []);
-
-  // Fetch products with filters
+  }, []);  // Fetch products with filters
   useEffect(() => {
     const fetchProducts = async () => {
-      if (!currentCategory && !activeFilters.categoryId) return;
-      
       try {
         setLoading(true);
         
@@ -131,8 +132,11 @@ const CategoryPage = () => {
         // Add search query if exists
         if (searchQuery) params.append('name', searchQuery);
         
+        // If we're on the base category page with no filters, just fetch all products
+        const apiEndpoint = `${API_REACT_APP_BASE_URL}/api/products/get-all-with-filters`;
+        
         const response = await fetch(
-          `${API_REACT_APP_BASE_URL}/api/products/get-all-with-filters?${params.toString()}`
+          `${apiEndpoint}?${params.toString()}`
         );
         
         if (!response.ok) throw new Error('Failed to fetch products');
@@ -152,7 +156,7 @@ const CategoryPage = () => {
     };
 
     fetchProducts();
-  }, [activeFilters, currentCategory, searchQuery]);
+  }, [activeFilters, searchQuery]);
 
   // Check wishlist status for each product
   const checkWishlistStatus = async (products) => {
@@ -222,11 +226,11 @@ const CategoryPage = () => {
       setWishlistLoading(prev => ({ ...prev, [productId]: false }));
     }
   };
-
   // Handler for applying filters
   const applyFilters = () => {
     const newFilters = {
-      categoryId: currentCategory?.id,
+      // Only include categoryId if we have a current category
+      ...(currentCategory?.id && { categoryId: currentCategory.id }),
       ...(selectedProductGroup && { productGroupId: selectedProductGroup }),
       ...(selectedManufacturer && { manufacturerId: selectedManufacturer }),
       ...(stockQuantity && { stockQuantity }),
@@ -237,14 +241,14 @@ const CategoryPage = () => {
     setActiveFilters(newFilters);
     setShowFilterPanel(false);
   };
-
   // Reset filters
   const resetFilters = () => {
     setSelectedProductGroup('');
     setSelectedManufacturer('');
     setPriceRange({ min: '', max: '' });
     setStockQuantity('');
-    setActiveFilters({ categoryId: currentCategory?.id });
+    // Only keep the category filter if we're on a category page
+    setActiveFilters(categorySlug ? { categoryId: currentCategory?.id } : {});
   };
 
   // Toggle filter panel section
@@ -305,9 +309,8 @@ const CategoryPage = () => {
             >
               <ArrowLeft className="w-5 h-5" />
             </button>
-            
-            <h1 className="text-xl font-bold">
-              {currentCategory?.name || categorySlug}
+              <h1 className="text-xl font-bold">
+              {currentCategory?.name || categorySlug || "All Products"}
             </h1>
           </div>
         </div>
