@@ -13,35 +13,44 @@ const OrderDetailsScreen = () => {
   const [processingAction, setProcessingAction] = useState(false);
   const navigate = useNavigate();
 
-  const fetchOrderDetails = async () => {
-    try {
-      const orderId = searchParams.get('token');
-      const token = localStorage.getItem('accessToken');
-      
-      if (!orderId || !token) {
-        throw new Error('Missing required parameters');
-      }
-
-      const response = await fetch(`${API_BASE_URL}/api/orders/${orderId}`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'accept': '*/*',
-          'Content-Type': 'application/json',
-          'mode': 'cors'
-        }
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to fetch order details: ${response.status}`);
-      }
-
-      const data = await response.json();
-      setOrder(data[0]);
-    } catch (err) {
-      setError(err.message);
+const fetchOrderDetails = async () => {
+  try {
+    const orderId = searchParams.get('token');
+    const token = localStorage.getItem('accessToken');
+    
+    if (!orderId || !token) {
+      throw new Error('Missing required parameters');
     }
-  };
+
+    const response = await fetch(`${API_BASE_URL}/api/orders/${orderId}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'accept': '*/*',
+        'Content-Type': 'application/json',
+        'mode': 'cors'
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch order details: ${response.status}`);
+    }
+
+    const data = await response.json();
+    
+    // Debug logging with correct paths
+    console.log('Order data received:', data);
+    console.log('First order:', data[0]);
+    console.log('Customer userId:', data[0]?.customer?.userId);
+    console.log('Shop id:', data[0]?.shop?.id);
+    
+    setOrder(data[0]);
+  } catch (err) {
+    setError(err.message);
+  }
+};
+
+
   const fetchRefundDetails = async () => {
     try {
       const orderId = searchParams.get('token');
@@ -74,57 +83,75 @@ const OrderDetailsScreen = () => {
     fetchOrderDetails();
     fetchRefundDetails();
   }, [searchParams]);
-  const handleRequestRefund = async () => {
-    try {
-      setProcessingAction(true);
-      const token = localStorage.getItem('accessToken');
-      
-      // First update order status
-      const orderUpdateResponse = await fetch(`${API_BASE_URL}/api/orders/${order.id}`, {
-        method: 'PATCH',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'accept': '*/*',
-          'Content-Type': 'application/json',
-          'mode': 'cors'
-        },
-        body: JSON.stringify({
-          status: 'refund_initiated'
-        })
-      });
 
-      if (!orderUpdateResponse.ok) {
-        throw new Error('Failed to update order status');
-      }      // Then create refund request
-      const refundResponse = await fetch(`${API_BASE_URL}/api/refunds`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'accept': '*/*',
-          'Content-Type': 'application/json',
-          'mode': 'cors'
-        },
-        body: JSON.stringify({
-          amount: order.totalAmount,
-          reason: 'Customer requested refund',
-          status: 'pending',
-          orderId: order.id
-        })
-      });
 
-      if (!refundResponse.ok) {
-        throw new Error('Failed to create refund request');
-      }
-
-      const refundData = await refundResponse.json();
-      setRefund(refundData);
-      await fetchOrderDetails(); // Refresh order details
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setProcessingAction(false);
+const handleRequestRefund = async () => {
+  try {
+    setProcessingAction(true);
+    const token = localStorage.getItem('accessToken');
+    
+    // Extract userId and shopId from nested objects
+    const userId = order.customer?.userId;
+    const shopId = order.shop?.id;
+    
+    // Validate required fields
+    if (!userId || !shopId) {
+      throw new Error('Missing required order information (userId or shopId)');
     }
-  };
+    
+    // First update order status
+    const orderUpdateResponse = await fetch(`${API_BASE_URL}/api/orders/${order.id}`, {
+      method: 'PATCH',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'accept': '*/*',
+        'Content-Type': 'application/json',
+        'mode': 'cors'
+      },
+      body: JSON.stringify({
+        status: 'refund_initiated'
+      })
+    });
+
+    if (!orderUpdateResponse.ok) {
+      throw new Error('Failed to update order status');
+    }
+    
+    // Then create refund request
+    const refundResponse = await fetch(`${API_BASE_URL}/api/refunds`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'accept': '*/*',
+        'Content-Type': 'application/json',
+        'mode': 'cors'
+      },
+      body: JSON.stringify({
+        amount: order.totalAmount,
+        reason: 'Customer requested refund',
+        status: 'pending',
+        orderId: order.id,
+        userId: userId,  // Use the extracted userId
+        shopId: shopId   // Use the extracted shopId
+      })
+    });
+
+    if (!refundResponse.ok) {
+      const errorData = await refundResponse.json();
+      throw new Error(errorData.message?.join(', ') || 'Failed to create refund request');
+    }
+
+    const refundData = await refundResponse.json();
+    setRefund(refundData);
+    await fetchOrderDetails(); // Refresh order details
+  } catch (err) {
+    setError(err.message);
+    console.error('Refund error:', err);  // Log for debugging
+  } finally {
+    setProcessingAction(false);
+  }
+};
+
   const handleCancelRefund = async () => {
     try {
       setProcessingAction(true);
