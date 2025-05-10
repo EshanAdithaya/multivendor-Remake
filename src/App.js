@@ -183,7 +183,11 @@ function App() {
                   <OrderDetailsScreen />
                 </ProtectedRoute>
               } />
-              
+              <Route path="/cart" element={
+                <ProtectedRoute>
+                  <ShoppingCart />
+                </ProtectedRoute>
+              } />
               <Route path="*" element={
                 <ProtectedRoute>
                   <div>Page not found</div>
