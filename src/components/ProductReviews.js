@@ -66,7 +66,7 @@ const ProductReviews = ({ productId }) => {
         toast.success('Your comment has been added'); // Show success notification
       } else if (response.status === 401) {
         alert('You need to login to review a product');
-        navigate('/login'); // Replace history.push with navigate
+        navigate('/protected_route'); // Replace history.push with navigate
       }
     } catch (error) {
       console.error('Failed to submit review:', error);
@@ -98,7 +98,7 @@ const ProductReviews = ({ productId }) => {
         fetchReviews();
       } else if (response.status === 401) {
         alert('You need to login to review a product');
-        navigate('/login'); // Replace history.push with navigate
+        navigate('/protected_route'); // Replace history.push with navigate
       }
     } catch (error) {
       console.error('Failed to update review:', error);
@@ -124,7 +124,7 @@ const ProductReviews = ({ productId }) => {
         fetchReviews();
       } else if (response.status === 401) {
         alert('You need to login to review a product');
-        navigate('/login'); // Replace history.push with navigate
+        navigate('/protected_route'); // Replace history.push with navigate
       }
     } catch (error) {
       console.error('Failed to delete review:', error);

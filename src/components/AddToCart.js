@@ -50,7 +50,7 @@ const informAndRedirectToLogin = (navigate) => {
   console.log('🔄 Redirecting to login...');
   alert('Please log in to continue shopping');
   saveCurrentUrl();
-  navigate('/login');
+  navigate('/protected_route');
 };
 
 export const useAddToCart = () => {

@@ -116,6 +116,7 @@ function App() {
               
               <Route path='/login-request' element={<TokenExtractor />} />
               <Route path="*" element={<NotFoundPage />} />
+              <Route path="protected_route" element={<ProtectedRoute />} />
 
               <Route path="/category/:categorySlug" element={
                 <ProtectedRoute>

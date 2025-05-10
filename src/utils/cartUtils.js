@@ -171,5 +171,5 @@ export const saveCurrentUrl = () => {
 export const redirectToLogin = (navigate) => {
   console.log('🔄 Redirecting to login...');
   saveCurrentUrl();
-  navigate('/login');
+  navigate('/protected_route');
 };

@@ -42,7 +42,7 @@ const WishlistButton = ({ product, className = "" }) => {
     
     const token = localStorage.getItem('accessToken');
     if (!token) {
-      navigate('/login');
+      navigate('/protected_route');
       return;
     }
     

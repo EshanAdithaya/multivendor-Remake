@@ -237,7 +237,7 @@ const LandingPage = () => {
   // Handle wishlist toggle
   const handleWishlistToggle = async (productId, shopId) => {
     if (!localStorage.getItem('accessToken')) {
-      navigate('/login');
+      navigate('/protected_route');
       return;
     }
     

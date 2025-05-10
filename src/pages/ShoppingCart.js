@@ -224,7 +224,7 @@ const ShoppingCart = ({ onClose }) => {
               <p className="text-gray-500 mt-4 text-center">Please log in to view your cart</p>
               <button
                 className="mt-4 px-6 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700"
-                onClick={() => navigate('/login')}
+                onClick={() => navigate('/protected_route')}
               >
                 Login
               </button>
