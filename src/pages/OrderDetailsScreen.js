@@ -42,11 +42,10 @@ const OrderDetailsScreen = () => {
       setError(err.message);
     }
   };
-
   const fetchRefundDetails = async () => {
     try {
       const orderId = searchParams.get('token');
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('accessToken');
 
       if (!orderId || !token) return;
 
@@ -75,11 +74,10 @@ const OrderDetailsScreen = () => {
     fetchOrderDetails();
     fetchRefundDetails();
   }, [searchParams]);
-
   const handleRequestRefund = async () => {
     try {
       setProcessingAction(true);
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('accessToken');
       
       // First update order status
       const orderUpdateResponse = await fetch(`${API_BASE_URL}/api/orders/${order.id}`, {
@@ -91,15 +89,13 @@ const OrderDetailsScreen = () => {
           'mode': 'cors'
         },
         body: JSON.stringify({
-          status: 'refund_requested'
+          status: 'refund_initiated'
         })
       });
 
       if (!orderUpdateResponse.ok) {
         throw new Error('Failed to update order status');
-      }
-
-      // Then create refund request
+      }      // Then create refund request
       const refundResponse = await fetch(`${API_BASE_URL}/api/refunds`, {
         method: 'POST',
         headers: {
@@ -129,11 +125,10 @@ const OrderDetailsScreen = () => {
       setProcessingAction(false);
     }
   };
-
   const handleCancelRefund = async () => {
     try {
       setProcessingAction(true);
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('accessToken');
 
       // First delete the refund request
       if (refund?.id) {
@@ -149,9 +144,7 @@ const OrderDetailsScreen = () => {
         if (!deleteResponse.ok) {
           throw new Error('Failed to cancel refund request');
         }
-      }
-
-      // Then update order status back to original
+      }      // Then update order status back to original
       const orderUpdateResponse = await fetch(`${API_BASE_URL}/api/orders/${order.id}`, {
         method: 'PATCH',
         headers: {
