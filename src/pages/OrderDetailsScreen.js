@@ -288,39 +288,34 @@ const handleRequestRefund = async () => {
               </div>
             </div>
           </div>
-        </div>
-
-        {/* Refund Section */}
+        </div>        {/* Refund Section */}
         <div className="px-6 py-4 -mx-6">
-          {refund ? (
+          {refund && order?.status === 'refund_initiated' ? (
             <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="text-lg font-semibold text-yellow-800 mb-2">
-                    Refund Request {refund.status === 'pending' ? 'Pending' : 'Processed'}
+                    Refund Request Pending
                   </h3>
                   <p className="text-yellow-700">Amount: ${parseFloat(refund.amount).toFixed(2)}</p>
                   <p className="text-yellow-700">Reason: {refund.reason}</p>
-                  <p className="text-yellow-700">Status: {refund.status}</p>
                 </div>
-                {refund.status === 'pending' && (
-                  <button
-                    onClick={handleCancelRefund}
-                    disabled={processingAction}
-                    className="flex items-center px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors"
-                  >
-                    {processingAction ? (
-                      <Loader2 className="w-5 h-5 animate-spin mr-2" />
-                    ) : (
-                      <XCircle className="w-5 h-5 mr-2" />
-                    )}
-                    Cancel Request
-                  </button>
-                )}
+                <button
+                  onClick={handleCancelRefund}
+                  disabled={processingAction}
+                  className="flex items-center px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors"
+                >
+                  {processingAction ? (
+                    <Loader2 className="w-5 h-5 animate-spin mr-2" />
+                  ) : (
+                    <XCircle className="w-5 h-5 mr-2" />
+                  )}
+                  Cancel Request
+                </button>
               </div>
             </div>
           ) : (
-            order?.status !== 'refunded' && (
+            order?.status !== 'refunded' && order?.status !== 'refund_initiated' && (
               <button
                 onClick={handleRequestRefund}
                 disabled={processingAction}
