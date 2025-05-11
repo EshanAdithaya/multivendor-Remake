@@ -49,8 +49,8 @@ function App() {
           <Layout>          <Routes>
               {/* Public routes */}
               {/* <Route path="/" element={<LandingPage />} /> */}
-              <Route path="/signup" element={<Signup />} />
-              <Route path="/login" element={<Login />} />
+              <Route path="/signupwildcard" element={<Signup />} />
+              <Route path="/loginwildcard" element={<Login />} />
               
               {/* Protected routes - All other pages require authentication */}
               <Route path="/" element={
