@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { Filter, Search, ArrowLeft, SlidersHorizontal, X, ChevronDown, ChevronUp, ChevronRight, ChevronLeft } from 'lucide-react';
 import CompactProductCard from '../components/ProductCard';
 import { useWishlistService } from '../components/WishlistService';
-import './CategoryPage.css'; // We'll create this CSS file
+// import './CategoryPage.css'; // We'll create this CSS file
 
 const API_REACT_APP_BASE_URL = process.env.REACT_APP_BASE_URL;
 
