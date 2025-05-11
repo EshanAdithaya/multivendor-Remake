@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Filter, Search, ArrowLeft, SlidersHorizontal, X, ChevronDown, ChevronUp, ChevronRight } from 'lucide-react';
+import { Filter, Search, ArrowLeft, SlidersHorizontal, X, ChevronDown, ChevronUp, ChevronRight, ChevronLeft } from 'lucide-react';
 import CompactProductCard from '../components/ProductCard';
 import { useWishlistService } from '../components/WishlistService';
 import './CategoryPage.css'; // We'll create this CSS file
@@ -382,8 +382,7 @@ const CategoryPage = () => {
     );
   }
   return (
-    <div className="min-h-screen bg-gray-50">      {/* Header */}
-      <div className="bg-white border-b sticky top-0 z-30">
+    <div className="min-h-screen bg-gray-50">      {/* Header */}      <div className="bg-white border-b sticky top-0 z-30">
         <div className="max-w-4xl mx-auto p-4">
           <div className="flex items-center gap-3">
             <button
@@ -392,9 +391,15 @@ const CategoryPage = () => {
             >
               <ArrowLeft className="w-5 h-5" />
             </button>
-            <div>
+            <div className="flex-1">
               <h1 className="text-xl font-bold">
-                {currentCategory?.name || categorySlug || "All Products"}
+                {activeFilters.matchingCategoryIds ? (
+                  <>
+                    Search results for "<span className="text-yellow-600">{categorySlug}</span>"
+                  </>
+                ) : (
+                  currentCategory?.name || categorySlug || "All Products"
+                )}
               </h1>
               {error && currentCategory && (
                 <p className="text-sm text-yellow-600 mt-1">{error}</p>
@@ -704,22 +709,38 @@ const CategoryPage = () => {
       <div className="bg-white border-b relative z-10">
         <div className="max-w-4xl mx-auto px-4 py-3">
           <div className="flex overflow-x-auto scrollbar-hide gap-3 pb-1">
-            {categories.map(category => (
-              <button
-                key={category.id}
-                className={`px-4 py-1.5 text-sm font-medium whitespace-nowrap rounded-full transition-colors
-                  ${category.id === currentCategory?.id
-                    ? 'bg-yellow-400 text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
-                onClick={() => navigate(`/category/${category.name.toLowerCase().replace(/\s+/g, '-')}`)}
-              >
-                {category.name}
-              </button>
-            ))}
+            {categories.map(category => {
+              // Check if this category is one of our matched categories
+              const isMatchingCategory = activeFilters.matchingCategoryIds?.includes(category.id);
+              // Check if we should highlight this based on the search term
+              const shouldHighlight = categorySlug && category.name.toLowerCase().includes(categorySlug.toLowerCase());
+              
+              return (
+                <button
+                  key={category.id}
+                  className={`px-4 py-1.5 text-sm font-medium whitespace-nowrap rounded-full transition-colors
+                    ${category.id === currentCategory?.id 
+                      ? 'bg-yellow-400 text-white' 
+                      : isMatchingCategory 
+                        ? 'bg-yellow-200 text-yellow-800 border border-yellow-400'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
+                  onClick={() => navigate(`/category/${category.name.toLowerCase().replace(/\s+/g, '-')}`)}
+                >
+                  {shouldHighlight ? (
+                    <span className={isMatchingCategory ? "relative" : ""}>
+                      {category.name}
+                      {isMatchingCategory && <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-yellow-500"></span>}
+                    </span>
+                  ) : (
+                    category.name
+                  )}
+                </button>
+              );
+            })}
           </div>
         </div>
-      </div>      {/* Products Grid */}
+      </div>{/* Products Grid */}
       <div className="max-w-4xl mx-auto p-4">
         {loading ? (
           <div className="flex justify-center py-12">
@@ -736,45 +757,93 @@ const CategoryPage = () => {
             <p className="text-gray-500 mb-4">
               {filteredProducts.length} product{filteredProducts.length !== 1 ? 's' : ''} found in {productsByCategory.length} categories
             </p>
-              {productsByCategory.map((categoryData, categoryIndex) => (
-              <div key={categoryData.category.id} className="mb-8">
-                <div className="flex justify-between items-center mb-4">
-                  <h2 className="text-xl font-semibold text-gray-800">
-                    {categoryData.category.name} 
-                    <span className="text-sm text-gray-500 ml-2">({categoryData.products.length} products)</span>
-                  </h2>
-                  <button 
-                    onClick={() => navigate(`/category/${categoryData.category.name.toLowerCase().replace(/\s+/g, '-')}`)}
-                    className="text-sm text-yellow-600 hover:text-yellow-700 flex items-center"
-                  >
-                    View All
-                  </button>
-                </div>
+            {productsByCategory.map((categoryData, categoryIndex) => {
+                // Highlight matching part of the category name if we have a search term
+                const categoryName = categoryData.category.name;
+                let highlightedName = categoryName;
                 
-                {/* Horizontal scrolling product container */}
-                <div className="relative">
-                  <div className="overflow-x-auto pb-4 scrollbar-hide">
-                    <div className="inline-flex space-x-4" style={{ minWidth: '100%' }}>
-                      {categoryData.products.map((product) => (
-                        <div key={product.id} className="w-[200px] flex-shrink-0">
-                          <CompactProductCard
-                            product={product}
-                            onNavigate={() => handleNavigateToProduct(product.id)}
-                            isWishlistLoading={wishlistLoading[product.id] || false}
-                            isInWishlist={wishlistMap[product.id] || false}
-                            onWishlistToggle={() => handleWishlistToggle(product.id, product.__shop__?.id)}
-                          />
+                if (categorySlug && categoryName.toLowerCase().includes(categorySlug.toLowerCase())) {
+                  const index = categoryName.toLowerCase().indexOf(categorySlug.toLowerCase());
+                  const beforeMatch = categoryName.substring(0, index);
+                  const match = categoryName.substring(index, index + categorySlug.length);
+                  const afterMatch = categoryName.substring(index + categorySlug.length);
+                  
+                  highlightedName = (
+                    <>
+                      {beforeMatch}
+                      <span className="bg-yellow-100 text-yellow-800 px-1 rounded">{match}</span>
+                      {afterMatch}
+                    </>
+                  );
+                }
+                
+                return (
+                  <div key={categoryData.category.id} className="mb-8">
+                    <div className="flex justify-between items-center mb-4">
+                      <h2 className="text-xl font-semibold text-gray-800">
+                        {highlightedName}
+                        <span className="text-sm text-gray-500 ml-2">({categoryData.products.length} products)</span>
+                      </h2>
+                      <button 
+                        onClick={() => navigate(`/category/${categoryData.category.name.toLowerCase().replace(/\s+/g, '-')}`)}
+                        className="text-sm text-yellow-600 hover:text-yellow-700 flex items-center"
+                      >
+                        View All
+                      </button>
+                    </div>
+                    {/* Horizontal scrolling product container with scroll indicators */}
+                    <div className="relative">
+                      {categoryData.products.length > 3 && (
+                        <>
+                          <button 
+                            className="scroll-indicator left" 
+                            onClick={(e) => {
+                              // Find the closest scroll container
+                              const container = e.target.closest('.relative').querySelector('.overflow-x-auto');
+                              if (container) {
+                                container.scrollBy({ left: -600, behavior: 'smooth' });
+                              }
+                            }}
+                          >
+                            <ChevronLeft className="w-5 h-5" />
+                          </button>
+                          <button 
+                            className="scroll-indicator right" 
+                            onClick={(e) => {
+                              // Find the closest scroll container
+                              const container = e.target.closest('.relative').querySelector('.overflow-x-auto');
+                              if (container) {
+                                container.scrollBy({ left: 600, behavior: 'smooth' });
+                              }
+                            }}
+                          >
+                            <ChevronRight className="w-5 h-5" />
+                          </button>
+                        </>
+                      )}
+                      <div className="overflow-x-auto pb-4 scrollbar-hide">
+                        <div className="inline-flex space-x-4 pl-1 pr-1" style={{ minWidth: '100%' }}>
+                          {categoryData.products.map((product) => (
+                            <div key={product.id} className="w-[200px] flex-shrink-0">
+                              <CompactProductCard
+                                product={product}
+                                onNavigate={() => handleNavigateToProduct(product.id)}
+                                isWishlistLoading={wishlistLoading[product.id] || false}
+                                isInWishlist={wishlistMap[product.id] || false}
+                                onWishlistToggle={() => handleWishlistToggle(product.id, product.__shop__?.id)}
+                              />
+                            </div>
+                          ))}
                         </div>
-                      ))}
+                      </div>
                     </div>
                   </div>
-                </div>
-              </div>
-            ))}
+                );
+            })}
           </>
         ) : (
-        // Standard product display for single category/no categories
           <>
+            {/* Standard product display for single category/no categories */}
             <p className="text-gray-500 mb-4">
               {filteredProducts.length} product{filteredProducts.length !== 1 ? 's' : ''} found
             </p>
