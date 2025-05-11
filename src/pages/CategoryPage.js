@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Filter, Search, ArrowLeft, SlidersHorizontal, X, ChevronDown, ChevronUp } from 'lucide-react';
+import { Filter, Search, ArrowLeft, SlidersHorizontal, X, ChevronDown, ChevronUp, ChevronRight } from 'lucide-react';
 import CompactProductCard from '../components/ProductCard';
 import { useWishlistService } from '../components/WishlistService';
+import './CategoryPage.css'; // We'll create this CSS file
 
 const API_REACT_APP_BASE_URL = process.env.REACT_APP_BASE_URL;
 
@@ -69,19 +70,51 @@ const CategoryPage = () => {
           setActiveFilters({}); // Reset filters when no category is selected
           return;
         }
-        
-        // Find category that matches the slug
-        const matchedCategory = data.find(
+          // Find category that exactly matches the slug
+        const exactMatchCategory = data.find(
           category => 
             category.name.toLowerCase() === categorySlug.toLowerCase() || 
             category.name.replace(/\s+/g, '-').toLowerCase() === categorySlug.toLowerCase()
         );
-        
-        if (matchedCategory) {
-          setCurrentCategory(matchedCategory);
-          setActiveFilters(prev => ({ ...prev, categoryId: matchedCategory.id }));
+          if (exactMatchCategory) {
+          // Exact match found
+          setCurrentCategory(exactMatchCategory);
+          setActiveFilters(prev => ({ ...prev, categoryId: exactMatchCategory.id }));
         } else {
-          setError(`Category "${categorySlug}" not found`);
+          // Look for partial matches (contains the search term)
+          const partialMatches = data.filter(
+            category => category.name.toLowerCase().includes(categorySlug.toLowerCase())
+          );
+            if (partialMatches.length > 0) {
+            // We have multiple categories that match
+            // Sort categories by relevance - prioritize categories with "food" at the beginning if the search term is "food"
+            partialMatches.sort((a, b) => {
+              // First, check if either name starts with the search term
+              const aStartsWith = a.name.toLowerCase().startsWith(categorySlug.toLowerCase());
+              const bStartsWith = b.name.toLowerCase().startsWith(categorySlug.toLowerCase());
+              
+              if (aStartsWith && !bStartsWith) return -1;
+              if (!aStartsWith && bStartsWith) return 1;
+              
+              // If same priority by start, prefer shorter names (likely more relevant)
+              return a.name.length - b.name.length;
+            });
+            
+            // Set first match (now most relevant) as current category but track all matches
+            setCurrentCategory(partialMatches[0]);
+            
+            // Store all matching categories for displaying products from all of them
+            const matchNames = partialMatches.map(cat => cat.name).join('", "');
+            setError(`No exact match for "${categorySlug}". Showing products from: "${matchNames}"`);
+            
+            // We'll handle fetching products for all categories in the fetchProducts effect
+            // Store all matching category IDs for later use
+            const matchingCategoryIds = partialMatches.map(cat => cat.id);
+            setActiveFilters(prev => ({ ...prev, matchingCategoryIds: matchingCategoryIds }));
+          } else {
+            // No matches at all
+            setError(`No category named "${categorySlug}" found.`);
+          }
         }
       } catch (err) {
         console.error('Error fetching categories:', err);
@@ -115,38 +148,90 @@ const CategoryPage = () => {
     };
 
     fetchFilterData();
-  }, []);  // Fetch products with filters
+  }, []);  // Fetch products with filters  // State to store grouped products by category
+  const [productsByCategory, setProductsByCategory] = useState([]);
+
   useEffect(() => {
     const fetchProducts = async () => {
       try {
         setLoading(true);
+        let allProducts = [];
         
-        // Build query parameters
-        const params = new URLSearchParams();
+        // Check if we have multiple matching categories
+        if (activeFilters.matchingCategoryIds && activeFilters.matchingCategoryIds.length > 0) {
+          // We need to fetch products for multiple categories
+          const categoriesWithProducts = [];
+          
+          // Fetch products for each category
+          for (const categoryId of activeFilters.matchingCategoryIds) {
+            const params = new URLSearchParams();
+            params.append('categoryId', categoryId);
+            
+            // Add search query if exists
+            if (searchQuery) params.append('name', searchQuery);
+            
+            // Add other filters except categoryId which we're handling separately
+            Object.entries(activeFilters).forEach(([key, value]) => {
+              if (key !== 'categoryId' && key !== 'matchingCategoryIds' && value) {
+                params.append(key, value);
+              }
+            });
+            
+            const apiEndpoint = `${API_REACT_APP_BASE_URL}/api/products/get-all-with-filters`;
+            const response = await fetch(`${apiEndpoint}?${params.toString()}`);
+            
+            if (response.ok) {
+              const categoryProducts = await response.json();
+              
+              if (categoryProducts.length > 0) {
+                // Find the category name
+                const category = categories.find(cat => cat.id === categoryId);
+                categoriesWithProducts.push({
+                  category,
+                  products: categoryProducts
+                });
+                
+                // Add these products to our overall products list
+                allProducts = [...allProducts, ...categoryProducts];
+              }
+            }
+          }
+          
+          // Store the categorized products for display
+          setProductsByCategory(categoriesWithProducts);
+          
+        } else {
+          // Single category or no category filter - use standard approach
+          const params = new URLSearchParams();
+          
+          // Add all active filters to query params
+          Object.entries(activeFilters).forEach(([key, value]) => {
+            if (key !== 'matchingCategoryIds' && value) params.append(key, value);
+          });
+          
+          // Add search query if exists
+          if (searchQuery) params.append('name', searchQuery);
+          
+          // If we're on the base category page with no filters, just fetch all products
+          const apiEndpoint = `${API_REACT_APP_BASE_URL}/api/products/get-all-with-filters`;
+          
+          const response = await fetch(
+            `${apiEndpoint}?${params.toString()}`
+          );
+          
+          if (!response.ok) throw new Error('Failed to fetch products');
+          
+          allProducts = await response.json();
+          
+          // Clear any previous categorized products
+          setProductsByCategory([]);
+        }
         
-        // Add all active filters to query params
-        Object.entries(activeFilters).forEach(([key, value]) => {
-          if (value) params.append(key, value);
-        });
-        
-        // Add search query if exists
-        if (searchQuery) params.append('name', searchQuery);
-        
-        // If we're on the base category page with no filters, just fetch all products
-        const apiEndpoint = `${API_REACT_APP_BASE_URL}/api/products/get-all-with-filters`;
-        
-        const response = await fetch(
-          `${apiEndpoint}?${params.toString()}`
-        );
-        
-        if (!response.ok) throw new Error('Failed to fetch products');
-        
-        const data = await response.json();
-        setProducts(data);
-        setFilteredProducts(data);
+        setProducts(allProducts);
+        setFilteredProducts(allProducts);
         
         // Check wishlist status for each product
-        checkWishlistStatus(data);
+        checkWishlistStatus(allProducts);
       } catch (err) {
         console.error('Error fetching products:', err);
         setError(err.message);
@@ -156,7 +241,7 @@ const CategoryPage = () => {
     };
 
     fetchProducts();
-  }, [activeFilters, searchQuery]);
+  }, [activeFilters, searchQuery, categories]);
 
   // Check wishlist status for each product
   const checkWishlistStatus = async (products) => {
@@ -275,8 +360,8 @@ const CategoryPage = () => {
       </div>
     );
   }
-
-  if (error) {
+  // Only show error page for genuine errors, not for our helpful category suggestions
+  if (error && !currentCategory) {
     return (
       <div className="min-h-screen bg-gray-50 p-4">
         <div className="max-w-4xl mx-auto">
@@ -297,8 +382,7 @@ const CategoryPage = () => {
     );
   }
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
+    <div className="min-h-screen bg-gray-50">      {/* Header */}
       <div className="bg-white border-b sticky top-0 z-30">
         <div className="max-w-4xl mx-auto p-4">
           <div className="flex items-center gap-3">
@@ -308,9 +392,14 @@ const CategoryPage = () => {
             >
               <ArrowLeft className="w-5 h-5" />
             </button>
+            <div>
               <h1 className="text-xl font-bold">
-              {currentCategory?.name || categorySlug || "All Products"}
-            </h1>
+                {currentCategory?.name || categorySlug || "All Products"}
+              </h1>
+              {error && currentCategory && (
+                <p className="text-sm text-yellow-600 mt-1">{error}</p>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -319,10 +408,9 @@ const CategoryPage = () => {
       <div className="bg-white border-b sticky top-16 z-20">
         <div className="max-w-4xl mx-auto p-4">
           <div className="relative flex items-center">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-            <input
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />            <input
               type="search"
-              placeholder={`Search in ${currentCategory?.name || categorySlug}...`}
+              placeholder={`Search in ${currentCategory?.name || "products"}...`}
               className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-yellow-400 focus:border-transparent"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -353,6 +441,40 @@ const CategoryPage = () => {
                     >
                       <X className="w-5 h-5" />
                     </button>
+                  </div>
+                    {/* Category Filter */}
+                  <div className="mb-4 border-b pb-3">
+                    <button 
+                      className="flex items-center justify-between w-full text-left font-medium mb-2"
+                      onClick={() => toggleSection('category')}
+                    >
+                      <span>Category</span>
+                      {expandedSections.category ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                    </button>
+                    
+                    {expandedSections.category && (
+                      <div className="space-y-2 mt-2">
+                        <select
+                          className="w-full p-2 border border-gray-300 rounded-md"
+                          value={currentCategory?.id || ""}
+                          onChange={(e) => {
+                            const selectedCategory = categories.find(cat => cat.id === e.target.value);
+                            if (selectedCategory) {
+                              navigate(`/category/${selectedCategory.name.toLowerCase().replace(/\s+/g, '-')}`);
+                            } else {
+                              navigate('/category');
+                            }
+                          }}
+                        >
+                          <option value="">All Categories</option>
+                          {categories.map(category => (
+                            <option key={category.id} value={category.id}>
+                              {category.name}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
                   </div>
                   
                   {/* Product Group Filter */}
@@ -597,9 +719,7 @@ const CategoryPage = () => {
             ))}
           </div>
         </div>
-      </div>
-
-      {/* Products Grid */}
+      </div>      {/* Products Grid */}
       <div className="max-w-4xl mx-auto p-4">
         {loading ? (
           <div className="flex justify-center py-12">
@@ -610,32 +730,65 @@ const CategoryPage = () => {
             <p className="text-gray-500">No products found with the current filters.</p>
             <p className="text-gray-400 mt-2">Try adjusting your search criteria or clearing some filters.</p>
           </div>
-        ) : (          <>
+        ) : productsByCategory.length > 0 ? (
+          // Show products grouped by category when we have multiple categories
+          <>
+            <p className="text-gray-500 mb-4">
+              {filteredProducts.length} product{filteredProducts.length !== 1 ? 's' : ''} found in {productsByCategory.length} categories
+            </p>
+              {productsByCategory.map((categoryData, categoryIndex) => (
+              <div key={categoryData.category.id} className="mb-8">
+                <div className="flex justify-between items-center mb-4">
+                  <h2 className="text-xl font-semibold text-gray-800">
+                    {categoryData.category.name} 
+                    <span className="text-sm text-gray-500 ml-2">({categoryData.products.length} products)</span>
+                  </h2>
+                  <button 
+                    onClick={() => navigate(`/category/${categoryData.category.name.toLowerCase().replace(/\s+/g, '-')}`)}
+                    className="text-sm text-yellow-600 hover:text-yellow-700 flex items-center"
+                  >
+                    View All
+                  </button>
+                </div>
+                
+                {/* Horizontal scrolling product container */}
+                <div className="relative">
+                  <div className="overflow-x-auto pb-4 scrollbar-hide">
+                    <div className="inline-flex space-x-4" style={{ minWidth: '100%' }}>
+                      {categoryData.products.map((product) => (
+                        <div key={product.id} className="w-[200px] flex-shrink-0">
+                          <CompactProductCard
+                            product={product}
+                            onNavigate={() => handleNavigateToProduct(product.id)}
+                            isWishlistLoading={wishlistLoading[product.id] || false}
+                            isInWishlist={wishlistMap[product.id] || false}
+                            onWishlistToggle={() => handleWishlistToggle(product.id, product.__shop__?.id)}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </>
+        ) : (
+        // Standard product display for single category/no categories
+          <>
             <p className="text-gray-500 mb-4">
               {filteredProducts.length} product{filteredProducts.length !== 1 ? 's' : ''} found
             </p>
             
-            <div className="flex flex-wrap">
-              {/* Group products in rows of 3 */}
-              {Array.from({ length: Math.ceil(filteredProducts.length / 3) }).map((_, rowIndex) => (
-                <div key={rowIndex} className="w-full flex justify-between mb-4">
-                  {filteredProducts.slice(rowIndex * 3, rowIndex * 3 + 3).map((product, index) => (
-                    <div key={product.id} className={`w-[32%] ${index < 2 ? 'mr-[2%]' : ''}`}>
-                      <CompactProductCard
-                        product={product}
-                        onNavigate={() => handleNavigateToProduct(product.id)}
-                        isWishlistLoading={wishlistLoading[product.id] || false}
-                        isInWishlist={wishlistMap[product.id] || false}
-                        onWishlistToggle={() => handleWishlistToggle(product.id, product.__shop__?.id)}
-                      />
-                    </div>
-                  ))}
-                  {/* Add placeholder divs to maintain 3 columns if needed */}
-                  {rowIndex === Math.ceil(filteredProducts.length / 3) - 1 && 
-                   filteredProducts.length % 3 !== 0 && 
-                   Array.from({ length: 3 - (filteredProducts.length % 3) }).map((_, i) => (
-                    <div key={`empty-${i}`} className="w-[32%]"></div>
-                  ))}
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+              {filteredProducts.map((product) => (
+                <div key={product.id} className="w-full">
+                  <CompactProductCard
+                    product={product}
+                    onNavigate={() => handleNavigateToProduct(product.id)}
+                    isWishlistLoading={wishlistLoading[product.id] || false}
+                    isInWishlist={wishlistMap[product.id] || false}
+                    onWishlistToggle={() => handleWishlistToggle(product.id, product.__shop__?.id)}
+                  />
                 </div>
               ))}
             </div>
