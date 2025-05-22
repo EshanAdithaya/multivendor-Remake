@@ -29,6 +29,6 @@ jobs:
           context: .
           push: ${{ github.event_name != 'pull_request' }}
           tags: |
-            ${{ secrets.DOCKERHUB_USERNAME }}/Pawsome_Consumer_ui:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/pawsome_consumer_ui:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
