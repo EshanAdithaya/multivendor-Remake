@@ -15,10 +15,9 @@ FROM nginx:stable-alpine
 RUN rm -rf /usr/share/nginx/html/*
 
 # Copy built frontend from builder stage
-COPY --from=builder /app/dist /usr/share/nginx/html
+COPY --from=builder /app/build /usr/share/nginx/html
 
-# Copy public folder to nginx root for static assets
-COPY --from=builder /app/public /usr/share/nginx/html/public  
+# No need to copy public folder separately as it's already in the build output
 
 # Copy custom nginx config
 COPY nginx.conf /etc/nginx/conf.d/default.conf
