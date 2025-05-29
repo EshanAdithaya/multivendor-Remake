@@ -52,7 +52,7 @@ const OrderCard = ({ order, onClick }) => {
         </div>
         <div className="flex justify-between">
           <span>Items:</span>
-          <span>{order.items.length}</span>
+          <span>{order.items?.length || 0}</span>
         </div>
         <div className="flex justify-between font-semibold text-gray-800">
           <span>Total Amount:</span>
@@ -67,6 +67,7 @@ const MyOrdersScreen = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [pagination, setPagination] = useState(null);
   const navigate = useNavigate();
 
   const API_REACT_APP_BASE_URL = process.env.REACT_APP_BASE_URL;
@@ -95,13 +96,30 @@ const MyOrdersScreen = () => {
         }
 
         const data = await response.json();
+        console.log('API Response:', data); // Debug log
+        
+        // Handle both old and new API response formats
+        let ordersArray;
+        let paginationData = null;
+        
+        if (Array.isArray(data)) {
+          // Old format: direct array
+          ordersArray = data;
+        } else if (data.orders && Array.isArray(data.orders)) {
+          // New format: object with orders array
+          ordersArray = data.orders;
+          paginationData = data.pagination;
+        } else {
+          throw new Error('Invalid response format');
+        }
         
         // Sort orders by creation date (newest first)
-        const sortedOrders = [...data].sort((a, b) => 
+        const sortedOrders = [...ordersArray].sort((a, b) => 
           new Date(b.createdAt) - new Date(a.createdAt)
         );
         
         setOrders(sortedOrders);
+        setPagination(paginationData);
       } catch (err) {
         console.error('Error fetching orders:', err);
         setError(err.message);
@@ -143,7 +161,14 @@ const MyOrdersScreen = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-2xl mx-auto p-4">
-        <h1 className="text-2xl font-bold text-gray-800 mb-6">My Orders</h1>
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-2xl font-bold text-gray-800">My Orders</h1>
+          {pagination && (
+            <span className="text-sm text-gray-500">
+              {pagination.count} of {pagination.total} orders
+            </span>
+          )}
+        </div>
         
         {orders.length === 0 ? (
           <div className="text-center py-8 bg-white rounded-lg shadow-sm p-6">
