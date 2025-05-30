@@ -309,6 +309,7 @@ const LandingPage = () => {
     
     fetchProducts();
   }, []);
+
   // Auto scroll carousel effect
   useEffect(() => {
     const interval = setInterval(() => {
@@ -329,7 +330,9 @@ const LandingPage = () => {
       
       // Check if we're within 50px of the bottom
       return documentHeight - (scrollTop + windowHeight) < 50;
-    };    const handleAutoScroll = () => {
+    };
+
+    const handleAutoScroll = () => {
       if (isNearBottom() && footerRef.current) {
         setIsAtBottom(true);
         
@@ -402,9 +405,13 @@ const LandingPage = () => {
     navigate(`/sale/${saleId}`);
   };
   
+  // Updated search handler to navigate to category page with search query
   const handleSearch = (e) => {
     e.preventDefault();
-    navigate(`/search?q=${searchQuery}`);
+    if (searchQuery.trim()) {
+      // Navigate to category page with search query as URL parameter
+      navigate(`/category?search=${encodeURIComponent(searchQuery.trim())}`);
+    }
   };
   
   const handleCategoryClick = (category) => {
@@ -643,7 +650,9 @@ const LandingPage = () => {
             )}
           </div>
         </div>
-      </div>      {/* Footer */}
+      </div>
+
+      {/* Footer */}
       <div 
         ref={footerRef}
         className={`mt-8 px-4 pb-10 text-center text-xs text-gray-500 transition-all duration-300 ${

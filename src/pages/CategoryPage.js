@@ -54,7 +54,22 @@ const CategoryPage = () => {
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, []);  // Fetch categories
+  }, []);
+
+  // Check if component was accessed via search from landing page
+  useEffect(() => {
+    // Check for search query in URL params when component mounts
+    const urlParams = new URLSearchParams(window.location.search);
+    const searchFromUrl = urlParams.get('search');
+    if (searchFromUrl) {
+      setSearchQuery(searchFromUrl);
+      // Clear the search param from URL to keep it clean
+      const newUrl = window.location.pathname;
+      window.history.replaceState({}, '', newUrl);
+    }
+  }, []);
+
+  // Fetch categories
   useEffect(() => {
     const fetchCategories = async () => {
       try {
@@ -148,7 +163,9 @@ const CategoryPage = () => {
     };
 
     fetchFilterData();
-  }, []);  // Fetch products with filters  // State to store grouped products by category
+  }, []);
+
+  // State to store grouped products by category
   const [productsByCategory, setProductsByCategory] = useState([]);
 
   useEffect(() => {
@@ -311,6 +328,7 @@ const CategoryPage = () => {
       setWishlistLoading(prev => ({ ...prev, [productId]: false }));
     }
   };
+
   // Handler for applying filters
   const applyFilters = () => {
     const newFilters = {
@@ -326,14 +344,27 @@ const CategoryPage = () => {
     setActiveFilters(newFilters);
     setShowFilterPanel(false);
   };
-  // Reset filters
+
+  // Updated reset filters function - resets ALL filters including category
   const resetFilters = () => {
     setSelectedProductGroup('');
     setSelectedManufacturer('');
     setPriceRange({ min: '', max: '' });
     setStockQuantity('');
-    // Only keep the category filter if we're on a category page
-    setActiveFilters(categorySlug ? { categoryId: currentCategory?.id } : {});
+    // Reset ALL filters including category
+    setActiveFilters({});
+    setCurrentCategory(null);
+    // Navigate to category page without any category slug
+    navigate('/category');
+  };
+
+  // Handle search - navigate to category page with search query
+  const handleSearch = (e) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      // Navigate to category page with search query as URL parameter
+      navigate(`/category?search=${encodeURIComponent(searchQuery.trim())}`);
+    }
   };
 
   // Toggle filter panel section
@@ -382,7 +413,9 @@ const CategoryPage = () => {
     );
   }
   return (
-    <div className="min-h-screen bg-gray-50">      {/* Header */}      <div className="bg-white border-b sticky top-0 z-30">
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <div className="bg-white border-b sticky top-0 z-30">
         <div className="max-w-4xl mx-auto p-4">
           <div className="flex items-center gap-3">
             <button
@@ -412,8 +445,9 @@ const CategoryPage = () => {
       {/* Search and Filter */}
       <div className="bg-white border-b sticky top-16 z-20">
         <div className="max-w-4xl mx-auto p-4">
-          <div className="relative flex items-center">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />            <input
+          <form onSubmit={handleSearch} className="relative flex items-center">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+            <input
               type="search"
               placeholder={`Search in ${currentCategory?.name || "products"}...`}
               className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-yellow-400 focus:border-transparent"
@@ -422,6 +456,7 @@ const CategoryPage = () => {
             />
             <button 
               className="filter-button ml-3 p-2 bg-gray-100 rounded-lg hover:bg-gray-200 relative"
+              type="button"
               onClick={() => setShowFilterPanel(!showFilterPanel)}
             >
               <SlidersHorizontal className="w-5 h-5 text-gray-600" />
@@ -433,7 +468,8 @@ const CategoryPage = () => {
             </button>
             
             {/* Filter Panel */}
-            {showFilterPanel && (              <div 
+            {showFilterPanel && (
+              <div 
                 ref={filterPanelRef}
                 className="absolute right-0 top-full mt-2 w-80 bg-white rounded-lg shadow-lg border border-gray-200 z-40"
               >
@@ -447,7 +483,8 @@ const CategoryPage = () => {
                       <X className="w-5 h-5" />
                     </button>
                   </div>
-                    {/* Category Filter */}
+                  
+                  {/* Category Filter */}
                   <div className="mb-4 border-b pb-3">
                     <button 
                       className="flex items-center justify-between w-full text-left font-medium mb-2"
@@ -597,7 +634,7 @@ const CategoryPage = () => {
                       className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200"
                       onClick={resetFilters}
                     >
-                      Reset
+                      Reset All
                     </button>
                     <button
                       className="px-4 py-2 bg-yellow-400 text-white rounded-md hover:bg-yellow-500"
@@ -609,7 +646,7 @@ const CategoryPage = () => {
                 </div>
               </div>
             )}
-          </div>
+          </form>
           
           {/* Active Filters Display */}
           {activeFilterCount > 0 && (
@@ -705,7 +742,9 @@ const CategoryPage = () => {
             </div>
           )}
         </div>
-      </div>      {/* Category Navigation */}
+      </div>
+
+      {/* Category Navigation */}
       <div className="bg-white border-b relative z-10">
         <div className="max-w-4xl mx-auto px-4 py-3">
           <div className="flex overflow-x-auto scrollbar-hide gap-3 pb-1">
@@ -740,7 +779,9 @@ const CategoryPage = () => {
             })}
           </div>
         </div>
-      </div>{/* Products Grid */}
+      </div>
+
+      {/* Products Grid */}
       <div className="max-w-4xl mx-auto p-4">
         {loading ? (
           <div className="flex justify-center py-12">
