@@ -289,10 +289,14 @@ const ProductDetail = () => {
   // Helper functions
   const getVariationDisplayText = (variation) => {
     const attributes = [];
+    if (variation.name) attributes.push(variation.name);
     if (variation.size) attributes.push(variation.size);
     if (variation.weight) attributes.push(`${variation.weight}g`);
     if (variation.color) attributes.push(variation.color);
     if (variation.material) attributes.push(variation.material);
+    if (variation.flavour) attributes.push(variation.flavour);
+    if (variation.fragrance) attributes.push(variation.fragrance);
+    if (variation.capacity) attributes.push(variation.capacity);
     return attributes.join(' - ') || 'Standard';
   };
 
@@ -416,13 +420,21 @@ const ProductDetail = () => {
                     }`}
                 >
                   <div className="flex justify-between items-center">
-                    <div>
+                    <div className="flex-1">
                       <div className="font-medium">{getVariationDisplayText(variation)}</div>
                       <div className="text-sm text-gray-500">
                         SKU: {variation.sku} • Stock: {variation.stockQuantity}
                       </div>
+                      <div className="text-xs text-gray-500">
+                        {[
+                          variation.name && `Name: ${variation.name}`,
+                          variation.flavour && `Flavour: ${variation.flavour}`,
+                          variation.fragrance && `Fragrance: ${variation.fragrance}`,
+                          variation.capacity && `Capacity: ${variation.capacity}`
+                        ].filter(Boolean).join(' • ')}
+                      </div>
                     </div>
-                    <div className="text-yellow-500 font-bold">
+                    <div className="text-yellow-500 font-bold ml-2">
                       {formatPrice(variation.price)}
                     </div>
                   </div>
