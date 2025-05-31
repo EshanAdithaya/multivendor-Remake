@@ -1,19 +1,47 @@
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useState, useEffect } from 'react';
 import Lottie from 'react-lottie';
 import lostAnimation from '../Assets/animations/lost.json'; // Adjust path as needed
+import MaintenanceMode from './MaintenanceMode'; // Import the maintenance component
 
 const API_REACT_APP_BASE_URL = process.env.REACT_APP_BASE_URL;
 
 const ProtectedRoute = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [isMaintenanceMode, setIsMaintenanceMode] = useState(false);
+  const [maintenanceMessage, setMaintenanceMessage] = useState('');
   const location = useLocation();
+  const navigate = useNavigate();
 
   useEffect(() => {
-    const verifyUser = async () => {
+    const checkMaintenanceAndAuth = async () => {
       try {
+        // First check if system is in maintenance mode
+        try {
+          const maintenanceResponse = await fetch(`${API_REACT_APP_BASE_URL}/api/system/maintenance-status`);
+          const maintenanceData = await maintenanceResponse.json();
+          
+          if (maintenanceData.maintenanceMode === true) {
+            setIsMaintenanceMode(true);
+            setMaintenanceMessage(maintenanceData.message || 'System is currently under maintenance. Please try again later.');
+            setIsLoading(false);
+            return; // Don't proceed with auth check if in maintenance mode
+          }
+        } catch (maintenanceError) {
+          // If we get a 503 error, it likely means maintenance mode is on
+          if (maintenanceError.response && maintenanceError.response.status === 503) {
+            setIsMaintenanceMode(true);
+            setMaintenanceMessage('System is currently under maintenance. Please try again later.');
+            setIsLoading(false);
+            return;
+          }
+          // If it's another error, continue with auth check
+          console.error('Error checking maintenance status:', maintenanceError);
+        }
+        
+        // Now check authentication
         const token = localStorage.getItem('accessToken');
         if (!token) {
           setIsAuthenticated(false);
@@ -41,7 +69,7 @@ const ProtectedRoute = ({ children }) => {
       }
     };
 
-    verifyUser();
+    checkMaintenanceAndAuth();
   }, []);
 
   if (isLoading) {
@@ -50,6 +78,10 @@ const ProtectedRoute = ({ children }) => {
         <div className="animate-spin rounded-full h-8 w-8 border-2 border-yellow-400 border-t-transparent"></div>
       </div>
     );
+  }
+
+  if (isMaintenanceMode) {
+    return <MaintenanceMode message={maintenanceMessage} onRetry={() => window.location.reload()} />;
   }
 
   if (!isAuthenticated) {
