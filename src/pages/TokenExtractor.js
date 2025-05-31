@@ -11,28 +11,6 @@ const TokenExtractor = () => {
   useEffect(() => {
     const extractAndValidateToken = async () => {
       try {
-        // Check maintenance status first
-        try {
-          const maintenanceResponse = await fetch('https://pawsome.soluzent.com/api/system/maintenance-status');
-          const maintenanceData = await maintenanceResponse.json();
-          
-          // If the response contains maintenanceMode: true, redirect
-          if (maintenanceData && maintenanceData.maintenanceMode === true) {
-            navigate('/maintenance');
-            return;
-          }
-        } catch (maintenanceError) {
-          // If there's an error, check if it's a maintenance response
-          if (maintenanceError.response && 
-              maintenanceError.response.data && 
-              maintenanceError.response.data.maintenanceMode === true) {
-            navigate('/maintenance');
-            return;
-          }
-          // For other errors with maintenance check, continue with token validation
-          console.error('Error checking maintenance status:', maintenanceError);
-        }
-
         // Extract token from URL
         const urlParams = new URLSearchParams(window.location.search);
         const fullUrl = window.location.href;
@@ -60,7 +38,7 @@ const TokenExtractor = () => {
         localStorage.setItem('accessToken', token);
         setTokenStatus('Token extracted and stored in localStorage');
         
-        // Validate user with API
+        // Validate user with API - this will also check maintenance mode
         const response = await fetch('https://pawsome.soluzent.com/api/auth/me', {
           method: 'GET',
           headers: {
@@ -69,15 +47,33 @@ const TokenExtractor = () => {
           }
         });
 
+        // Check if response contains maintenance mode information
+        const data = await response.json();
+        
+        // If we get a maintenance mode response, redirect to maintenance page
+        if (data && data.maintenanceMode === true) {
+          navigate('/maintenance');
+          return;
+        }
+        
+        // Handle other error responses
         if (!response.ok) {
           throw new Error(`API request failed: ${response.status} ${response.statusText}`);
         }
 
-        const data = await response.json();
         setUserData(data);
         setLoading(false);
       } catch (err) {
         console.error('Error:', err);
+        
+        // Check if the error contains maintenance mode information
+        if (err.response && 
+            err.response.data && 
+            err.response.data.maintenanceMode === true) {
+          navigate('/maintenance');
+          return;
+        }
+        
         setError(err.message || 'An error occurred during token validation');
         setLoading(false);
       }
