@@ -52,7 +52,7 @@ function App() {
               {/* <Route path="/" element={<LandingPage />} /> */}
               <Route path="/signupwildcard" element={<Signup />} />
               <Route path="/loginwildcard" element={<Login />} />
-               <Route path="/maintainance" element={<MaintenanceMode />} />
+               <Route path="/maintenance" element={<MaintenanceMode />} />
               
               {/* Protected routes - All other pages require authentication */}
               <Route path="/" element={
