@@ -14,24 +14,18 @@ const TokenExtractor = () => {
         // Check maintenance status first
         try {
           const maintenanceResponse = await fetch('https://pawsome.soluzent.com/api/system/maintenance-status');
+          const maintenanceData = await maintenanceResponse.json();
           
-          // If status is 503, it indicates maintenance mode
-          if (maintenanceResponse.status === 503) {
+          // If the response contains maintenanceMode: true, redirect
+          if (maintenanceData && maintenanceData.maintenanceMode === true) {
             navigate('/maintenance');
             return;
           }
-          
-          // If maintenance check succeeds, check the response
-          if (maintenanceResponse.ok) {
-            const maintenanceData = await maintenanceResponse.json();
-            if (maintenanceData.maintenanceMode === true) {
-              navigate('/maintenance');
-              return;
-            }
-          }
         } catch (maintenanceError) {
-          // If error is 503, it's likely maintenance mode
-          if (maintenanceError.status === 503) {
+          // If there's an error, check if it's a maintenance response
+          if (maintenanceError.response && 
+              maintenanceError.response.data && 
+              maintenanceError.response.data.maintenanceMode === true) {
             navigate('/maintenance');
             return;
           }
