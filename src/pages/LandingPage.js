@@ -6,6 +6,7 @@ import { toast } from 'react-toastify';
 import { HeaderBar } from '../components/HeaderBar';
 import CompactProductCard from '../components/ProductCard';
 import { useWishlistService } from '../components/WishlistService';
+import PromotionalPopup from '../components/PromotionalPopup';
 
 const API_REACT_APP_BASE_URL = process.env.REACT_APP_BASE_URL;
 
@@ -427,9 +428,11 @@ const LandingPage = () => {
     navigate('/');
     window.location.reload();
   };
-
   return (
     <div className="min-h-screen bg-white pb-20">
+      {/* Promotional Popup */}
+      <PromotionalPopup />
+      
       {/* Unauthorized Modal */}
       {isUnauthorized && <UnauthorizedModal onGoHome={handleGoHome} />}
       
