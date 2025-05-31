@@ -135,7 +135,12 @@ const LandingPage = () => {
   const navigate = useNavigate();
   const wishlistService = useWishlistService();
   const [searchQuery, setSearchQuery] = useState('');
-  const [points, setPoints] = useState({ available: 2500, used: 758 });
+  const [points, setPoints] = useState({ 
+    available: 0,
+    used: 0,
+    earned: 0,
+    expired: 0
+  });
   const footerRef = useRef(null);
   const [isAtBottom, setIsAtBottom] = useState(false);
   const [flashSales, setFlashSales] = useState([
@@ -309,6 +314,38 @@ const LandingPage = () => {
     };
     
     fetchProducts();
+  }, []);
+
+  // Fetch user points balance
+  useEffect(() => {
+    const fetchPointsBalance = async () => {
+      try {
+        const token = localStorage.getItem('accessToken');
+        if (!token) return;
+
+        const response = await fetch(`${API_REACT_APP_BASE_URL}/api/points/balance`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Accept': 'application/json'
+          }
+        });
+
+        if (response.ok) {
+          const pointsData = await response.json();
+          setPoints({
+            available: pointsData.pointsBalance,
+            used: pointsData.totalPointsSpent,
+            earned: pointsData.totalPointsEarned,
+            expired: pointsData.totalPointsExpired
+          });
+        }
+      } catch (error) {
+        console.error('Error fetching points balance:', error);
+        // Keep default values on error
+      }
+    };
+
+    fetchPointsBalance();
   }, []);
 
   // Auto scroll carousel effect
