@@ -35,6 +35,7 @@ import { CartProvider } from './components/CartContext';
 import TokenExtractor from './pages/TokenExtractor';
 import CategoryPage from './pages/CategoryPage';
 import NotFoundPage from './components/NotFoundPage';
+import MaintenanceMode from './components/MaintenanceMode';
 
 /**
  * Main App component with proper provider nesting
@@ -51,6 +52,7 @@ function App() {
               {/* <Route path="/" element={<LandingPage />} /> */}
               <Route path="/signupwildcard" element={<Signup />} />
               <Route path="/loginwildcard" element={<Login />} />
+               <Route path="/maintainance" element={<MaintenanceMode />} />
               
               {/* Protected routes - All other pages require authentication */}
               <Route path="/" element={
