@@ -1,14 +1,44 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const TokenExtractor = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [userData, setUserData] = useState(null);
   const [tokenStatus, setTokenStatus] = useState('');
+  const navigate = useNavigate();
 
   useEffect(() => {
     const extractAndValidateToken = async () => {
       try {
+        // Check maintenance status first
+        try {
+          const maintenanceResponse = await fetch('https://pawsome.soluzent.com/api/system/maintenance-status');
+          
+          // If status is 503, it indicates maintenance mode
+          if (maintenanceResponse.status === 503) {
+            navigate('/maintenance');
+            return;
+          }
+          
+          // If maintenance check succeeds, check the response
+          if (maintenanceResponse.ok) {
+            const maintenanceData = await maintenanceResponse.json();
+            if (maintenanceData.maintenanceMode === true) {
+              navigate('/maintenance');
+              return;
+            }
+          }
+        } catch (maintenanceError) {
+          // If error is 503, it's likely maintenance mode
+          if (maintenanceError.status === 503) {
+            navigate('/maintenance');
+            return;
+          }
+          // For other errors with maintenance check, continue with token validation
+          console.error('Error checking maintenance status:', maintenanceError);
+        }
+
         // Extract token from URL
         const urlParams = new URLSearchParams(window.location.search);
         const fullUrl = window.location.href;
@@ -60,7 +90,7 @@ const TokenExtractor = () => {
     };
 
     extractAndValidateToken();
-  }, []);
+  }, [navigate]);
 
   if (loading) {
     return (
