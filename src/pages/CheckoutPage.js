@@ -251,128 +251,303 @@ const CheckoutPage = () => {
   };
 
   // UPDATED: Enhanced Stripe checkout function
-  const handleStripeCheckout = async () => {
-    try {
-      console.log('Starting Stripe checkout process...');
+  // const handleStripeCheckout = async () => {
+  //   try {
+  //     console.log('Starting Stripe checkout process...');
       
-      const orderSummary = calculateTotal();
+  //     const orderSummary = calculateTotal();
       
-      // Prepare line items from cart data with better product descriptions
-      const cartLineItems = [];
+  //     // Prepare line items from cart data with better product descriptions
+  //     const cartLineItems = [];
       
-      // Add individual cart items
-      carts.forEach(cart => {
-        cart.cartItems.forEach(item => {
-          cartLineItems.push({
-            price_data: {
-              currency: 'usd',
-              product_data: {
-                name: item.productVariation.material || 'Product',
-                description: `${item.productVariation.material || 'Product'} from ${cart.shop.name}`,
-              },
-              unit_amount: Math.round(Number(item.price) * 100), // Convert to cents
-            },
-            quantity: item.quantity,
-          });
-        });
-      });
+  //     // Add individual cart items
+  //     carts.forEach(cart => {
+  //       cart.cartItems.forEach(item => {
+  //         cartLineItems.push({
+  //           price_data: {
+  //             currency: 'usd',
+  //             product_data: {
+  //               name: item.productVariation.material || 'Product',
+  //               description: `${item.productVariation.material || 'Product'} from ${cart.shop.name}`,
+  //             },
+  //             unit_amount: Math.round(Number(item.price) * 100), // Convert to cents
+  //           },
+  //           quantity: item.quantity,
+  //         });
+  //       });
+  //     });
 
-      // Add delivery fee
-      cartLineItems.push({
-        price_data: {
-          currency: 'usd',
-          product_data: {
-            name: 'Delivery Fee',
-            description: 'Standard delivery service',
-          },
-          unit_amount: Math.round(orderSummary.delivery * 100),
-        },
-        quantity: 1,
-      });
+  //     // Add delivery fee
+  //     cartLineItems.push({
+  //       price_data: {
+  //         currency: 'usd',
+  //         product_data: {
+  //           name: 'Delivery Fee',
+  //           description: 'Standard delivery service',
+  //         },
+  //         unit_amount: Math.round(orderSummary.delivery * 100),
+  //       },
+  //       quantity: 1,
+  //     });
 
-      // Add tax
-      cartLineItems.push({
-        price_data: {
-          currency: 'usd',
-          product_data: {
-            name: 'Tax',
-            description: 'Sales tax (10%)',
-          },
-          unit_amount: Math.round(orderSummary.tax * 100),
-        },
-        quantity: 1,
-      });
+  //     // Add tax
+  //     cartLineItems.push({
+  //       price_data: {
+  //         currency: 'usd',
+  //         product_data: {
+  //           name: 'Tax',
+  //           description: 'Sales tax (10%)',
+  //         },
+  //         unit_amount: Math.round(orderSummary.tax * 100),
+  //       },
+  //       quantity: 1,
+  //     });
 
-      // Add discount as negative amount if applicable
-      if (orderSummary.discount > 0) {
+  //     // Add discount as negative amount if applicable
+  //     if (orderSummary.discount > 0) {
+  //       cartLineItems.push({
+  //         price_data: {
+  //           currency: 'usd',
+  //           product_data: {
+  //             name: 'Discount',
+  //             description: appliedCoupon?.code ? `Coupon: ${appliedCoupon.code}` : 'Discount Applied',
+  //           },
+  //           unit_amount: -Math.round(orderSummary.discount * 100), // Negative for discount
+  //         },
+  //         quantity: 1,
+  //       });
+  //     }
+
+  //     console.log('Line items prepared:', cartLineItems);
+
+  //     // Validate line items
+  //     const invalidItems = cartLineItems.filter(item => 
+  //       !item.price_data.product_data || 
+  //       !item.price_data.product_data.name ||
+  //       typeof item.price_data.unit_amount !== 'number' ||
+  //       typeof item.quantity !== 'number'
+  //     );
+
+  //     if (invalidItems.length > 0) {
+  //       console.error('Invalid line items found:', invalidItems);
+  //       throw new Error('Invalid product data detected');
+  //     }
+
+  //     // Call your backend to create checkout session
+  //     const response = await fetch(`${API_REACT_APP_BASE_URL}/api/payments/create-checkout-session`, {
+  //       method: 'POST',
+  //       headers: {
+  //         'Content-Type': 'application/json',
+  //         'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+  //       },
+  //       body: JSON.stringify({
+  //         lineItems: cartLineItems,
+  //         orderId: `order-${Date.now()}`,
+  //         customerId: 'customer-checkout', // This will be overridden by backend
+  //       }),
+  //     });
+
+  //     if (!response.ok) {
+  //       const errorData = await response.json();
+  //       console.error('Stripe API Error:', errorData);
+        
+  //       // Handle specific validation errors
+  //       if (errorData.message && Array.isArray(errorData.message)) {
+  //         throw new Error(`Validation failed: ${errorData.message.join(', ')}`);
+  //       }
+        
+  //       throw new Error(errorData.message || 'Failed to create checkout session');
+  //     }
+
+  //     const { url, sessionId } = await response.json();
+      
+  //     console.log('Checkout session created:', sessionId);
+  //     console.log('Redirecting to Stripe:', url);
+      
+  //     // Redirect to Stripe's checkout page
+  //     window.location.href = url;
+      
+  //   } catch (error) {
+  //     console.error('Stripe checkout error:', error);
+  //     setError(`Stripe checkout failed: ${error.message}`);
+  //     setIsProcessing(false);
+  //   }
+  // };
+
+// COMBINED SOLUTION: Create order first + Send real product names
+const handleStripeCheckout = async () => {
+  try {
+    console.log('Starting Stripe checkout process...');
+    
+    const token = localStorage.getItem('accessToken');
+    const orderSummary = calculateTotal();
+    
+    // STEP 1: Create the actual order in your database first
+    console.log('Creating order in database before Stripe checkout...');
+    
+    const bulkOrderData = {
+      orders: carts.map(cart => ({
+        status: "pending",
+        paymentStatus: "pending", // Will be updated after Stripe payment
+        paymentMethod: "stripe",
+        transactionId: null, // Will be updated after Stripe payment
+        billingAddressId: selectedAddress,
+        shippingAddressId: selectedAddress,
+        shopId: cart.shop.id,
+        shippingStatus: "pending",
+        shippingMethod: "standard",
+        ...(appliedCoupon && { couponId: appliedCoupon.id }),
+        items: cart.cartItems.map(item => ({
+          productVariationId: item.productVariation.id,
+          quantity: item.quantity
+        }))
+      }))
+    };
+
+    // Create the orders in your database
+    const orderResponse = await fetch(`${API_REACT_APP_BASE_URL}/api/bulk-checkout`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(bulkOrderData)
+    });
+
+    if (!orderResponse.ok) {
+      const errorData = await orderResponse.json();
+      throw new Error(errorData.message || 'Failed to create orders');
+    }
+
+    const orderResponseData = await orderResponse.json();
+    
+    if (!orderResponseData.success || !orderResponseData.data || orderResponseData.data.length === 0) {
+      throw new Error('No orders were created');
+    }
+
+    // Use the first order's ID for Stripe (or combine all if multiple)
+    const primaryOrder = orderResponseData.data[0];
+    console.log('Order created successfully:', primaryOrder.orderId);
+
+    // STEP 2: Prepare line items for Stripe with REAL product names
+    const cartLineItems = [];
+    
+    // Add individual cart items with actual product details
+    carts.forEach(cart => {
+      cart.cartItems.forEach(item => {
+        // Use actual product information from your cart
+        const productName = item.productVariation.product?.name || 
+                           item.productVariation.material || 
+                           item.productVariation.name || 
+                           'Product'; // fallback only if all else fails
+        
+        const productDescription = `${productName} from ${cart.shop.name}` + 
+                                 (item.productVariation.material ? ` - ${item.productVariation.material}` : '') +
+                                 (item.productVariation.color ? ` (${item.productVariation.color})` : '') +
+                                 (item.productVariation.size ? ` - Size: ${item.productVariation.size}` : '');
+
         cartLineItems.push({
           price_data: {
             currency: 'usd',
             product_data: {
-              name: 'Discount',
-              description: appliedCoupon?.code ? `Coupon: ${appliedCoupon.code}` : 'Discount Applied',
+              name: productName, // REAL product name
+              description: productDescription, // Detailed description
             },
-            unit_amount: -Math.round(orderSummary.discount * 100), // Negative for discount
+            unit_amount: Math.round(Number(item.price) * 100),
           },
-          quantity: 1,
+          quantity: item.quantity,
         });
-      }
-
-      console.log('Line items prepared:', cartLineItems);
-
-      // Validate line items
-      const invalidItems = cartLineItems.filter(item => 
-        !item.price_data.product_data || 
-        !item.price_data.product_data.name ||
-        typeof item.price_data.unit_amount !== 'number' ||
-        typeof item.quantity !== 'number'
-      );
-
-      if (invalidItems.length > 0) {
-        console.error('Invalid line items found:', invalidItems);
-        throw new Error('Invalid product data detected');
-      }
-
-      // Call your backend to create checkout session
-      const response = await fetch(`${API_REACT_APP_BASE_URL}/api/payments/create-checkout-session`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
-        },
-        body: JSON.stringify({
-          lineItems: cartLineItems,
-          orderId: `order-${Date.now()}`,
-          customerId: 'customer-checkout', // This will be overridden by backend
-        }),
+        
+        console.log(`Added product: ${productName} - $${item.price} x ${item.quantity}`);
       });
+    });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        console.error('Stripe API Error:', errorData);
-        
-        // Handle specific validation errors
-        if (errorData.message && Array.isArray(errorData.message)) {
-          throw new Error(`Validation failed: ${errorData.message.join(', ')}`);
-        }
-        
-        throw new Error(errorData.message || 'Failed to create checkout session');
-      }
+    // Add delivery fee (this one is correct to be generic)
+    cartLineItems.push({
+      price_data: {
+        currency: 'usd',
+        product_data: {
+          name: 'Delivery Fee',
+          description: 'Standard delivery service',
+        },
+        unit_amount: Math.round(orderSummary.delivery * 100),
+      },
+      quantity: 1,
+    });
 
-      const { url, sessionId } = await response.json();
-      
-      console.log('Checkout session created:', sessionId);
-      console.log('Redirecting to Stripe:', url);
-      
-      // Redirect to Stripe's checkout page
-      window.location.href = url;
-      
-    } catch (error) {
-      console.error('Stripe checkout error:', error);
-      setError(`Stripe checkout failed: ${error.message}`);
-      setIsProcessing(false);
+    // Add tax (this one is correct to be generic)
+    cartLineItems.push({
+      price_data: {
+        currency: 'usd',
+        product_data: {
+          name: 'Tax',
+          description: 'Sales tax (10%)',
+        },
+        unit_amount: Math.round(orderSummary.tax * 100),
+      },
+      quantity: 1,
+    });
+
+    // Add discount if applicable (this one is correct to be generic)
+    if (orderSummary.discount > 0) {
+      cartLineItems.push({
+        price_data: {
+          currency: 'usd',
+          product_data: {
+            name: 'Discount',
+            description: appliedCoupon?.code ? `Coupon: ${appliedCoupon.code}` : 'Discount Applied',
+          },
+          unit_amount: -Math.round(orderSummary.discount * 100),
+        },
+        quantity: 1,
+      });
     }
-  };
+
+    console.log('Line items with real product names prepared:', cartLineItems);
+
+    // STEP 3: Create Stripe checkout session with the real order ID
+    const stripeResponse = await fetch(`${API_REACT_APP_BASE_URL}/api/payments/create-checkout-session`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        lineItems: cartLineItems,
+        orderId: primaryOrder.orderId, // Use the real order ID from database
+        customerId: 'customer-checkout', // This will be overridden by backend
+      }),
+    });
+
+    if (!stripeResponse.ok) {
+      const errorData = await stripeResponse.json();
+      console.error('Stripe API Error:', errorData);
+      
+      // If Stripe fails, you might want to update the order status to failed
+      console.log('Stripe checkout failed, order was created but payment failed');
+      
+      if (errorData.message && Array.isArray(errorData.message)) {
+        throw new Error(`Validation failed: ${errorData.message.join(', ')}`);
+      }
+      
+      throw new Error(errorData.message || 'Failed to create checkout session');
+    }
+
+    const { url, sessionId } = await stripeResponse.json();
+    
+    console.log('Checkout session created:', sessionId);
+    console.log('Redirecting to Stripe with real order ID:', primaryOrder.orderId);
+    console.log('Products will show real names in Stripe dashboard');
+    
+    // STEP 4: Redirect to Stripe's checkout page
+    window.location.href = url;
+    
+  } catch (error) {
+    console.error('Stripe checkout error:', error);
+    setError(`Stripe checkout failed: ${error.message}`);
+    setIsProcessing(false);
+  }
+};
 
   if (isLoading) {
     return (
