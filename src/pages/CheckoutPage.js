@@ -22,21 +22,24 @@ const CheckoutPage = () => {
   const paymentMethods = [
     {
       id: 0,
-      type: 'credit_card',
-      details: 'Credit Card Payment',
-      expiry: ''
+      type: 'Cash On Delivery',
+      details: 'Cash on delivery (Currently Unavailable)',
+      expiry: '',
+      disabled: true
     },
     {
       id: 1,
-      type: 'paypal',
-      details: 'PAYPAL ',
-      expiry: ''
+      type: 'Pawsome Points',
+      details: 'Buy using Pawsome points (Currently Unavailable)',
+      expiry: '',
+      disabled: true
     },
     {
       id: 2,
       type: 'bank_transfer',
       details: 'BANK_TRANSFER',
-      expiry: ''
+      expiry: '',
+      disabled: true
     },
     {
       id: 3,
@@ -467,15 +470,16 @@ const CheckoutPage = () => {
               {paymentMethods.map((method) => (
                 <div
                   key={method.id}
-                  className={`p-3 rounded-lg border-2 cursor-pointer transition-colors ${
+                  className={`p-3 rounded-lg border-2 transition-colors ${
                     selectedPayment === method.id
                       ? 'border-yellow-400 bg-yellow-50'
                       : 'border-gray-100'
-                  }`}
-                  onClick={() => setSelectedPayment(method.id)}
+                  } ${method.disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                  onClick={() => !method.disabled && setSelectedPayment(method.id)}
                 >
                   <div className="flex items-center justify-between">
                     <span className="font-medium">{method.type}</span>
+                    {method.disabled && <span className="text-xs text-red-500">Unavailable</span>}
                   </div>
                   <p className="text-gray-600 mt-1">{method.details}</p>
                 </div>
