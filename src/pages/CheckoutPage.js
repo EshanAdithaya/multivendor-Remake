@@ -3,7 +3,6 @@ import { ChevronLeft, MapPin, CreditCard, Clock, Plus, ShoppingBag, Tag } from '
 import { useNavigate } from 'react-router-dom';
 import Lottie from 'lottie-react';
 import loadingAnimation from '../Assets/animations/loading.json';
-import StripePayment from '../components/StripePayment';
 
 const CheckoutPage = () => {
   const navigate = useNavigate();
@@ -15,31 +14,11 @@ const CheckoutPage = () => {
   const [error, setError] = useState(null);
   const [couponCode, setCouponCode] = useState('');
   const [appliedCoupon, setAppliedCoupon] = useState(null);
-  const [couponError, setCouponError] = useState('');  const [isProcessing, setIsProcessing] = useState(false); // Add processing state
-  const [currentOrderId, setCurrentOrderId] = useState(null); // Store current order ID for Stripe
-  const [totalAmount, setTotalAmount] = useState(0); // Store total amount for Stripe
+  const [couponError, setCouponError] = useState('');
+  const [isProcessing, setIsProcessing] = useState(false);
 
   const API_REACT_APP_BASE_URL = process.env.REACT_APP_BASE_URL;
 
-  // Handle Stripe payment success
-  const handlePaymentSuccess = (paymentIntent) => {
-    console.log('Payment successful:', paymentIntent);
-    // Navigate to success page with the order ID
-    navigate(`/order-success?key=${currentOrderId}`, {
-      state: {
-        orderId: currentOrderId,
-        allOrders: [{ orderId: currentOrderId }],
-        partialSuccess: false
-      }
-    });
-  };
-
-  // Handle Stripe payment error
-  const handlePaymentError = (error) => {
-    console.error('Payment failed:', error);
-    setError(`Payment failed: ${error}`);
-    setIsProcessing(false);
-  };
   const paymentMethods = [
     {
       id: 0,
@@ -177,6 +156,8 @@ const CheckoutPage = () => {
       total
     };
   };
+
+  // UPDATED: Simplified handlePlaceOrder function
   const handlePlaceOrder = async () => {
     if (calculateTotal().subtotal <= 0) {
       setError('Cannot place order with empty cart');
@@ -188,7 +169,7 @@ const CheckoutPage = () => {
       return;
     }
 
-    setIsProcessing(true); // Enable processing state
+    setIsProcessing(true);
     const token = localStorage.getItem('accessToken');
     
     try {
@@ -218,7 +199,6 @@ const CheckoutPage = () => {
           shopId: cart.shop.id,
           shippingStatus: "pending",
           shippingMethod: "standard",
-          // Only include couponId if a coupon is applied
           ...(appliedCoupon && { couponId: appliedCoupon.id }),
           items: cart.cartItems.map(item => ({
             productVariationId: item.productVariation.id,
@@ -227,37 +207,53 @@ const CheckoutPage = () => {
         }))
       };
 
-      // If using Stripe, create the order but wait for payment confirmation
+      // Handle Stripe payment differently
       if (paymentMethods[selectedPayment].type === 'stripe') {
-        // Call the bulk checkout endpoint with pending payment
-        const response = await fetch(`${API_REACT_APP_BASE_URL}/api/bulk-checkout`, {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(bulkOrderData)
+        // For Stripe, prepare order data and redirect to checkout
+        const orderData = {
+          orderId: `temp-${Date.now()}`, // Temporary ID for Stripe
+          customerId: 'temp-customer', // Will be set by backend
+          items: carts.flatMap(cart => 
+            cart.cartItems.map(item => ({
+              productName: item.productVariation.material || 'Product',
+              description: `${item.productVariation.material || 'Product'} from ${cart.shop.name}`,
+              price: Number(item.price),
+              quantity: item.quantity,
+              productVariation: item.productVariation
+            }))
+          )
+        };
+
+        // Add delivery, tax, and apply discount to the order total
+        const orderSummary = calculateTotal();
+        orderData.items.push({
+          productName: 'Delivery Fee',
+          description: 'Standard delivery',
+          price: orderSummary.delivery,
+          quantity: 1
+        });
+        
+        orderData.items.push({
+          productName: 'Tax',
+          description: 'Sales tax',
+          price: orderSummary.tax,
+          quantity: 1
         });
 
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.message || 'Failed to process orders');
+        if (orderSummary.discount > 0) {
+          orderData.items.push({
+            productName: 'Discount',
+            description: appliedCoupon?.code || 'Discount Applied',
+            price: -orderSummary.discount,
+            quantity: 1
+          });
         }
 
-        const responseData = await response.json();
+        // Call Stripe checkout directly
+        handleStripeCheckout(orderData);
         
-        // Store the order ID and total amount for Stripe payment
-        if (responseData.success && responseData.data && responseData.data.length > 0) {
-          setCurrentOrderId(responseData.data[0].orderId);
-          setTotalAmount(orderSummary.total);
-          // The Stripe component will handle the payment process
-          // Keep isProcessing true to prevent further actions
-        } else {
-          throw new Error(responseData.message || 'No orders were created');
-        }
       } else {
-        // For non-Stripe payment methods, proceed with the original flow
-        // Call the bulk checkout endpoint
+        // For non-Stripe payments, use the existing flow
         const response = await fetch(`${API_REACT_APP_BASE_URL}/api/bulk-checkout`, {
           method: 'POST',
           headers: {
@@ -274,9 +270,7 @@ const CheckoutPage = () => {
 
         const responseData = await response.json();
         
-        // Handle success
         if (responseData.success && responseData.data && responseData.data.length > 0) {
-          // Navigate to success page with the first order ID
           navigate(`/order-success?key=${responseData.data[0].orderId}`, {
             state: {
               orderId: responseData.data[0].orderId,
@@ -291,6 +285,61 @@ const CheckoutPage = () => {
     } catch (err) {
       setError(`Failed to process your order: ${err.message}`);
       console.error('Checkout error:', err);
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  // ADD: New function to handle Stripe checkout
+  const handleStripeCheckout = async (orderData) => {
+    try {
+      console.log('Starting Stripe checkout process...');
+      
+      // Prepare line items from order data
+      const lineItems = orderData.items.map(item => ({
+        price_data: {
+          currency: 'usd',
+          product_data: {
+            name: item.productName,
+            description: item.description || `${item.productName} - Qty: ${item.quantity}`,
+          },
+          unit_amount: Math.round(Number(item.price) * 100), // Convert to cents
+        },
+        quantity: item.quantity,
+      }));
+
+      console.log('Line items prepared:', lineItems);
+
+      // Call your backend to create checkout session
+      const response = await fetch(`${API_REACT_APP_BASE_URL}/api/payments/create-checkout-session`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+        },
+        body: JSON.stringify({
+          lineItems,
+          orderId: `order-${Date.now()}`,
+          customerId: 'customer-checkout',
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to create checkout session');
+      }
+
+      const { url, sessionId } = await response.json();
+      
+      console.log('Checkout session created:', sessionId);
+      console.log('Redirecting to Stripe:', url);
+      
+      // Redirect to Stripe's checkout page
+      window.location.href = url;
+      
+    } catch (error) {
+      console.error('Stripe checkout error:', error);
+      setError(`Stripe checkout failed: ${error.message}`);
       setIsProcessing(false);
     }
   };
@@ -340,8 +389,7 @@ const CheckoutPage = () => {
             <div className="flex items-center gap-2 mb-4">
               <ShoppingBag className="w-5 h-5 text-yellow-600" />
               <h2 className="font-semibold">Your Items</h2>
-            </div>
-            {carts.length === 0 ? (
+            </div>            {carts.length === 0 ? (
               <div className="text-center py-4 text-gray-500">Your cart is empty</div>
             ) : (
               carts.map((cart) => (
@@ -404,7 +452,9 @@ const CheckoutPage = () => {
                 ))
               )}
             </div>
-          </div>          {/* Payment Method */}
+          </div>
+
+          {/* Payment Method */}
           <div className="bg-white rounded-xl p-4 shadow-sm">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
@@ -431,19 +481,6 @@ const CheckoutPage = () => {
                 </div>
               ))}
             </div>
-            
-            {/* Display Stripe Payment Form when Stripe is selected and order has been created */}
-            {selectedPayment === 3 && currentOrderId && (
-              <div className="mt-4 pt-4 border-t">
-                <h3 className="font-medium mb-3">Complete your payment</h3>
-                <StripePayment
-                  orderId={currentOrderId}
-                  amount={totalAmount}
-                  onSuccess={handlePaymentSuccess}
-                  onError={handlePaymentError}
-                />
-              </div>
-            )}
           </div>
 
           {/* Coupon Section */}
@@ -523,20 +560,20 @@ const CheckoutPage = () => {
             </div>
           </div>
         </div>
-      </div>      {/* Place Order Button */}
+      </div>
+
+      {/* Place Order Button */}
       <div className="fixed bottom-0 left-0 right-0 z-50">
         <div className="bg-white border-t p-4">
           <button 
             onClick={handlePlaceOrder}
-            disabled={!selectedAddress || orderSummary.subtotal <= 0 || isProcessing || 
-                    (selectedPayment === 3 && currentOrderId)} 
+            disabled={!selectedAddress || orderSummary.subtotal <= 0 || isProcessing} 
             className={`w-full py-4 rounded-full flex items-center justify-between px-6 
                       ${isProcessing ? 'bg-gray-400' : 'bg-yellow-400'} 
                       text-white disabled:opacity-50`}
           >
             <span className="text-lg font-medium">
-              {isProcessing && !currentOrderId ? 'Processing...' : 
-               (selectedPayment === 3 && currentOrderId) ? 'Complete Payment Above' : 'Place Order'}
+              {isProcessing ? 'Processing...' : 'Place Order'}
             </span>
             <span className="bg-white text-yellow-400 px-4 py-2 rounded-full font-medium">
               ${orderSummary.total.toFixed(2)}

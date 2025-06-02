@@ -36,6 +36,8 @@ import TokenExtractor from './pages/TokenExtractor';
 import CategoryPage from './pages/CategoryPage';
 import NotFoundPage from './components/NotFoundPage';
 import MaintenanceMode from './components/MaintenanceMode';
+import PaymentSuccessPage from './pages/PaymentSuccessPage';
+import PaymentCancelPage from './pages/PaymentCancelPage';
 
 /**
  * Main App component with proper provider nesting
@@ -49,10 +51,13 @@ function App() {
         <Router>
           <Layout>          <Routes>
               {/* Public routes */}
-              {/* <Route path="/" element={<LandingPage />} /> */}
               <Route path="/signupwildcard" element={<Signup />} />
               <Route path="/loginwildcard" element={<Login />} />
-               <Route path="/maintenance" element={<MaintenanceMode />} />
+              <Route path="/maintenance" element={<MaintenanceMode />} />
+              
+              {/* Payment routes (public - Stripe redirects here) */}
+              <Route path="/payment/success" element={<PaymentSuccessPage />} />
+              <Route path="/payment/cancel" element={<PaymentCancelPage />} />
               
               {/* Protected routes - All other pages require authentication */}
               <Route path="/" element={
