@@ -160,7 +160,6 @@ const CheckoutPage = () => {
     };
   };
 
-  // UPDATED: Simplified handlePlaceOrder function
   const handlePlaceOrder = async () => {
     if (calculateTotal().subtotal <= 0) {
       setError('Cannot place order with empty cart');
@@ -212,49 +211,7 @@ const CheckoutPage = () => {
 
       // Handle Stripe payment differently
       if (paymentMethods[selectedPayment].type === 'stripe') {
-        // For Stripe, prepare order data and redirect to checkout
-        const orderData = {
-          orderId: `temp-${Date.now()}`, // Temporary ID for Stripe
-          customerId: 'temp-customer', // Will be set by backend
-          items: carts.flatMap(cart => 
-            cart.cartItems.map(item => ({
-              productName: item.productVariation.material || 'Product',
-              description: `${item.productVariation.material || 'Product'} from ${cart.shop.name}`,
-              price: Number(item.price),
-              quantity: item.quantity,
-              productVariation: item.productVariation
-            }))
-          )
-        };
-
-        // Add delivery, tax, and apply discount to the order total
-        const orderSummary = calculateTotal();
-        orderData.items.push({
-          productName: 'Delivery Fee',
-          description: 'Standard delivery',
-          price: orderSummary.delivery,
-          quantity: 1
-        });
-        
-        orderData.items.push({
-          productName: 'Tax',
-          description: 'Sales tax',
-          price: orderSummary.tax,
-          quantity: 1
-        });
-
-        if (orderSummary.discount > 0) {
-          orderData.items.push({
-            productName: 'Discount',
-            description: appliedCoupon?.code || 'Discount Applied',
-            price: -orderSummary.discount,
-            quantity: 1
-          });
-        }
-
-        // Call Stripe checkout directly
-        handleStripeCheckout(orderData);
-        
+        await handleStripeCheckout();
       } else {
         // For non-Stripe payments, use the existing flow
         const response = await fetch(`${API_REACT_APP_BASE_URL}/api/bulk-checkout`, {
@@ -293,25 +250,88 @@ const CheckoutPage = () => {
     }
   };
 
-  // ADD: New function to handle Stripe checkout
-  const handleStripeCheckout = async (orderData) => {
+  // UPDATED: Enhanced Stripe checkout function
+  const handleStripeCheckout = async () => {
     try {
       console.log('Starting Stripe checkout process...');
       
-      // Prepare line items from order data
-      const lineItems = orderData.items.map(item => ({
+      const orderSummary = calculateTotal();
+      
+      // Prepare line items from cart data with better product descriptions
+      const cartLineItems = [];
+      
+      // Add individual cart items
+      carts.forEach(cart => {
+        cart.cartItems.forEach(item => {
+          cartLineItems.push({
+            price_data: {
+              currency: 'usd',
+              product_data: {
+                name: item.productVariation.material || 'Product',
+                description: `${item.productVariation.material || 'Product'} from ${cart.shop.name}`,
+              },
+              unit_amount: Math.round(Number(item.price) * 100), // Convert to cents
+            },
+            quantity: item.quantity,
+          });
+        });
+      });
+
+      // Add delivery fee
+      cartLineItems.push({
         price_data: {
           currency: 'usd',
           product_data: {
-            name: item.productName,
-            description: item.description || `${item.productName} - Qty: ${item.quantity}`,
+            name: 'Delivery Fee',
+            description: 'Standard delivery service',
           },
-          unit_amount: Math.round(Number(item.price) * 100), // Convert to cents
+          unit_amount: Math.round(orderSummary.delivery * 100),
         },
-        quantity: item.quantity,
-      }));
+        quantity: 1,
+      });
 
-      console.log('Line items prepared:', lineItems);
+      // Add tax
+      cartLineItems.push({
+        price_data: {
+          currency: 'usd',
+          product_data: {
+            name: 'Tax',
+            description: 'Sales tax (10%)',
+          },
+          unit_amount: Math.round(orderSummary.tax * 100),
+        },
+        quantity: 1,
+      });
+
+      // Add discount as negative amount if applicable
+      if (orderSummary.discount > 0) {
+        cartLineItems.push({
+          price_data: {
+            currency: 'usd',
+            product_data: {
+              name: 'Discount',
+              description: appliedCoupon?.code ? `Coupon: ${appliedCoupon.code}` : 'Discount Applied',
+            },
+            unit_amount: -Math.round(orderSummary.discount * 100), // Negative for discount
+          },
+          quantity: 1,
+        });
+      }
+
+      console.log('Line items prepared:', cartLineItems);
+
+      // Validate line items
+      const invalidItems = cartLineItems.filter(item => 
+        !item.price_data.product_data || 
+        !item.price_data.product_data.name ||
+        typeof item.price_data.unit_amount !== 'number' ||
+        typeof item.quantity !== 'number'
+      );
+
+      if (invalidItems.length > 0) {
+        console.error('Invalid line items found:', invalidItems);
+        throw new Error('Invalid product data detected');
+      }
 
       // Call your backend to create checkout session
       const response = await fetch(`${API_REACT_APP_BASE_URL}/api/payments/create-checkout-session`, {
@@ -321,14 +341,21 @@ const CheckoutPage = () => {
           'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
         },
         body: JSON.stringify({
-          lineItems,
+          lineItems: cartLineItems,
           orderId: `order-${Date.now()}`,
-          customerId: 'customer-checkout',
+          customerId: 'customer-checkout', // This will be overridden by backend
         }),
       });
 
       if (!response.ok) {
         const errorData = await response.json();
+        console.error('Stripe API Error:', errorData);
+        
+        // Handle specific validation errors
+        if (errorData.message && Array.isArray(errorData.message)) {
+          throw new Error(`Validation failed: ${errorData.message.join(', ')}`);
+        }
+        
         throw new Error(errorData.message || 'Failed to create checkout session');
       }
 
@@ -392,7 +419,9 @@ const CheckoutPage = () => {
             <div className="flex items-center gap-2 mb-4">
               <ShoppingBag className="w-5 h-5 text-yellow-600" />
               <h2 className="font-semibold">Your Items</h2>
-            </div>            {carts.length === 0 ? (
+            </div>
+            
+            {carts.length === 0 ? (
               <div className="text-center py-4 text-gray-500">Your cart is empty</div>
             ) : (
               carts.map((cart) => (
