@@ -22,7 +22,8 @@ const fetchOrderDetails = async () => {
       throw new Error('Missing required parameters');
     }
 
-    const response = await fetch(`${API_BASE_URL}/api/orders/${orderId}`, {
+    // Use the new API endpoint for fetching orders by unique ID
+    const response = await fetch(`${API_BASE_URL}/api/orders/by-unique-id/${orderId}`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -38,18 +39,15 @@ const fetchOrderDetails = async () => {
 
     const data = await response.json();
     
-    // Debug logging with correct paths
+    // Debug logging
     console.log('Order data received:', data);
-    console.log('First order:', data[0]);
-    console.log('Customer userId:', data[0]?.customer?.userId);
-    console.log('Shop id:', data[0]?.shop?.id);
     
-    setOrder(data[0]);
+    // API now returns a single order object directly, not an array
+    setOrder(data);
   } catch (err) {
     setError(err.message);
   }
 };
-
 
   const fetchRefundDetails = async () => {
     try {
@@ -58,7 +56,13 @@ const fetchOrderDetails = async () => {
 
       if (!orderId || !token) return;
 
-      const response = await fetch(`${API_BASE_URL}/api/refunds?orderId=${orderId}`, {
+      // Get the UUID from the order data instead of using the token directly
+      if (!order || !order.id) {
+        setLoading(false);
+        return;
+      }
+
+      const response = await fetch(`${API_BASE_URL}/api/refunds?orderId=${order.id}`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -71,18 +75,24 @@ const fetchOrderDetails = async () => {
       if (!response.ok) return;
 
       const data = await response.json();
-      setRefund(data[0]);
+      // Check if data is an array and take the first item, or use the data directly if it's an object
+      setRefund(Array.isArray(data) ? data[0] : data);
     } catch (err) {
       console.error('Error fetching refund:', err);
     } finally {
       setLoading(false);
     }
   };
-
   useEffect(() => {
     fetchOrderDetails();
-    fetchRefundDetails();
   }, [searchParams]);
+  
+  // Fetch refund details after order is loaded
+  useEffect(() => {
+    if (order) {
+      fetchRefundDetails();
+    }
+  }, [order]);
 
 
 const handleRequestRefund = async () => {
@@ -229,9 +239,8 @@ const handleRequestRefund = async () => {
   };
 
   return (
-    <div className="min-h-screen bg-white">
-      <div className="px-6 pt-6">
-        <h1 className="text-xl font-bold text-gray-800 mb-4">Order #{order.id}</h1>
+    <div className="min-h-screen bg-white">      <div className="px-6 pt-6">
+        <h1 className="text-xl font-bold text-gray-800 mb-4">Order #{order.uniqueOrderId || order.id}</h1>
 
         <div className="bg-white rounded-xl shadow-sm mb-4">
           <div className="p-4 border-b border-gray-100">

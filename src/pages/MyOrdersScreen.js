@@ -71,9 +71,10 @@ const MyOrdersScreen = () => {
   const navigate = useNavigate();
 
   const API_REACT_APP_BASE_URL = process.env.REACT_APP_BASE_URL;
-
-  const handleOrderClick = (orderId) => {
-    navigate(`/order-details?token=${orderId}`);
+  const handleOrderClick = (order) => {
+    // Use uniqueOrderId if available, otherwise fall back to id
+    const orderIdentifier = order.uniqueOrderId || order.id;
+    navigate(`/order-details?token=${orderIdentifier}`);
   };
 
   useEffect(() => {
@@ -186,7 +187,7 @@ const MyOrdersScreen = () => {
               <OrderCard
                 key={order.id}
                 order={order}
-                onClick={() => handleOrderClick(order.id)}
+                onClick={() => handleOrderClick(order)}
               />
             ))}
           </div>
