@@ -466,7 +466,7 @@ const LandingPage = () => {
     window.location.reload();
   };
   return (
-    <div className="min-h-screen bg-white pb-20">
+    <div className="min-h-screen bg-white pb-20 overflow-x-hidden overflow-y-visible">
       {/* Promotional Popup */}
       <PromotionalPopup />
       
@@ -474,12 +474,14 @@ const LandingPage = () => {
       {isUnauthorized && <UnauthorizedModal onGoHome={handleGoHome} />}
       
       {/* Top Navigation Bar */}
-      <div className="bg-yellow-200 pt-4 pb-4 relative">
+      <div className="bg-yellow-200 pt-4 pb-4 relative overflow-visible">
         {/* Yellow curved background */}
         <div className="absolute top-0 left-0 right-0 h-10 bg-yellow-400 -z-10"></div>
         
         {/* Use the HeaderBar component */}
-        <HeaderBar />
+        <div className="relative overflow-visible">
+          <HeaderBar />
+        </div>
         
         {/* Search Bar */}
         <div className="px-4 mt-6">

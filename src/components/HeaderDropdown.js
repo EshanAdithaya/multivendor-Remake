@@ -23,6 +23,7 @@ const HeaderDropdown = ({
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [dropdownPosition, setDropdownPosition] = useState({ top: 120, left: '50%' });
   
   // Navigation
   const navigate = useNavigate();
@@ -93,10 +94,27 @@ const HeaderDropdown = ({
     }
   };
 
+  // Calculate dropdown position
+  const calculateDropdownPosition = () => {
+    if (dropdownButtonRef.current) {
+      const buttonRect = dropdownButtonRef.current.getBoundingClientRect();
+      const viewportWidth = window.innerWidth;
+      
+      // Always center horizontally on mobile
+      setDropdownPosition({
+        top: buttonRect.bottom + 8, // 8px below the button
+        left: '50%'
+      });
+    }
+  };
+
   // Handle opening the dropdown
   const handleOpenDropdown = (e) => {
     // Critical: Stop event propagation to prevent immediate closing
     e.stopPropagation();
+    
+    // Calculate position before opening
+    calculateDropdownPosition();
     
     // Only fetch items when opening the dropdown
     if (!isOpen) {
@@ -168,7 +186,7 @@ const HeaderDropdown = ({
   const itemsToDisplay = customData !== undefined ? customData : items;
 
   return (
-    <div className="relative">
+    <div className="relative overflow-visible">
       {/* Dropdown Trigger Button */}
       <div 
         ref={dropdownButtonRef}
@@ -193,7 +211,15 @@ const HeaderDropdown = ({
       {isOpen && (
         <div 
           ref={dropdownRef}
-          className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-64 bg-white rounded-lg shadow-lg z-50 border border-gray-200"
+          className="fixed bg-white rounded-lg shadow-xl border border-gray-200 w-64 max-w-[90vw] min-w-[250px]"
+          style={{
+            position: 'fixed',
+            zIndex: 9999,
+            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+            left: dropdownPosition.left,
+            top: dropdownPosition.top,
+            transform: 'translateX(-50%)'
+          }}
           onClick={(e) => e.stopPropagation()} // Critical: prevent clicks from bubbling
         >
           <div className="p-3 border-b border-gray-100">

@@ -30,7 +30,7 @@ export const HeaderBar = () => {
   }, [refreshCounts]);
 
   return (
-    <div className="flex justify-around px-2 -mt-3">
+    <div className="flex justify-around px-2 -mt-3 relative overflow-visible">
       <AddressDropdown />
       <WishlistDropdown />
       <OrdersDropdown />
