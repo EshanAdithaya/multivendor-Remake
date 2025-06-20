@@ -20,6 +20,8 @@ const ProductDetail = () => {
   const [isWishlistLoading, setIsWishlistLoading] = useState(false);
   const [isPopupMounted, setIsPopupMounted] = useState(false);
   const [isPopupVisible, setIsPopupVisible] = useState(false);
+  const [featuredProducts, setFeaturedProducts] = useState([]);
+  const [featuredLoading, setFeaturedLoading] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   const lottieContainer = useRef(null);
@@ -133,6 +135,39 @@ const ProductDetail = () => {
     
     fetchProduct();
   }, [location]);
+
+  // Fetch featured products
+  useEffect(() => {
+    const fetchFeaturedProducts = async () => {
+      if (!product) return;
+      
+      setFeaturedLoading(true);
+      try {
+        // Fetch products from the same category or shop
+        const categoryParam = product.category?.id ? `categoryId=${product.category.id}` : '';
+        const shopParam = product.__shop__?.id ? `shopId=${product.__shop__.id}` : '';
+        
+        // Prioritize same category, fallback to same shop
+        const queryParam = categoryParam || shopParam;
+        const response = await fetch(`${API_REACT_APP_BASE_URL}/api/products/get-all-with-filters?${queryParam}&limit=10`);
+        
+        if (response.ok) {
+          const data = await response.json();
+          // Filter out current product and only include products with variations
+          const filtered = data
+            .filter(p => p.id !== product.id && p.variations?.length > 0)
+            .slice(0, 8); // Limit to 8 products for better mobile experience
+          setFeaturedProducts(filtered);
+        }
+      } catch (error) {
+        console.error('Failed to fetch featured products:', error);
+      } finally {
+        setFeaturedLoading(false);
+      }
+    };
+
+    fetchFeaturedProducts();
+  }, [product]);
 
   // Check wishlist status when product is loaded
   useEffect(() => {
@@ -404,45 +439,148 @@ const ProductDetail = () => {
 
         <p className="text-gray-600">{product.description}</p>
 
-        {/* Modern Variations */}
+        {/* Enhanced Variations Selection */}
         {product.variations && product.variations.length > 0 && (
-          <div className="bg-white rounded-2xl p-4 shadow-lg border border-orange-100">
-            <h3 className="font-bold text-gray-800 mb-4 flex items-center">
-              🎁 Select Option
-            </h3>
+          <div className="bg-gradient-to-br from-orange-50 via-yellow-50 to-amber-50 rounded-2xl p-4 shadow-lg border-2 border-orange-200">
+            <div className="text-center mb-4">
+              <h3 className="text-lg font-bold bg-gradient-to-r from-orange-600 to-yellow-600 bg-clip-text text-transparent mb-2">
+                🎁 Choose Your Perfect Option
+              </h3>
+              <p className="text-sm text-gray-600">Select the variation that's best for your pet</p>
+            </div>
+            
             <div className="space-y-3">
-              {product.variations.map((variation) => (
-                <button
+              {product.variations.map((variation, index) => (
+                <div
                   key={variation.id}
-                  onClick={() => setSelectedVariation(variation)}
-                  className={`w-full p-4 rounded-2xl border-2 text-left transition-all duration-200 active:scale-98
+                  className={`relative overflow-hidden rounded-2xl border-2 transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] cursor-pointer
                     ${selectedVariation?.id === variation.id 
-                      ? 'border-orange-400 bg-gradient-to-r from-orange-50 to-yellow-50 shadow-md'
-                      : 'border-gray-200 hover:border-orange-300 bg-white hover:shadow-md'
+                      ? 'border-orange-400 bg-gradient-to-r from-orange-100 via-yellow-100 to-amber-100 shadow-lg scale-[1.02]'
+                      : 'border-orange-200 bg-white hover:border-orange-300 hover:shadow-md'
                     }`}
+                  onClick={() => setSelectedVariation(variation)}
                 >
-                  <div className="flex justify-between items-center">
-                    <div className="flex-1">
-                      <div className="font-bold text-gray-800 mb-1">{getVariationDisplayText(variation)}</div>
-                      <div className="text-sm text-gray-600 mb-1">
-                        🏷️ SKU: {variation.sku} • 📦 Stock: {variation.stockQuantity}
+                  {/* Selection Indicator */}
+                  {selectedVariation?.id === variation.id && (
+                    <div className="absolute top-3 right-3 w-6 h-6 bg-gradient-to-r from-orange-500 to-yellow-500 rounded-full flex items-center justify-center shadow-md">
+                      <div className="w-3 h-3 bg-white rounded-full"></div>
+                    </div>
+                  )}
+                  
+                  <div className="p-4">
+                    <div className="flex justify-between items-start mb-3">
+                      <div className="flex-1">
+                        {/* Main Variation Title */}
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className="text-xl">
+                            {variation.color ? '🎨' : variation.size ? '📏' : variation.flavour ? '🍖' : variation.fragrance ? '🌸' : '🐾'}
+                          </span>
+                          <h4 className="font-bold text-gray-900 text-base">
+                            {getVariationDisplayText(variation)}
+                          </h4>
+                        </div>
+                        
+                        {/* Variation Details Grid */}
+                        <div className="grid grid-cols-2 gap-2 mb-3">
+                          {variation.size && (
+                            <div className="flex items-center gap-1">
+                              <span className="text-xs">📏</span>
+                              <span className="text-xs font-medium text-gray-700">Size: {variation.size}</span>
+                            </div>
+                          )}
+                          {variation.weight && (
+                            <div className="flex items-center gap-1">
+                              <span className="text-xs">⚖️</span>
+                              <span className="text-xs font-medium text-gray-700">Weight: {variation.weight}g</span>
+                            </div>
+                          )}
+                          {variation.color && (
+                            <div className="flex items-center gap-1">
+                              <span className="text-xs">🎨</span>
+                              <span className="text-xs font-medium text-gray-700">Color: {variation.color}</span>
+                            </div>
+                          )}
+                          {variation.flavour && (
+                            <div className="flex items-center gap-1">
+                              <span className="text-xs">🍖</span>
+                              <span className="text-xs font-medium text-gray-700">Flavor: {variation.flavour}</span>
+                            </div>
+                          )}
+                          {variation.fragrance && (
+                            <div className="flex items-center gap-1">
+                              <span className="text-xs">🌸</span>
+                              <span className="text-xs font-medium text-gray-700">Scent: {variation.fragrance}</span>
+                            </div>
+                          )}
+                          {variation.capacity && (
+                            <div className="flex items-center gap-1">
+                              <span className="text-xs">🥤</span>
+                              <span className="text-xs font-medium text-gray-700">Capacity: {variation.capacity}</span>
+                            </div>
+                          )}
+                        </div>
+                        
+                        {/* Stock and SKU */}
+                        <div className="flex items-center gap-4">
+                          <div className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${
+                            variation.stockQuantity > 10 
+                              ? 'bg-green-100 text-green-700' 
+                              : variation.stockQuantity > 0 
+                                ? 'bg-yellow-100 text-yellow-700' 
+                                : 'bg-red-100 text-red-700'
+                          }`}>
+                            <span>📦</span>
+                            <span>
+                              {variation.stockQuantity > 10 
+                                ? 'In Stock' 
+                                : variation.stockQuantity > 0 
+                                  ? `Only ${variation.stockQuantity} left` 
+                                  : 'Out of Stock'
+                              }
+                            </span>
+                          </div>
+                          <span className="text-xs text-gray-500">SKU: {variation.sku}</span>
+                        </div>
                       </div>
-                      <div className="text-xs text-gray-500">
-                        {[
-                          variation.name && `Name: ${variation.name}`,
-                          variation.flavour && `Flavour: ${variation.flavour}`,
-                          variation.fragrance && `Fragrance: ${variation.fragrance}`,
-                          variation.capacity && `Capacity: ${variation.capacity}`
-                        ].filter(Boolean).join(' • ')}
+                      
+                      {/* Price Tag */}
+                      <div className="ml-3 flex-shrink-0">
+                        <div className={`px-4 py-3 rounded-xl font-bold text-white shadow-lg ${
+                          selectedVariation?.id === variation.id
+                            ? 'bg-gradient-to-r from-orange-500 to-yellow-500 scale-110'
+                            : 'bg-gradient-to-r from-gray-400 to-gray-500'
+                        } transition-all duration-300`}>
+                          <div className="text-center">
+                            <div className="text-lg">{formatPrice(variation.price)}</div>
+                            {variation.stockQuantity === 0 && (
+                              <div className="text-xs opacity-75">Unavailable</div>
+                            )}
+                          </div>
+                        </div>
                       </div>
                     </div>
-                    <div className="bg-gradient-to-r from-orange-500 to-yellow-500 text-white px-4 py-2 rounded-xl font-bold ml-2 shadow-md">
-                      {formatPrice(variation.price)}
-                    </div>
+                    
+                    {/* Selection Call to Action */}
+                    {selectedVariation?.id === variation.id && (
+                      <div className="mt-3 p-3 bg-white/80 rounded-xl border border-orange-200">
+                        <div className="flex items-center justify-center gap-2 text-orange-600">
+                          <span className="text-sm">✓</span>
+                          <span className="text-sm font-semibold">Perfect choice for your pet!</span>
+                          <span className="text-sm">🐾</span>
+                        </div>
+                      </div>
+                    )}
                   </div>
-                </button>
+                </div>
               ))}
             </div>
+            
+            {/* Selection Summary */}
+            {!selectedVariation && (
+              <div className="mt-4 p-3 bg-white/60 rounded-xl border border-orange-200 text-center">
+                <p className="text-sm text-gray-600">👆 Please select an option above to continue</p>
+              </div>
+            )}
           </div>
         )}
 
@@ -493,28 +631,144 @@ const ProductDetail = () => {
 
         {/* Shop Details */}
         {product.__shop__ && (
-          <div className="space-y-4 pt-4">
-            <div>
-              <span className="font-medium">Seller</span>
-              <div className="mt-2">
-                <span className="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-sm">
-                  {product.__shop__.name}
-                </span>
+          <div 
+            onClick={() => navigate(`/shopShow?token=${product.__shop__.id}`)}
+            className="bg-white rounded-2xl p-4 shadow-lg border border-orange-100 cursor-pointer hover:shadow-xl hover:scale-[1.01] active:scale-[0.99] transition-all duration-200 hover:border-orange-200"
+          >
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-sm font-bold bg-gradient-to-r from-orange-600 to-yellow-600 bg-clip-text text-transparent">
+                🏪 Sold by
+              </h3>
+              <ChevronRight className="w-4 h-4 text-orange-500" />
+            </div>
+            
+            <div className="flex items-center gap-3 mb-3">
+              {product.__shop__.logoUrl ? (
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-400 via-yellow-400 to-amber-400 p-0.5 shadow-md flex-shrink-0">
+                  <div className="w-full h-full rounded-xl bg-white flex items-center justify-center overflow-hidden">
+                    <img
+                      src={product.__shop__.logoUrl}
+                      alt={product.__shop__.name}
+                      className="w-6 h-6 object-contain"
+                      onError={(e) => {
+                        e.target.style.display = 'none';
+                        e.target.nextSibling.style.display = 'block';
+                      }}
+                    />
+                    <div className="text-lg" style={{ display: 'none' }}>🏪</div>
+                  </div>
+                </div>
+              ) : (
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-400 via-yellow-400 to-amber-400 flex items-center justify-center text-lg shadow-md flex-shrink-0">
+                  🏪
+                </div>
+              )}
+              
+              <div className="flex-1 min-w-0">
+                <h4 className="font-bold text-gray-900 text-base truncate">{product.__shop__.name}</h4>
+                <p className="text-xs text-gray-600 flex items-center gap-1">
+                  <span>📍</span>
+                  {product.__shop__.city && product.__shop__.state 
+                    ? `${product.__shop__.city}, ${product.__shop__.state}`
+                    : 'Location not specified'
+                  }
+                </p>
               </div>
             </div>
 
-            <div className="pb-6">
-              <h2 className="font-medium mb-2">Shop Details</h2>
-              <div className="text-gray-600 space-y-2">
-                <p>{product.__shop__.description}</p>
-                <p>{product.__shop__.address}</p>
-                <p>{product.__shop__.city}, {product.__shop__.state}</p>
-                <p>Contact: {product.__shop__.email}</p>
+            {product.__shop__.description && (
+              <div className="bg-gradient-to-r from-orange-50 to-yellow-50 rounded-xl p-3 border border-orange-100 mb-3">
+                <p className="text-gray-700 text-xs leading-relaxed line-clamp-2">{product.__shop__.description}</p>
+              </div>
+            )}
+
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-medium text-gray-600">Tap to visit shop</span>
+              <div className="px-3 py-1.5 bg-gradient-to-r from-orange-100 to-yellow-100 rounded-lg border border-orange-200">
+                <span className="text-xs font-bold text-orange-700">View Shop</span>
               </div>
             </div>
           </div>
         )}
       </div>
+
+      {/* Featured Products Section */}
+      {featuredProducts.length > 0 && (
+        <div className="px-4 mb-6">
+          <div className="bg-white rounded-2xl p-4 shadow-lg border border-orange-100">
+            <h3 className="text-base font-bold bg-gradient-to-r from-orange-600 to-yellow-600 bg-clip-text text-transparent mb-4 flex items-center gap-2">
+              ⭐ You might also like
+            </h3>
+            
+            {featuredLoading ? (
+              <div className="flex justify-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-2 border-orange-500 border-t-transparent"></div>
+              </div>
+            ) : (
+              <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
+                {featuredProducts.map((featuredProduct) => (
+                  <div key={featuredProduct.id} className="flex-shrink-0 w-36">
+                    <div 
+                      onClick={() => navigate(`/productDetails?key=${featuredProduct.id}`)}
+                      className="cursor-pointer"
+                    >
+                      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-md transition-all duration-200 hover:scale-[1.02]">
+                        {/* Product Image */}
+                        <div className="relative">
+                          <img
+                            src={featuredProduct.imageUrls?.[0] || '/api/placeholder/150/150'}
+                            alt={featuredProduct.name}
+                            className="w-full h-24 object-cover"
+                            onError={(e) => {
+                              e.target.onerror = null;
+                              e.target.src = '/api/placeholder/150/150';
+                            }}
+                          />
+                          {featuredProduct.__shop__ && (
+                            <div className="absolute top-1 right-1 bg-white/90 rounded-full p-1">
+                              <img
+                                src={featuredProduct.__shop__.logoUrl || '/api/placeholder/20/20'}
+                                alt={featuredProduct.__shop__.name}
+                                className="w-4 h-4 rounded-full object-cover"
+                                onError={(e) => {
+                                  e.target.style.display = 'none';
+                                }}
+                              />
+                            </div>
+                          )}
+                        </div>
+                        
+                        {/* Product Info */}
+                        <div className="p-2">
+                          <h4 className="text-xs font-medium text-gray-900 line-clamp-2 mb-1">
+                            {featuredProduct.name}
+                          </h4>
+                          
+                          {featuredProduct.variations && featuredProduct.variations.length > 0 && (
+                            <div className="text-xs font-bold text-orange-600">
+                              ${Math.min(...featuredProduct.variations.map(v => v.price)).toFixed(2)}
+                              {featuredProduct.variations.length > 1 && (
+                                <span className="text-gray-500 font-normal"> +</span>
+                              )}
+                            </div>
+                          )}
+                          
+                          {featuredProduct.__shop__ && (
+                            <p className="text-xs text-gray-500 truncate mt-1">
+                              {featuredProduct.__shop__.name}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       <div className="px-4 mb-20">
         <ProductReviews productId={product.id} />
       </div>

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MapPin, Phone, Mail, Globe, Star } from 'lucide-react';
+import { MapPin, Phone, Star } from 'lucide-react';
 import Header from '../components/Header';
 import ProductCard from '../components/ProductCard';
 import Lottie from 'react-lottie';
@@ -12,6 +12,9 @@ const API_REACT_APP_BASE_URL = process.env.REACT_APP_BASE_URL;
 const ShopDetails = () => {
   const [shop, setShop] = useState(null);
   const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [selectedCategory, setSelectedCategory] = useState('All');
+  const [filteredProducts, setFilteredProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
@@ -60,8 +63,13 @@ const ShopDetails = () => {
           __shop__: shopData
         }));
 
+        // Extract unique categories
+        const uniqueCategories = [...new Set(productsWithShop.map(product => product.category?.name).filter(Boolean))];
+        setCategories(['All', ...uniqueCategories]);
+
         setShop(shopData);
         setProducts(productsWithShop);
+        setFilteredProducts(productsWithShop);
       } catch (err) {
         setError(err.message);
       } finally {
@@ -70,6 +78,25 @@ const ShopDetails = () => {
     };
     fetchData();
   }, []);
+
+  // Filter products by category
+  const handleCategoryFilter = (category) => {
+    setSelectedCategory(category);
+    if (category === 'All') {
+      setFilteredProducts(products);
+    } else {
+      setFilteredProducts(products.filter(product => product.category?.name === category));
+    }
+  };
+
+  // Update filtered products when products change
+  useEffect(() => {
+    if (selectedCategory === 'All') {
+      setFilteredProducts(products);
+    } else {
+      setFilteredProducts(products.filter(product => product.category?.name === selectedCategory));
+    }
+  }, [products, selectedCategory]);
 
   const handleNavigateToProduct = (productId) => {
     navigate(`/productDetails?key=${productId}`);
@@ -98,7 +125,7 @@ const ShopDetails = () => {
   }
 
   // Count only products with variations
-  const validProductCount = products.filter(product => product.variations?.length > 0).length;
+  const validProductCount = filteredProducts.filter(product => product.variations?.length > 0).length;
 
   return (
     <main className="min-h-screen bg-gray-50">
@@ -128,86 +155,83 @@ const ShopDetails = () => {
         </div>
       </div>
 
-      {/* Shop Details */}
-      <div className="px-4 mt-16 sm:mt-20 space-y-4">
-        <div className="bg-white rounded-xl p-4 shadow-sm">
-          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2">
-            <h1 className="text-xl sm:text-2xl font-bold text-gray-900">{shop.name}</h1>
-            <div className="flex items-center gap-1">
-              <Star className="w-4 h-4 sm:w-5 sm:h-5 fill-yellow-400 text-yellow-400" />
-              <span className="text-base sm:text-lg font-semibold">{shop.rating || 0}</span>
-              <span className="text-sm text-gray-500">({shop.totalReviews || 0})</span>
+      {/* Compact Shop Header */}
+      <div className="px-4 mt-16 sm:mt-20">
+        <div className="bg-white rounded-xl p-3 shadow-md border border-orange-100 mb-4">
+          <div className="flex items-center justify-between mb-2">
+            <h1 className="text-base font-bold bg-gradient-to-r from-orange-600 to-yellow-600 bg-clip-text text-transparent">
+              🏪 {shop.name}
+            </h1>
+            <div className="flex items-center gap-1 bg-yellow-100 px-2 py-1 rounded-md">
+              <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+              <span className="text-xs font-bold">{shop.rating || 0}</span>
+              <span className="text-xs text-gray-500">({shop.totalReviews || 0})</span>
             </div>
           </div>
-
-          <p className="text-gray-600 mt-2">{shop.description}</p>
-
-          <div className="mt-4 space-y-2">
-            <div className="flex items-start gap-2">
-              <MapPin className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400 flex-shrink-0 mt-1" />
-              <p className="text-gray-600">
-                {`${shop.streetAddress}, ${shop.city}, ${shop.state}, ${shop.zip}`}
-              </p>
+          
+          {/* Compact Info Row */}
+          <div className="flex items-center gap-4 text-xs text-gray-600 overflow-x-auto">
+            <div className="flex items-center gap-1 flex-shrink-0">
+              <MapPin className="w-3 h-3" />
+              <span>{shop.city}, {shop.state}</span>
             </div>
-
             {shop.phoneNumber && (
-              <div className="flex items-center gap-2">
-                <Phone className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400" />
-                <a href={`tel:${shop.phoneNumber}`} className="text-gray-600">
-                  {shop.phoneNumber}
-                </a>
+              <div className="flex items-center gap-1 flex-shrink-0">
+                <Phone className="w-3 h-3" />
+                <span>{shop.phoneNumber}</span>
               </div>
             )}
-
-            {shop.email && (
-              <div className="flex items-center gap-2">
-                <Mail className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400" />
-                <a href={`mailto:${shop.email}`} className="text-gray-600 break-all">
-                  {shop.email}
-                </a>
+            <div className="flex items-center gap-3 flex-shrink-0">
+              <div className="flex items-center gap-1">
+                <span>🛍️</span>
+                <span className="font-medium">{validProductCount}</span>
               </div>
-            )}
-
-            {shop.website && (
-              <div className="flex items-center gap-2">
-                <Globe className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400" />
-                <a href={shop.website} target="_blank" rel="noopener noreferrer" 
-                   className="text-blue-600 break-all">
-                  Visit Website
-                </a>
-              </div>
-            )}
-          </div>
-
-          <div className="mt-4 sm:mt-6">
-            <h2 className="text-lg sm:text-xl font-semibold mb-3">Shop Statistics</h2>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="bg-gray-50 p-3 rounded-lg">
-                <p className="text-xs sm:text-sm text-gray-500">Products</p>
-                <p className="text-lg sm:text-2xl font-bold text-gray-900">{validProductCount}</p>
-              </div>
-              <div className="bg-gray-50 p-3 rounded-lg">
-                <p className="text-xs sm:text-sm text-gray-500">Reviews</p>
-                <p className="text-lg sm:text-2xl font-bold text-gray-900">{shop.totalReviews || 0}</p>
+              <div className="flex items-center gap-1">
+                <span>⭐</span>
+                <span className="font-medium">{shop.totalReviews || 0}</span>
               </div>
             </div>
           </div>
         </div>
 
+        {/* Category Filter */}
+        {categories.length > 1 && (
+          <div className="mb-4">
+            <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+              {categories.map((category) => (
+                <button
+                  key={category}
+                  onClick={() => handleCategoryFilter(category)}
+                  className={`flex-shrink-0 px-4 py-2 rounded-full text-xs font-medium transition-all duration-200 ${
+                    selectedCategory === category
+                      ? 'bg-gradient-to-r from-orange-500 to-yellow-500 text-white shadow-md'
+                      : 'bg-white text-gray-600 border border-orange-200 hover:border-orange-300 hover:bg-orange-50'
+                  }`}
+                >
+                  {category}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Products Section */}
         <div className="mb-20">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-lg font-bold text-gray-900">Products ({validProductCount})</h2>
+          <div className="flex justify-between items-center mb-3">
+            <h2 className="text-base font-bold bg-gradient-to-r from-orange-600 to-yellow-600 bg-clip-text text-transparent">
+              🛒 Products ({validProductCount})
+            </h2>
           </div>
 
           {validProductCount === 0 ? (
-            <div className="flex flex-col items-center justify-center py-8">
-              <Lottie options={notFoundOptions} height={150} width={150} />
-              <p className="text-gray-500 mt-4">No products available</p>
+            <div className="flex flex-col items-center justify-center py-12 bg-white rounded-xl">
+              <Lottie options={notFoundOptions} height={100} width={100} />
+              <p className="text-gray-500 mt-3 font-medium text-sm">No products found 🐾</p>
+              <p className="text-gray-400 text-xs mt-1">Try a different category!</p>
             </div>
           ) : (
-            <div className="grid grid-cols-2 gap-3">
-              {products.map((product) => (
+            <div className="grid grid-cols-3 gap-2">
+              {filteredProducts.filter(product => product.variations?.length > 0).map((product) => (
                 <ProductCard
                   key={product.id}
                   product={product}
