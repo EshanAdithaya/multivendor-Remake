@@ -94,16 +94,73 @@ const HeaderDropdown = ({
     }
   };
 
-  // Calculate dropdown position
+  // Calculate dropdown position dynamically based on type
   const calculateDropdownPosition = () => {
     if (dropdownButtonRef.current) {
       const buttonRect = dropdownButtonRef.current.getBoundingClientRect();
       const viewportWidth = window.innerWidth;
       
-      // Always center horizontally on mobile
+      // Dynamic positioning based on dropdown type
+      let leftPosition = '50%';
+      let topOffset = 8;
+      
+      // Adjust position based on type to avoid overlap
+      switch(type) {
+        case 'address':
+          leftPosition = '25%'; // Position left
+          break;
+        case 'wishlist':
+          leftPosition = '40%'; // Slightly left of center
+          break;
+        case 'cart':
+          leftPosition = '60%'; // Slightly right of center
+          break;
+        case 'orders':
+          leftPosition = '75%'; // Position right
+          break;
+        default:
+          leftPosition = '50%'; // Center for other types
+      }
+      
+      // Ensure popup doesn't go off-screen on mobile
+      if (viewportWidth < 768) {
+        const dropdownWidth = 250; // Approximate dropdown width
+        const buttonCenter = buttonRect.left + buttonRect.width / 2;
+        
+        // Calculate actual left position as pixels
+        let actualLeft;
+        switch(leftPosition) {
+          case '25%':
+            actualLeft = buttonCenter - dropdownWidth * 0.75;
+            break;
+          case '40%':
+            actualLeft = buttonCenter - dropdownWidth * 0.6;
+            break;
+          case '60%':
+            actualLeft = buttonCenter - dropdownWidth * 0.4;
+            break;
+          case '75%':
+            actualLeft = buttonCenter - dropdownWidth * 0.25;
+            break;
+          default:
+            actualLeft = buttonCenter - dropdownWidth * 0.5;
+        }
+        
+        // Prevent overflow on left side
+        if (actualLeft < 10) {
+          leftPosition = '10px';
+        }
+        // Prevent overflow on right side
+        else if (actualLeft + dropdownWidth > viewportWidth - 10) {
+          leftPosition = `${viewportWidth - dropdownWidth - 10}px`;
+        } else {
+          leftPosition = `${actualLeft}px`;
+        }
+      }
+      
       setDropdownPosition({
-        top: buttonRect.bottom + 8, // 8px below the button
-        left: '50%'
+        top: buttonRect.bottom + topOffset,
+        left: leftPosition
       });
     }
   };
@@ -218,7 +275,7 @@ const HeaderDropdown = ({
             boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
             left: dropdownPosition.left,
             top: dropdownPosition.top,
-            transform: 'translateX(-50%)'
+            transform: dropdownPosition.left.includes('px') ? 'none' : 'translateX(-50%)'
           }}
           onClick={(e) => e.stopPropagation()} // Critical: prevent clicks from bubbling
         >
