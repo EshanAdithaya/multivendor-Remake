@@ -284,14 +284,14 @@ const LandingPage = () => {
           const foodTagIds = ["fc475d04-482c-446e-9aca-492f9d05578c", "dd17fcb9-ae43-4fae-a2fe-122a4269bd19", "16dbfff8-cb64-4013-acbf-d1e278f31513"];
           const foodProductsList = allProducts.filter(product => 
             product.productTag.some(tag => foodTagIds.includes(tag.id))
-          ).slice(0, 6); // Limit to 6 products
+          ).slice(0, 10); // Increased to 10 products
           setFoodProducts(foodProductsList);
           
-          // Get latest products (sort by createdAt and take first 6)
+          // Get latest products (sort by createdAt and take first 10)
           const sortedByDate = [...allProducts].sort((a, b) => 
             new Date(b.createdAt) - new Date(a.createdAt)
           );
-          setLatestProducts(sortedByDate.slice(0, 6));
+          setLatestProducts(sortedByDate.slice(0, 10));
           
           // Filter toy products (products tagged with "pet toy" or in "Pet Toys" category)
           const toyTagId = "c184c759-ccc8-433e-91de-f51cb672c082";
@@ -299,11 +299,11 @@ const LandingPage = () => {
           const toyProductsList = allProducts.filter(product => 
             product.productTag.some(tag => tag.id === toyTagId) || 
             product.category.id === petToysCategoryId
-          ).slice(0, 6); // Limit to 6 products
+          ).slice(0, 10); // Increased to 10 products
           setToyProducts(toyProductsList);
           
           // Check wishlist status for all products
-          const allProductsList = [...foodProductsList, ...sortedByDate.slice(0, 6), ...toyProductsList];
+          const allProductsList = [...foodProductsList, ...sortedByDate.slice(0, 10), ...toyProductsList];
           checkWishlistStatus(allProductsList);
         }
       } catch (error) {
@@ -356,47 +356,40 @@ const LandingPage = () => {
     return () => clearInterval(interval);
   }, [carouselImages.length]);
   
-  // Footer auto-hide effect
+  // Smooth scroll to load more products when near bottom
   useEffect(() => {
     let scrollTimeout;
-    let touchEndTimeout;
     
     const isNearBottom = () => {
       const windowHeight = window.innerHeight;
       const documentHeight = document.documentElement.scrollHeight;
       const scrollTop = window.scrollY || document.documentElement.scrollTop;
       
-      // Check if we're within 50px of the bottom
-      return documentHeight - (scrollTop + windowHeight) < 50;
+      // Check if we're within 100px of the bottom
+      return documentHeight - (scrollTop + windowHeight) < 100;
     };
 
-    const handleAutoScroll = () => {
-      if (isNearBottom() && footerRef.current) {
+    const handleScrollToLoadMore = () => {
+      if (isNearBottom() && !loading) {
+        // Show visual feedback that we're at the bottom
         setIsAtBottom(true);
         
-        // Calculate a position that will hide the footer completely
-        const footerHeight = footerRef.current.offsetHeight;
-        const viewportHeight = window.innerHeight;
-        const documentHeight = document.documentElement.scrollHeight;
-        
-        // Position to scroll to - hide the footer
-        const scrollTarget = Math.max(
-          window.scrollY - footerHeight - 20, // Target position that hides footer
-          documentHeight - viewportHeight - footerHeight - 50 // Ensure we don't scroll too far up
-        );
-        
-        // Add a slight delay so user notices the footer first
-        setTimeout(() => {
+        // Auto-scroll to show the last section more clearly
+        const lastProductSection = document.querySelector('[data-section="toy-products"]');
+        if (lastProductSection) {
+          const sectionTop = lastProductSection.getBoundingClientRect().top + window.pageYOffset;
+          const targetPosition = sectionTop - 100; // Show section with some padding
+          
           window.scrollTo({
-            top: scrollTarget,
+            top: targetPosition,
             behavior: 'smooth'
           });
           
-          // Reset the flag after the animation completes
+          // Reset the flag after scroll completes
           setTimeout(() => {
             setIsAtBottom(false);
           }, 800);
-        }, 300);
+        }
       }
     };
     
@@ -408,32 +401,21 @@ const LandingPage = () => {
       
       // Set a new timeout to check if scrolling has stopped
       scrollTimeout = setTimeout(() => {
-        handleAutoScroll();
+        handleScrollToLoadMore();
       }, 150); // Wait 150ms after scrolling stops
     };
     
-    const handleTouchEnd = () => {
-      // For mobile devices, check after touch ends
-      touchEndTimeout = setTimeout(handleAutoScroll, 100);
-    };
-    
-    // Add event listeners
+    // Add event listener
     window.addEventListener('scroll', handleScroll);
-    window.addEventListener('touchend', handleTouchEnd);
     
     return () => {
       window.removeEventListener('scroll', handleScroll);
-      window.removeEventListener('touchend', handleTouchEnd);
       
       if (scrollTimeout) {
         clearTimeout(scrollTimeout);
       }
-      
-      if (touchEndTimeout) {
-        clearTimeout(touchEndTimeout);
-      }
     };
-  }, []);
+  }, [loading]);
 
   const handleStoreClick = (storeId) => {
     navigate(`/store/${storeId}`);
@@ -664,7 +646,7 @@ const LandingPage = () => {
       </div>
       
       {/* Playtime Starts Here - Toy Products */}
-      <div className="mt-4">
+      <div className="mt-4" data-section="toy-products">
         <SectionHeader 
           title="Playtime Starts Here 🎾" 
           onSeeAll={() => navigate('/category/pet-toys')}
@@ -697,12 +679,28 @@ const LandingPage = () => {
       {/* Footer */}
       <div 
         ref={footerRef}
-        className={`mt-8 px-4 pb-10 text-center text-xs text-gray-500 transition-all duration-300 ${
-          isAtBottom ? 'footer-hide-animation' : ''
+        className={`mt-8 px-4 pb-10 text-center transition-all duration-300 ${
+          isAtBottom ? 'transform scale-105' : ''
         }`}
       >
-        <p>We've got you covered for now.</p>
-        <p className="mt-1">Stay tuned for more updates</p>
+        <div className="bg-gradient-to-r from-yellow-100 to-orange-100 rounded-lg p-4 shadow-sm">
+          <p className="text-sm font-medium text-gray-700">🐾 You've explored all our featured collections!</p>
+          <p className="mt-2 text-xs text-gray-600">Find more amazing products in our categories above</p>
+          <div className="mt-3 flex justify-center space-x-2">
+            <button 
+              onClick={() => navigate('/category')}
+              className="px-3 py-1 bg-yellow-400 text-white text-xs rounded-full hover:bg-yellow-500 transition-colors"
+            >
+              Browse All
+            </button>
+            <button 
+              onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+              className="px-3 py-1 bg-gray-300 text-gray-700 text-xs rounded-full hover:bg-gray-400 transition-colors"
+            >
+              Back to Top
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );
