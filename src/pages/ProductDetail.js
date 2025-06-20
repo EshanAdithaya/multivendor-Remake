@@ -404,26 +404,28 @@ const ProductDetail = () => {
 
         <p className="text-gray-600">{product.description}</p>
 
-        {/* Variations */}
+        {/* Modern Variations */}
         {product.variations && product.variations.length > 0 && (
-          <div className="space-y-2">
-            <h3 className="font-medium">Select Option</h3>
-            <div className="space-y-2">
+          <div className="bg-white rounded-2xl p-4 shadow-lg border border-orange-100">
+            <h3 className="font-bold text-gray-800 mb-4 flex items-center">
+              🎁 Select Option
+            </h3>
+            <div className="space-y-3">
               {product.variations.map((variation) => (
                 <button
                   key={variation.id}
                   onClick={() => setSelectedVariation(variation)}
-                  className={`w-full p-3 rounded-lg border text-left
+                  className={`w-full p-4 rounded-2xl border-2 text-left transition-all duration-200 active:scale-98
                     ${selectedVariation?.id === variation.id 
-                      ? 'border-yellow-400 bg-yellow-50'
-                      : 'border-gray-200 hover:border-yellow-400'
+                      ? 'border-orange-400 bg-gradient-to-r from-orange-50 to-yellow-50 shadow-md'
+                      : 'border-gray-200 hover:border-orange-300 bg-white hover:shadow-md'
                     }`}
                 >
                   <div className="flex justify-between items-center">
                     <div className="flex-1">
-                      <div className="font-medium">{getVariationDisplayText(variation)}</div>
-                      <div className="text-sm text-gray-500">
-                        SKU: {variation.sku} • Stock: {variation.stockQuantity}
+                      <div className="font-bold text-gray-800 mb-1">{getVariationDisplayText(variation)}</div>
+                      <div className="text-sm text-gray-600 mb-1">
+                        🏷️ SKU: {variation.sku} • 📦 Stock: {variation.stockQuantity}
                       </div>
                       <div className="text-xs text-gray-500">
                         {[
@@ -434,7 +436,7 @@ const ProductDetail = () => {
                         ].filter(Boolean).join(' • ')}
                       </div>
                     </div>
-                    <div className="text-yellow-500 font-bold ml-2">
+                    <div className="bg-gradient-to-r from-orange-500 to-yellow-500 text-white px-4 py-2 rounded-xl font-bold ml-2 shadow-md">
                       {formatPrice(variation.price)}
                     </div>
                   </div>

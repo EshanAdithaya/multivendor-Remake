@@ -551,12 +551,17 @@ const handleStripeCheckout = async () => {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Lottie
-          animationData={loadingAnimation}
-          loop={true}
-          style={{ width: 200, height: 200 }}
-        />
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-orange-50 via-white to-yellow-50">
+        <div className="text-center">
+          <div className="bg-white rounded-3xl p-8 shadow-lg border border-orange-200">
+            <Lottie
+              animationData={loadingAnimation}
+              loop={true}
+              style={{ width: 200, height: 200 }}
+            />
+            <p className="text-gray-600 font-medium mt-4">🛒 Loading checkout...</p>
+          </div>
+        </div>
       </div>
     );
   }
@@ -564,51 +569,65 @@ const handleStripeCheckout = async () => {
   const orderSummary = calculateTotal();
 
   return (
-    <div className="flex flex-col h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white p-4 border-b flex items-center gap-4">
-        <button onClick={() => navigate(-1)} className="p-2 hover:bg-gray-100 rounded-full">
-          <ChevronLeft className="w-6 h-6" />
+    <div className="flex flex-col h-screen bg-gradient-to-br from-orange-50 via-white to-yellow-50">
+      {/* Modern Header */}
+      <div className="bg-gradient-to-r from-orange-400 via-yellow-400 to-amber-400 p-4 border-b shadow-lg flex items-center gap-4">
+        <button onClick={() => navigate(-1)} className="p-2 hover:bg-white/20 rounded-xl transition-all duration-200 active:scale-95">
+          <ChevronLeft className="w-6 h-6 text-white" />
         </button>
-        <h1 className="text-xl font-semibold">Checkout</h1>
+        <h1 className="text-xl font-bold text-white drop-shadow-sm">🛒 Checkout</h1>
       </div>
 
-      {/* Error message */}
+      {/* Modern Error message */}
       {error && (
-        <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mx-4 my-2">
-          <p>{error}</p>
-          <button 
-            className="text-sm underline mt-1" 
-            onClick={() => setError(null)}
-          >
-            Dismiss
-          </button>
+        <div className="bg-red-50 border-2 border-red-200 text-red-700 p-4 mx-4 my-2 rounded-2xl shadow-md">
+          <div className="flex items-start gap-2">
+            <span className="text-xl">⚠️</span>
+            <div className="flex-1">
+              <p className="font-medium">{error}</p>
+              <button 
+                className="text-sm bg-red-200 hover:bg-red-300 px-3 py-1 rounded-lg mt-2 transition-colors duration-200" 
+                onClick={() => setError(null)}
+              >
+                Dismiss
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
       {/* Scrollable Content */}
       <div className="flex-1 overflow-y-auto pb-24">
         <div className="max-w-lg mx-auto p-4 space-y-6">
-          {/* Cart Items */}
-          <div className="bg-white rounded-xl p-4 shadow-sm">
-            <div className="flex items-center gap-2 mb-4">
-              <ShoppingBag className="w-5 h-5 text-yellow-600" />
-              <h2 className="font-semibold">Your Items</h2>
+          {/* Modern Cart Items */}
+          <div className="bg-white rounded-3xl p-6 shadow-xl border-2 border-orange-100">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="bg-gradient-to-r from-orange-100 to-yellow-100 p-3 rounded-2xl">
+                <ShoppingBag className="w-5 h-5 text-orange-600" />
+              </div>
+              <h2 className="font-bold text-gray-800">🛒 Your Items</h2>
             </div>
             
             {carts.length === 0 ? (
-              <div className="text-center py-4 text-gray-500">Your cart is empty</div>
+              <div className="text-center py-8 text-gray-500">
+                <div className="text-6xl mb-4">🛒</div>
+                <p className="font-medium">Your cart is empty</p>
+              </div>
             ) : (
               carts.map((cart) => (
-                <div key={cart.id} className="mb-4">
-                  <div className="font-medium text-gray-700 mb-2">{cart.shop.name}</div>
+                <div key={cart.id} className="mb-6">
+                  <div className="bg-gradient-to-r from-orange-100 to-yellow-100 p-4 rounded-2xl mb-3 border border-orange-200">
+                    <div className="font-bold text-orange-800 flex items-center">
+                      🏪 {cart.shop.name}
+                    </div>
+                  </div>
                   {cart.cartItems.map((item) => (
-                    <div key={item.id} className="flex justify-between items-center p-2 bg-gray-50 rounded mb-2">
+                    <div key={item.id} className="flex justify-between items-center p-4 bg-gradient-to-r from-orange-50 to-yellow-50 rounded-2xl mb-3 border border-orange-200">
                       <div>
-                        <div className="font-medium">{item.productVariation.material}</div>
-                        <div className="text-sm text-gray-500">Quantity: {item.quantity}</div>
+                        <div className="font-bold text-gray-800">🐾 {item.productVariation.material}</div>
+                        <div className="text-sm text-gray-600">📦 Quantity: <span className="font-medium">{item.quantity}</span></div>
                       </div>
-                      <div className="text-yellow-600">${Number(item.price).toFixed(2)}</div>
+                      <div className="bg-gradient-to-r from-orange-500 to-yellow-500 text-white px-4 py-2 rounded-xl font-bold shadow-md">${Number(item.price).toFixed(2)}</div>
                     </div>
                   ))}
                 </div>
@@ -616,174 +635,190 @@ const handleStripeCheckout = async () => {
             )}
           </div>
 
-          {/* Delivery Address */}
-          <div className="bg-white rounded-xl p-4 shadow-sm">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
-                <MapPin className="w-5 h-5 text-yellow-600" />
-                <h2 className="font-semibold">Delivery Address</h2>
+          {/* Modern Delivery Address */}
+          <div className="bg-white rounded-3xl p-6 shadow-xl border-2 border-orange-100">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-3">
+                <div className="bg-gradient-to-r from-orange-100 to-yellow-100 p-3 rounded-2xl">
+                  <MapPin className="w-5 h-5 text-orange-600" />
+                </div>
+                <h2 className="font-bold text-gray-800">📦 Delivery Address</h2>
               </div>
-              <button className="text-yellow-600">
-                <a href='/address'> <Plus className="w-5 h-5" /> </a>
-              </button>
+              <a href='/address' className="bg-gradient-to-r from-orange-500 to-yellow-500 text-white p-3 rounded-2xl hover:from-orange-600 hover:to-yellow-600 transition-all duration-200 active:scale-95 shadow-lg">
+                <Plus className="w-5 h-5" />
+              </a>
             </div>
             
-            <div className="space-y-3">
+            <div className="space-y-4">
               {addresses.length === 0 ? (
-                <div className="text-center py-4 text-gray-500">
-                  <p>No addresses found.</p>
+                <div className="text-center py-8 text-gray-500">
+                  <div className="text-6xl mb-4">🏠</div>
+                  <p className="font-medium mb-4">No addresses found.</p>
                   <a 
                     href="/address" 
-                    className="text-yellow-600 underline block mt-2"
+                    className="inline-block bg-gradient-to-r from-orange-500 to-yellow-500 text-white px-6 py-3 rounded-2xl font-bold hover:from-orange-600 hover:to-yellow-600 transition-all duration-200 active:scale-95 shadow-lg"
                   >
-                    Add a new address
+                    🏠 Add a new address
                   </a>
                 </div>
               ) : (
                 addresses.map((addr) => (
                   <div
                     key={addr.id}
-                    className={`p-3 rounded-lg border-2 cursor-pointer transition-colors ${
+                    className={`p-4 rounded-2xl border-2 cursor-pointer transition-all duration-200 active:scale-98 ${
                       selectedAddress === addr.id
-                        ? 'border-yellow-400 bg-yellow-50'
-                        : 'border-gray-100'
+                        ? 'border-orange-400 bg-gradient-to-r from-orange-50 to-yellow-50 shadow-md'
+                        : 'border-gray-200 hover:border-orange-300 bg-white hover:shadow-md'
                     }`}
                     onClick={() => setSelectedAddress(addr.id)}
                   >
                     <div className="flex items-center justify-between">
-                      <span className="font-medium">{addr.city}</span>
+                      <span className="font-bold text-gray-800">🏠 {addr.city}</span>
                     </div>
-                    <p className="text-gray-600 mt-1">{addr.street}</p>
-                    <p className="text-gray-500 text-sm">{addr.state}, {addr.postalCode}</p>
+                    <p className="text-gray-600 mt-2">📍 {addr.street}</p>
+                    <p className="text-gray-500 text-sm mt-1">{addr.state}, {addr.postalCode}</p>
                   </div>
                 ))
               )}
             </div>
           </div>
 
-          {/* Payment Method */}
-          <div className="bg-white rounded-xl p-4 shadow-sm">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
-                <CreditCard className="w-5 h-5 text-yellow-600" />
-                <h2 className="font-semibold">Payment Method</h2>
+          {/* Modern Payment Method */}
+          <div className="bg-white rounded-3xl p-6 shadow-xl border-2 border-orange-100">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-3">
+                <div className="bg-gradient-to-r from-orange-100 to-yellow-100 p-3 rounded-2xl">
+                  <CreditCard className="w-5 h-5 text-orange-600" />
+                </div>
+                <h2 className="font-bold text-gray-800">💳 Payment Method</h2>
               </div>
             </div>
 
-            <div className="space-y-3">
+            <div className="space-y-4">
               {paymentMethods.map((method) => (
                 <div
                   key={method.id}
-                  className={`p-3 rounded-lg border-2 transition-colors ${
+                  className={`p-4 rounded-2xl border-2 transition-all duration-200 ${
                     selectedPayment === method.id
-                      ? 'border-yellow-400 bg-yellow-50'
-                      : 'border-gray-100'
-                  } ${method.disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                      ? 'border-orange-400 bg-gradient-to-r from-orange-50 to-yellow-50 shadow-md'
+                      : 'border-gray-200 hover:border-orange-300 bg-white'
+                  } ${method.disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:shadow-md active:scale-98'}`}
                   onClick={() => !method.disabled && setSelectedPayment(method.id)}
                 >
                   <div className="flex items-center justify-between">
-                    <span className="font-medium">{method.type}</span>
-                    {method.disabled && <span className="text-xs text-red-500">Unavailable</span>}
+                    <span className="font-bold text-gray-800">💳 {method.type}</span>
+                    {method.disabled && <span className="text-xs bg-red-100 text-red-600 px-2 py-1 rounded-lg font-medium">Unavailable</span>}
                   </div>
-                  <p className="text-gray-600 mt-1">{method.details}</p>
+                  <p className="text-gray-600 mt-2">{method.details}</p>
                 </div>
               ))}
             </div>
           </div>
 
-          {/* Coupon Section */}
-          <div className="bg-white rounded-xl p-4 shadow-sm">
-            <div className="flex items-center gap-2 mb-4">
-              <Tag className="w-5 h-5 text-yellow-600" />
-              <h2 className="font-semibold">Apply Coupon</h2>
+          {/* Modern Coupon Section */}
+          <div className="bg-white rounded-3xl p-6 shadow-xl border-2 border-orange-100">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="bg-gradient-to-r from-orange-100 to-yellow-100 p-3 rounded-2xl">
+                <Tag className="w-5 h-5 text-orange-600" />
+              </div>
+              <h2 className="font-bold text-gray-800">🏷️ Apply Coupon</h2>
             </div>
             
             {appliedCoupon ? (
-              <div className="flex items-center justify-between bg-green-50 p-3 rounded-lg">
+              <div className="flex items-center justify-between bg-gradient-to-r from-green-100 to-emerald-100 p-4 rounded-2xl border-2 border-green-200">
                 <div>
-                  <p className="font-medium text-green-700">{appliedCoupon.code}</p>
-                  <p className="text-sm text-green-600">
+                  <p className="font-bold text-green-800 flex items-center">🎉 {appliedCoupon.code}</p>
+                  <p className="text-sm text-green-700 mt-1">
                     {appliedCoupon.type === 'fixed' 
-                      ? `$${appliedCoupon.value} off` 
-                      : `${appliedCoupon.value}% off`}
+                      ? `💰 $${appliedCoupon.value} off` 
+                      : `📉 ${appliedCoupon.value}% off`}
                   </p>
                 </div>
                 <button 
                   onClick={removeCoupon}
-                  className="text-red-500 text-sm hover:text-red-700"
+                  className="bg-red-100 hover:bg-red-200 text-red-600 px-4 py-2 rounded-xl text-sm font-medium transition-colors duration-200"
                 >
-                  Remove
+                  🗑️ Remove
                 </button>
               </div>
             ) : (
-              <div className="space-y-2">
-                <div className="flex gap-2">
+              <div className="space-y-3">
+                <div className="flex gap-3">
                   <input
                     type="text"
                     value={couponCode}
                     onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
-                    placeholder="Enter coupon code"
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
+                    placeholder="🏷️ Enter coupon code"
+                    className="flex-1 px-4 py-3 border-2 border-orange-200 rounded-2xl focus:ring-2 focus:ring-orange-400 focus:border-orange-400 transition-all duration-200"
                   />
                   <button
                     onClick={handleApplyCoupon}
-                    className="px-4 py-2 bg-yellow-400 text-white rounded-lg hover:bg-yellow-500"
+                    className="px-6 py-3 bg-gradient-to-r from-orange-500 to-yellow-500 text-white rounded-2xl hover:from-orange-600 hover:to-yellow-600 font-bold transition-all duration-200 active:scale-95 shadow-lg"
                   >
                     Apply
                   </button>
                 </div>
                 {couponError && (
-                  <p className="text-red-500 text-sm">{couponError}</p>
+                  <p className="text-red-600 text-sm bg-red-50 p-3 rounded-xl border border-red-200">⚠️ {couponError}</p>
                 )}
               </div>
             )}
           </div>
 
-          {/* Order Summary */}
-          <div className="bg-white rounded-xl p-4 shadow-sm">
-            <h2 className="font-semibold mb-4">Order Summary</h2>
-            <div className="space-y-2">
-              <div className="flex justify-between text-gray-600">
-                <span>Subtotal</span>
-                <span>${orderSummary.subtotal.toFixed(2)}</span>
+          {/* Modern Order Summary */}
+          <div className="bg-white rounded-3xl p-6 shadow-xl border-2 border-orange-100">
+            <h2 className="font-bold text-gray-800 mb-6 flex items-center">
+              🧾 Order Summary
+            </h2>
+            <div className="space-y-4">
+              <div className="flex justify-between text-gray-600 bg-gray-50 p-3 rounded-xl">
+                <span>💰 Subtotal</span>
+                <span className="font-semibold">${orderSummary.subtotal.toFixed(2)}</span>
               </div>
-              <div className="flex justify-between text-gray-600">
-                <span>Delivery Fee</span>
-                <span>${orderSummary.delivery.toFixed(2)}</span>
+              <div className="flex justify-between text-gray-600 bg-gray-50 p-3 rounded-xl">
+                <span>🚚 Delivery Fee</span>
+                <span className="font-semibold">${orderSummary.delivery.toFixed(2)}</span>
               </div>
-              <div className="flex justify-between text-gray-600">
-                <span>Tax</span>
-                <span>${orderSummary.tax.toFixed(2)}</span>
+              <div className="flex justify-between text-gray-600 bg-gray-50 p-3 rounded-xl">
+                <span>📄 Tax</span>
+                <span className="font-semibold">${orderSummary.tax.toFixed(2)}</span>
               </div>
               {orderSummary.discount > 0 && (
-                <div className="flex justify-between text-green-600">
-                  <span>Discount</span>
-                  <span>-${orderSummary.discount.toFixed(2)}</span>
+                <div className="flex justify-between text-green-600 bg-green-50 p-3 rounded-xl border border-green-200">
+                  <span>🎉 Discount</span>
+                  <span className="font-bold">-${orderSummary.discount.toFixed(2)}</span>
                 </div>
               )}
-              <div className="flex justify-between font-semibold text-lg pt-2 border-t">
-                <span>Total</span>
-                <span>${orderSummary.total.toFixed(2)}</span>
+              <div className="flex justify-between font-bold text-xl pt-4 border-t-2 border-orange-200 bg-gradient-to-r from-orange-100 to-yellow-100 p-4 rounded-2xl">
+                <span className="text-gray-800">💳 Total</span>
+                <span className="text-orange-600">${orderSummary.total.toFixed(2)}</span>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Place Order Button */}
+      {/* Modern Place Order Button */}
       <div className="fixed bottom-0 left-0 right-0 z-50">
-        <div className="bg-white border-t p-4">
+        <div className="bg-gradient-to-r from-orange-400 via-yellow-400 to-amber-400 border-t-2 border-orange-300 p-4 shadow-lg">
           <button 
             onClick={handlePlaceOrder}
             disabled={!selectedAddress || orderSummary.subtotal <= 0 || isProcessing} 
-            className={`w-full py-4 rounded-full flex items-center justify-between px-6 
-                      ${isProcessing ? 'bg-gray-400' : 'bg-yellow-400'} 
-                      text-white disabled:opacity-50`}
+            className={`w-full py-4 rounded-2xl flex items-center justify-between px-6 transition-all duration-200 active:scale-95 shadow-xl
+                      ${isProcessing ? 'bg-gray-500' : 'bg-gradient-to-r from-orange-600 to-yellow-600 hover:from-orange-700 hover:to-yellow-700'} 
+                      text-white disabled:opacity-50 disabled:cursor-not-allowed`}
           >
-            <span className="text-lg font-medium">
-              {isProcessing ? 'Processing...' : 'Place Order'}
+            <span className="text-lg font-bold flex items-center">
+              {isProcessing ? (
+                <>
+                  <div className="animate-spin rounded-full h-6 w-6 border-2 border-white border-t-transparent mr-3"></div>
+                  Processing...
+                </>
+              ) : (
+                '🛒 Place Order'
+              )}
             </span>
-            <span className="bg-white text-yellow-400 px-4 py-2 rounded-full font-medium">
+            <span className="bg-white/90 backdrop-blur-sm text-orange-600 px-6 py-3 rounded-xl font-bold shadow-md">
               ${orderSummary.total.toFixed(2)}
             </span>
           </button>

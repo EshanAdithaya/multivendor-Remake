@@ -30,48 +30,64 @@ const UnauthorizedModal = ({ onGoHome }) => {
   );
 };
 
-// Category Button Component
+// Modern Category Button Component
 const CategoryButton = ({ icon, label, onClick }) => {
   return (
-    <div className="flex flex-col items-center gap-1" onClick={onClick}>
-      <div className="w-16 h-16 flex items-center justify-center">
+    <div 
+      className="flex flex-col items-center gap-2 p-3 rounded-2xl bg-gradient-to-br from-orange-50 to-yellow-50 hover:from-orange-100 hover:to-yellow-100 active:scale-95 transition-all duration-200 shadow-sm hover:shadow-md cursor-pointer"
+      onClick={onClick}
+    >
+      <div className="w-14 h-14 flex items-center justify-center bg-white rounded-xl shadow-sm">
         {icon}
       </div>
-      <span className="text-xs font-medium">{label}</span>
+      <span className="text-xs font-semibold text-gray-700">{label}</span>
     </div>
   );
 };
 
-// Sale Card Component
+// Modern Sale Card Component
 const SaleCard = ({ title, subtitle, tag, endDate, imageUrl, isOngoing, onClick }) => {
   return (
-    <div className="min-w-[160px] rounded-lg overflow-hidden shadow-sm" onClick={onClick}>
+    <div 
+      className="min-w-[180px] rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer transform hover:scale-105 bg-white border border-orange-100"
+      onClick={onClick}
+    >
       <div className="relative">
         <img 
-          src={imageUrl || '/api/placeholder/160/100'} 
+          src={imageUrl || '/api/placeholder/180/120'} 
           alt={title} 
-          className="w-full h-24 object-cover"
+          className="w-full h-28 object-cover"
         />
-        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-2">
-          <h3 className="text-white text-sm font-bold">{title}</h3>
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+        <div className="absolute bottom-0 left-0 right-0 p-3">
+          <h3 className="text-white text-sm font-bold drop-shadow-lg">{title}</h3>
         </div>
+        {isOngoing && (
+          <div className="absolute top-2 right-2">
+            <div className="bg-red-500 text-white text-xs px-2 py-1 rounded-full font-bold animate-pulse">
+              🔥 LIVE
+            </div>
+          </div>
+        )}
       </div>
-      <div className="bg-white p-2">
-        <div className="flex gap-1 mb-1">
-          <span className="text-xs px-2 py-0.5 bg-gray-200 rounded-full">
-            {isOngoing ? "Ongoing" : "Sale Ended"}
+      <div className="bg-white p-3">
+        <div className="flex gap-1 mb-2">
+          <span className={`text-xs px-3 py-1 rounded-full font-medium ${
+            isOngoing ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'
+          }`}>
+            {isOngoing ? "🟢 Active" : "⏰ Ended"}
           </span>
           {tag && (
-            <span className="text-xs px-2 py-0.5 bg-orange-100 text-orange-700 rounded-full">
-              {tag}
+            <span className="text-xs px-3 py-1 bg-gradient-to-r from-orange-100 to-yellow-100 text-orange-700 rounded-full font-medium">
+              ✨ {tag}
             </span>
           )}
         </div>
-        <p className="text-xs text-gray-700 line-clamp-2">{subtitle}</p>
+        <p className="text-xs text-gray-600 line-clamp-2 leading-relaxed">{subtitle}</p>
         {endDate && (
-          <div className="flex items-center mt-1">
-            <span className="text-xs text-gray-500">
-              {new Date(endDate).toLocaleDateString('en-US', { 
+          <div className="flex items-center mt-2">
+            <span className="text-xs text-gray-500 bg-gray-50 px-2 py-1 rounded-lg">
+              📅 {new Date(endDate).toLocaleDateString('en-US', { 
                 day: '2-digit', 
                 month: 'short', 
                 year: 'numeric' 
@@ -84,30 +100,37 @@ const SaleCard = ({ title, subtitle, tag, endDate, imageUrl, isOngoing, onClick 
   );
 };
 
-// Store Card Component
+// Modern Store Card Component
 const StoreCard = ({ name, logoUrl, totalItems, rating, onClick, isFavorite }) => {
   return (
-    <div className="min-w-[120px] rounded-lg overflow-hidden shadow-sm bg-white" onClick={onClick}>
-      <div className="relative h-24">
+    <div 
+      className="min-w-[140px] rounded-2xl overflow-hidden shadow-lg hover:shadow-xl bg-white cursor-pointer transform hover:scale-105 transition-all duration-300 border border-gray-100"
+      onClick={onClick}
+    >
+      <div className="relative h-28">
         <img 
-          src={logoUrl || '/api/placeholder/120/120'} 
+          src={logoUrl || '/api/placeholder/140/140'} 
           alt={name} 
           className="w-full h-full object-cover"
         />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
         {isFavorite && (
-          <div className="absolute top-1 right-1">
-            <Heart className="w-4 h-4 text-red-500 fill-red-500" />
+          <div className="absolute top-2 right-2">
+            <div className="bg-white/90 backdrop-blur-sm rounded-full p-1">
+              <Heart className="w-4 h-4 text-red-500 fill-red-500" />
+            </div>
           </div>
         )}
       </div>
-      <div className="p-2">
-        <h3 className="font-medium text-sm">{name}</h3>
-        <div className="flex items-center gap-1 mt-1">
-          <span className="text-xs text-gray-500">{totalItems} items</span>
-          <span className="text-xs">•</span>
-          <div className="flex items-center">
-            <span className="text-yellow-400 text-xs">★</span>
-            <span className="text-xs ml-0.5">{rating}</span>
+      <div className="p-3">
+        <h3 className="font-semibold text-sm text-gray-800 mb-2">{name}</h3>
+        <div className="flex items-center justify-between">
+          <span className="text-xs text-gray-500 bg-gray-50 px-2 py-1 rounded-lg">
+            🏪 {totalItems} items
+          </span>
+          <div className="flex items-center bg-yellow-50 px-2 py-1 rounded-lg">
+            <span className="text-yellow-500 text-sm">⭐</span>
+            <span className="text-xs ml-1 font-medium text-gray-700">{rating}</span>
           </div>
         </div>
       </div>
@@ -115,16 +138,20 @@ const StoreCard = ({ name, logoUrl, totalItems, rating, onClick, isFavorite }) =
   );
 };
 
-// Section Header Component
+// Modern Section Header Component
 const SectionHeader = ({ title, icon, onSeeAll }) => {
   return (
-    <div className="flex items-center justify-between px-4 py-3">
-      <div className="flex items-center gap-2">
-        <h2 className="text-lg font-bold">{title}</h2>
+    <div className="flex items-center justify-between px-4 py-4">
+      <div className="flex items-center gap-3">
+        <h2 className="text-xl font-bold text-gray-800 tracking-tight">{title}</h2>
         {icon}
       </div>
-      <button onClick={onSeeAll} className="flex items-center text-gray-500">
-        <ChevronRight className="w-5 h-5" />
+      <button 
+        onClick={onSeeAll} 
+        className="flex items-center text-orange-600 hover:text-orange-700 bg-orange-50 hover:bg-orange-100 px-3 py-2 rounded-xl transition-all duration-200 active:scale-95"
+      >
+        <span className="text-sm font-medium mr-1">See All</span>
+        <ChevronRight className="w-4 h-4" />
       </button>
     </div>
   );
@@ -448,130 +475,162 @@ const LandingPage = () => {
     window.location.reload();
   };
   return (
-    <div className="min-h-screen bg-white pb-20 overflow-x-hidden overflow-y-visible">
+    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-yellow-50 pb-20 overflow-x-hidden overflow-y-visible">
       {/* Promotional Popup */}
       <PromotionalPopup />
       
       {/* Unauthorized Modal */}
       {isUnauthorized && <UnauthorizedModal onGoHome={handleGoHome} />}
       
-      {/* Top Navigation Bar */}
-      <div className="bg-yellow-200 pt-4 pb-4 relative overflow-visible">
-        {/* Yellow curved background */}
-        <div className="absolute top-0 left-0 right-0 h-10 bg-yellow-400 -z-10"></div>
+      {/* Modern Top Navigation Bar */}
+      <div className="bg-gradient-to-br from-orange-400 via-yellow-400 to-amber-400 pt-4 pb-6 relative overflow-visible">
+        {/* Curved background with gradient */}
+        <div className="absolute top-0 left-0 right-0 h-12 bg-gradient-to-r from-orange-500 to-yellow-500 -z-10"></div>
+        
+        {/* Decorative elements */}
+        <div className="absolute top-2 left-4 w-8 h-8 bg-white/20 rounded-full"></div>
+        <div className="absolute top-6 right-8 w-6 h-6 bg-white/20 rounded-full"></div>
+        <div className="absolute top-1 right-16 w-4 h-4 bg-white/30 rounded-full"></div>
         
         {/* Use the HeaderBar component */}
         <div className="relative overflow-visible">
           <HeaderBar />
         </div>
         
-        {/* Search Bar */}
+        {/* Modern Search Bar */}
         <div className="px-4 mt-6">
           <form onSubmit={handleSearch} className="relative">
-            <div className="relative flex items-center bg-gray-100 rounded-full py-2 px-4">
-              <Search className="text-gray-400 w-5 h-5 mr-3" />
+            <div className="relative flex items-center bg-white/95 backdrop-blur-sm rounded-2xl py-3 px-5 shadow-lg border border-white/50">
+              <Search className="text-orange-500 w-5 h-5 mr-3" />
               <input
                 type="text"
-                placeholder="Pet Foods"
-                className="bg-transparent w-full border-none outline-none text-gray-700 text-base"
+                placeholder="🐾 Search for pet essentials..."
+                className="bg-transparent w-full border-none outline-none text-gray-700 text-base placeholder-gray-500"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
+              <div className="ml-2 bg-orange-500 text-white p-2 rounded-xl hover:bg-orange-600 transition-colors cursor-pointer">
+                <Search className="w-4 h-4" />
+              </div>
             </div>
           </form>
         </div>
       </div>
       
-      {/* Main Banner Carousel */}
-      <div className="px-4 mt-4">
-        <div className="bg-white rounded-lg overflow-hidden shadow-sm">
-          <div className="relative w-full h-48">
+      {/* Modern Banner Carousel */}
+      <div className="px-4 mt-6">
+        <div className="bg-white rounded-3xl overflow-hidden shadow-xl border border-gray-100">
+          <div className="relative w-full h-56">
             {carouselImages.map((image, index) => (
               <div 
                 key={index}
-                className={`absolute top-0 left-0 w-full h-full transition-opacity duration-500 ease-in-out ${
-                  index === currentSlide ? 'opacity-100 z-10' : 'opacity-0 z-0'
+                className={`absolute top-0 left-0 w-full h-full transition-all duration-700 ease-in-out transform ${
+                  index === currentSlide ? 'opacity-100 scale-100 z-10' : 'opacity-0 scale-105 z-0'
                 }`}
               >
                 <img 
                   src={image} 
                   alt={`Banner ${index + 1}`}
-                  className="w-full h-full object-cover rounded-lg"
+                  className="w-full h-full object-cover"
                 />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
               </div>
             ))}
-            <div className="absolute bottom-2 left-0 right-0 z-20 flex justify-center gap-1">
+            {/* Modern carousel indicators */}
+            <div className="absolute bottom-4 left-0 right-0 z-20 flex justify-center gap-2">
               {carouselImages.map((_, index) => (
                 <button
                   key={index}
-                  className={`w-2 h-2 rounded-full ${
-                    index === currentSlide ? 'bg-white' : 'bg-white/50'
+                  className={`transition-all duration-300 rounded-full ${
+                    index === currentSlide 
+                      ? 'w-8 h-3 bg-white shadow-lg' 
+                      : 'w-3 h-3 bg-white/60 hover:bg-white/80'
                   }`}
                   onClick={() => setCurrentSlide(index)}
                 />
               ))}
             </div>
+            {/* Pet-themed overlay badge */}
+            <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm px-3 py-2 rounded-xl shadow-lg">
+              <span className="text-sm font-bold text-orange-600">🐾 Featured</span>
+            </div>
           </div>
         </div>
       </div>
       
-      {/* Categories */}
-      <div className="mt-4 bg-white">
-        <div className="flex justify-between px-4 py-4 overflow-x-auto scrollbar-hide">
-          <CategoryButton 
-            icon={<img src="https://pawsome-testing.sgp1.digitaloceanspaces.com/Application_CDN_Assets/landing_page_shortcuts_dog_food.png" alt="Dog Food" className="w-10 h-10" />}
-            label="Dog Food"
-            onClick={() => handleCategoryClick('dog-food')}
-          />
-          <CategoryButton 
-            icon={<img src="https://pawsome-testing.sgp1.digitaloceanspaces.com/Application_CDN_Assets/landing_page_shortcuts_cat_food.png" alt="Cat Food" className="w-10 h-10" />}
-            label="Cat Food"
-            onClick={() => handleCategoryClick('cat-food')}
-          />
-          <CategoryButton 
-            icon={<img src="https://pawsome-testing.sgp1.digitaloceanspaces.com/Application_CDN_Assets/landing_page_shortcuts_toys.png" alt="Pet Toys" className="w-10 h-10" />}
-            label="Pet Toys"
-            onClick={() => handleCategoryClick('pet-toys')}
-          />
-          <CategoryButton 
-            icon={<img src="https://pawsome-testing.sgp1.digitaloceanspaces.com/Application_CDN_Assets/landing_page_shortcuts_litter.png" alt="Litter" className="w-10 h-10" />}
-            label="Litter"
-            onClick={() => handleCategoryClick('litter')}
-          />
-          <CategoryButton 
-            icon={<img src="https://pawsome-testing.sgp1.digitaloceanspaces.com/Application_CDN_Assets/landing_page_shortcuts_treats.png" alt="Treats" className="w-10 h-10" />}
-            label="Treats"
-            onClick={() => handleCategoryClick('treats')}
-          />
+      {/* Modern Categories Section */}
+      <div className="mt-6">
+        <div className="px-4 mb-4">
+          <h2 className="text-lg font-bold text-gray-800 mb-1">🏪 Shop by Category</h2>
+          <p className="text-sm text-gray-600">Find everything your furry friend needs</p>
         </div>
-      </div>
-      
-      {/* Points */}
-      <div className="px-4 mt-4 flex gap-3">
-        <div className="bg-yellow-100 rounded-lg p-3 flex-1">
-          <p className="text-sm text-gray-700">Available Points</p>
-          <div className="flex items-center gap-2 mt-1">
-            <p className="font-bold text-lg">{points.available}</p>
-            <img src="https://pawsome-testing.sgp1.digitaloceanspaces.com/Application_CDN_Assets/landing_page_shortcuts_points.png" alt="Coin" className="w-5 h-5" />
-          </div>
-        </div>
-        <div className="bg-yellow-100 rounded-lg p-3 flex-1">
-          <p className="text-sm text-gray-700">Used Points</p>
-          <div className="flex items-center gap-2 mt-1">
-            <p className="font-bold text-lg">{points.used}</p>
-            <img src="https://pawsome-testing.sgp1.digitaloceanspaces.com/Application_CDN_Assets/landing_page_shortcuts_used_points.png" alt="Award" className="w-5 h-5" />
+        <div className="px-4">
+          <div className="grid grid-cols-5 gap-3">
+            <CategoryButton 
+              icon={<img src="https://pawsome-testing.sgp1.digitaloceanspaces.com/Application_CDN_Assets/landing_page_shortcuts_dog_food.png" alt="Dog Food" className="w-8 h-8" />}
+              label="Dog Food"
+              onClick={() => handleCategoryClick('dog-food')}
+            />
+            <CategoryButton 
+              icon={<img src="https://pawsome-testing.sgp1.digitaloceanspaces.com/Application_CDN_Assets/landing_page_shortcuts_cat_food.png" alt="Cat Food" className="w-8 h-8" />}
+              label="Cat Food"
+              onClick={() => handleCategoryClick('cat-food')}
+            />
+            <CategoryButton 
+              icon={<img src="https://pawsome-testing.sgp1.digitaloceanspaces.com/Application_CDN_Assets/landing_page_shortcuts_toys.png" alt="Pet Toys" className="w-8 h-8" />}
+              label="Pet Toys"
+              onClick={() => handleCategoryClick('pet-toys')}
+            />
+            <CategoryButton 
+              icon={<img src="https://pawsome-testing.sgp1.digitaloceanspaces.com/Application_CDN_Assets/landing_page_shortcuts_litter.png" alt="Litter" className="w-8 h-8" />}
+              label="Litter"
+              onClick={() => handleCategoryClick('litter')}
+            />
+            <CategoryButton 
+              icon={<img src="https://pawsome-testing.sgp1.digitaloceanspaces.com/Application_CDN_Assets/landing_page_shortcuts_treats.png" alt="Treats" className="w-8 h-8" />}
+              label="Treats"
+              onClick={() => handleCategoryClick('treats')}
+            />
           </div>
         </div>
       </div>
       
-      {/* Flash Sale */}
-      <div className="mt-4">
+      {/* Modern Points Section */}
+      <div className="px-4 mt-6">
+        <div className="bg-gradient-to-r from-yellow-400 via-orange-400 to-red-400 rounded-2xl p-4 shadow-lg">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-white font-bold text-lg">🎯 Reward Points</h3>
+            <div className="bg-white/20 backdrop-blur-sm rounded-full px-3 py-1">
+              <span className="text-white text-xs font-medium">💎 Premium</span>
+            </div>
+          </div>
+          <div className="flex gap-4">
+            <div className="bg-white/90 backdrop-blur-sm rounded-xl p-3 flex-1">
+              <p className="text-xs text-gray-600 mb-1">Available</p>
+              <div className="flex items-center gap-2">
+                <span className="font-bold text-xl text-gray-800">{points.available}</span>
+                <img src="https://pawsome-testing.sgp1.digitaloceanspaces.com/Application_CDN_Assets/landing_page_shortcuts_points.png" alt="Coin" className="w-6 h-6" />
+              </div>
+            </div>
+            <div className="bg-white/90 backdrop-blur-sm rounded-xl p-3 flex-1">
+              <p className="text-xs text-gray-600 mb-1">Used</p>
+              <div className="flex items-center gap-2">
+                <span className="font-bold text-xl text-gray-800">{points.used}</span>
+                <img src="https://pawsome-testing.sgp1.digitaloceanspaces.com/Application_CDN_Assets/landing_page_shortcuts_used_points.png" alt="Award" className="w-6 h-6" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      {/* Modern Flash Sale Section */}
+      <div className="mt-8 bg-white rounded-t-3xl pt-2 shadow-lg">
         <SectionHeader 
-          title="Flash Sale 🔥" 
+          title="🔥 Flash Sale" 
           onSeeAll={() => navigate('/flash-sales')}
         />
-        <div className="pl-4 pb-4 overflow-x-auto">
-          <div className="flex gap-3">
+        <div className="pl-4 pb-6 overflow-x-auto">
+          <div className="flex gap-4">
             {flashSales.map(sale => (
               <SaleCard 
                 key={sale.id}
@@ -583,21 +642,25 @@ const LandingPage = () => {
         </div>
       </div>
       
-      {/* Happy Tails, Full Bowls - Food Products */}
-      <div className="mt-4">
+      {/* Modern Food Products Section */}
+      <div className="mt-6 bg-white">
         <SectionHeader 
-          title="Happy Tails, Full Bowls" 
+          title="🍽️ Happy Tails, Full Bowls" 
           onSeeAll={() => navigate('/category/food')}
         />
-        <div className="pl-4 pb-4 overflow-x-auto">
-          <div className="flex gap-3">
+        <div className="pl-4 pb-6 overflow-x-auto">
+          <div className="flex gap-4">
             {loading ? (
               <div className="flex justify-center items-center w-full h-32">
-                <div className="animate-spin rounded-full h-8 w-8 border-2 border-yellow-400 border-t-transparent"></div>
+                <div className="relative">
+                  <div className="animate-spin rounded-full h-12 w-12 border-4 border-orange-200 border-t-orange-500"></div>
+                  <div className="absolute inset-2 rounded-full bg-orange-50"></div>
+                  <span className="absolute inset-0 flex items-center justify-center text-orange-500 text-xs">🐾</span>
+                </div>
               </div>
             ) : foodProducts.length > 0 ? (
               foodProducts.map(product => (
-                <div key={product.id} className="min-w-[160px]">
+                <div key={product.id} className="min-w-[170px]">
                   <CompactProductCard
                     product={product}
                     onNavigate={() => handleNavigateToProduct(product.id)}
@@ -608,27 +671,36 @@ const LandingPage = () => {
                 </div>
               ))
             ) : (
-              <p className="text-gray-500">No food products available</p>
+              <div className="flex items-center justify-center w-full h-32 text-gray-500">
+                <div className="text-center">
+                  <div className="text-4xl mb-2">😪</div>
+                  <p className="text-sm">No food products available</p>
+                </div>
+              </div>
             )}
           </div>
         </div>
       </div>
       
-      {/* Keep Discovering - Latest Products */}
-      <div className="mt-4">
+      {/* Modern Latest Products Section */}
+      <div className="mt-6 bg-white">
         <SectionHeader 
-          title="Keep Discovering ✓" 
+          title="🎆 Keep Discovering" 
           onSeeAll={() => navigate('/category')}
         />
-        <div className="pl-4 pb-4 overflow-x-auto">
-          <div className="flex gap-3">
+        <div className="pl-4 pb-6 overflow-x-auto">
+          <div className="flex gap-4">
             {loading ? (
               <div className="flex justify-center items-center w-full h-32">
-                <div className="animate-spin rounded-full h-8 w-8 border-2 border-yellow-400 border-t-transparent"></div>
+                <div className="relative">
+                  <div className="animate-spin rounded-full h-12 w-12 border-4 border-purple-200 border-t-purple-500"></div>
+                  <div className="absolute inset-2 rounded-full bg-purple-50"></div>
+                  <span className="absolute inset-0 flex items-center justify-center text-purple-500 text-xs">🔍</span>
+                </div>
               </div>
             ) : latestProducts.length > 0 ? (
               latestProducts.map(product => (
-                <div key={product.id} className="min-w-[160px]">
+                <div key={product.id} className="min-w-[170px]">
                   <CompactProductCard
                     product={product}
                     onNavigate={() => handleNavigateToProduct(product.id)}
@@ -639,27 +711,36 @@ const LandingPage = () => {
                 </div>
               ))
             ) : (
-              <p className="text-gray-500">No products available</p>
+              <div className="flex items-center justify-center w-full h-32 text-gray-500">
+                <div className="text-center">
+                  <div className="text-4xl mb-2">🤷</div>
+                  <p className="text-sm">No products available</p>
+                </div>
+              </div>
             )}
           </div>
         </div>
       </div>
       
-      {/* Playtime Starts Here - Toy Products */}
-      <div className="mt-4" data-section="toy-products">
+      {/* Modern Toy Products Section */}
+      <div className="mt-6 bg-white" data-section="toy-products">
         <SectionHeader 
-          title="Playtime Starts Here 🎾" 
+          title="🎾 Playtime Starts Here" 
           onSeeAll={() => navigate('/category/pet-toys')}
         />
-        <div className="pl-4 pb-4 overflow-x-auto">
-          <div className="flex gap-3">
+        <div className="pl-4 pb-6 overflow-x-auto">
+          <div className="flex gap-4">
             {loading ? (
               <div className="flex justify-center items-center w-full h-32">
-                <div className="animate-spin rounded-full h-8 w-8 border-2 border-yellow-400 border-t-transparent"></div>
+                <div className="relative">
+                  <div className="animate-spin rounded-full h-12 w-12 border-4 border-green-200 border-t-green-500"></div>
+                  <div className="absolute inset-2 rounded-full bg-green-50"></div>
+                  <span className="absolute inset-0 flex items-center justify-center text-green-500 text-xs">🎾</span>
+                </div>
               </div>
             ) : toyProducts.length > 0 ? (
               toyProducts.map(product => (
-                <div key={product.id} className="min-w-[160px]">
+                <div key={product.id} className="min-w-[170px]">
                   <CompactProductCard
                     product={product}
                     onNavigate={() => handleNavigateToProduct(product.id)}
@@ -670,35 +751,48 @@ const LandingPage = () => {
                 </div>
               ))
             ) : (
-              <p className="text-gray-500">No toy products available</p>
+              <div className="flex items-center justify-center w-full h-32 text-gray-500">
+                <div className="text-center">
+                  <div className="text-4xl mb-2">🥸</div>
+                  <p className="text-sm">No toy products available</p>
+                </div>
+              </div>
             )}
           </div>
         </div>
       </div>
 
-      {/* Footer */}
+      {/* Modern Footer */}
       <div 
         ref={footerRef}
-        className={`mt-8 px-4 pb-10 text-center transition-all duration-300 ${
+        className={`mt-12 px-4 pb-12 text-center transition-all duration-300 ${
           isAtBottom ? 'transform scale-105' : ''
         }`}
       >
-        <div className="bg-gradient-to-r from-yellow-100 to-orange-100 rounded-lg p-4 shadow-sm">
-          <p className="text-sm font-medium text-gray-700">🐾 You've explored all our featured collections!</p>
-          <p className="mt-2 text-xs text-gray-600">Find more amazing products in our categories above</p>
-          <div className="mt-3 flex justify-center space-x-2">
-            <button 
-              onClick={() => navigate('/category')}
-              className="px-3 py-1 bg-yellow-400 text-white text-xs rounded-full hover:bg-yellow-500 transition-colors"
-            >
-              Browse All
-            </button>
-            <button 
-              onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-              className="px-3 py-1 bg-gray-300 text-gray-700 text-xs rounded-full hover:bg-gray-400 transition-colors"
-            >
-              Back to Top
-            </button>
+        <div className="bg-gradient-to-br from-orange-400 via-pink-400 to-purple-500 rounded-3xl p-6 shadow-2xl relative overflow-hidden">
+          {/* Decorative elements */}
+          <div className="absolute top-2 left-4 w-16 h-16 bg-white/10 rounded-full"></div>
+          <div className="absolute bottom-2 right-6 w-12 h-12 bg-white/10 rounded-full"></div>
+          <div className="absolute top-1/2 right-2 w-8 h-8 bg-white/20 rounded-full"></div>
+          
+          <div className="relative z-10">
+            <div className="text-4xl mb-3">🐾🎉</div>
+            <p className="text-lg font-bold text-white mb-2">You've explored all our featured collections!</p>
+            <p className="text-sm text-white/90 mb-6">Discover more amazing products for your furry friends</p>
+            <div className="flex justify-center space-x-4">
+              <button 
+                onClick={() => navigate('/category')}
+                className="px-6 py-3 bg-white text-orange-600 font-bold rounded-2xl hover:bg-gray-50 transition-all duration-200 shadow-lg active:scale-95"
+              >
+                🛍️ Browse All
+              </button>
+              <button 
+                onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+                className="px-6 py-3 bg-white/20 backdrop-blur-sm text-white font-medium rounded-2xl hover:bg-white/30 transition-all duration-200 active:scale-95"
+              >
+                ⬆️ Back to Top
+              </button>
+            </div>
           </div>
         </div>
       </div>

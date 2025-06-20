@@ -18,7 +18,7 @@ const CompactProductCard = ({
   };
   return (
     <div 
-      className="w-full bg-white rounded-lg overflow-hidden hover:shadow-md transition-shadow cursor-pointer"
+      className="w-full bg-white rounded-2xl overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer transform hover:scale-105 border border-gray-100"
       onClick={onNavigate}
     >
       {/* Image */}
@@ -33,10 +33,13 @@ const CompactProductCard = ({
           }}
         />
         
+        {/* Gradient overlay for better text visibility */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent" />
+        
         {/* Wishlist Button */}
         <button 
-          className={`absolute top-1 right-1 w-6 h-6 bg-white rounded-full flex items-center justify-center shadow-md z-10
-            ${isWishlistLoading ? 'opacity-50' : 'hover:bg-gray-50'}`}
+          className={`absolute top-2 right-2 w-8 h-8 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-lg z-10 transition-all duration-200
+            ${isWishlistLoading ? 'opacity-50' : 'hover:bg-white hover:scale-110 active:scale-95'}`}
           onClick={(e) => {
             e.stopPropagation();
             onWishlistToggle?.();
@@ -44,35 +47,37 @@ const CompactProductCard = ({
           disabled={isWishlistLoading}
         >
           <Heart 
-            className={`w-3 h-3 ${isInWishlist ? 'fill-yellow-400 text-yellow-400' : 'text-gray-400'}`}
+            className={`w-4 h-4 transition-colors duration-200 ${
+              isInWishlist ? 'fill-red-500 text-red-500' : 'text-gray-500 hover:text-red-400'
+            }`}
           />
         </button>
 
         {/* Status Badge */}
         {product.status && (
-          <div className="absolute bottom-1 left-1 bg-black bg-opacity-60 text-white text-xs px-1.5 py-0.5 rounded">
+          <div className="absolute bottom-2 left-2 bg-orange-500 text-white text-xs px-2 py-1 rounded-lg shadow-lg font-medium">
             {product.status}
           </div>
         )}
       </div>
 
       {/* Content */}
-      <div className="p-2">
-        <h3 className="text-xs font-medium line-clamp-2 mb-1 text-gray-800">
+      <div className="p-3">
+        <h3 className="text-sm font-semibold line-clamp-2 mb-2 text-gray-800 leading-tight">
           {product.name}
         </h3>
         
-        <div className="flex flex-col gap-0.5">
-          <span className="text-sm font-semibold text-gray-900">
+        <div className="flex flex-col gap-1">
+          <span className="text-lg font-bold text-orange-600">
             ${formatPrice(defaultVariation.price)}
           </span>
           
           {product.averageReview > 0 && (
-            <div className="flex items-center text-xs text-gray-500">
-              <span className="text-yellow-400">★</span>
-              <span className="ml-0.5">{product.averageReview.toFixed(1)}</span>
+            <div className="flex items-center text-xs bg-yellow-50 px-2 py-1 rounded-lg w-fit">
+              <span className="text-yellow-500">⭐</span>
+              <span className="ml-1 font-medium text-gray-700">{product.averageReview.toFixed(1)}</span>
               {product.reviews?.length > 0 && (
-                <span className="ml-1">({product.reviews.length})</span>
+                <span className="ml-1 text-gray-500">({product.reviews.length})</span>
               )}
             </div>
           )}

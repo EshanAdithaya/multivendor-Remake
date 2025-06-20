@@ -386,8 +386,12 @@ const CategoryPage = () => {
 
   if (loading && !products.length) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-4 border-yellow-400 border-t-transparent"></div>
+      <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-yellow-50 flex items-center justify-center">
+        <div className="relative">
+          <div className="animate-spin rounded-full h-16 w-16 border-4 border-orange-200 border-t-orange-500"></div>
+          <div className="absolute inset-3 rounded-full bg-orange-50"></div>
+          <span className="absolute inset-0 flex items-center justify-center text-orange-500 text-xl">🔍</span>
+        </div>
       </div>
     );
   }
@@ -413,72 +417,74 @@ const CategoryPage = () => {
     );
   }
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white border-b sticky top-0 z-30">
+    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-yellow-50">
+      {/* Modern Header */}
+      <div className="bg-gradient-to-r from-orange-400 via-yellow-400 to-amber-400 border-b sticky top-0 z-30 shadow-lg">
         <div className="max-w-4xl mx-auto p-4">
           <div className="flex items-center gap-3">
             <button
               onClick={() => navigate(-1)}
-              className="p-2 hover:bg-gray-100 rounded-full"
+              className="p-2 hover:bg-white/20 rounded-xl transition-all duration-200 active:scale-95"
             >
-              <ArrowLeft className="w-5 h-5" />
+              <ArrowLeft className="w-6 h-6 text-white" />
             </button>
             <div className="flex-1">
-              <h1 className="text-xl font-bold">
+              <h1 className="text-xl font-bold text-white drop-shadow-sm">
                 {activeFilters.matchingCategoryIds ? (
                   <>
-                    Search results for "<span className="text-yellow-600">{categorySlug}</span>"
+                    🔍 Search results for "<span className="text-orange-100">{categorySlug}</span>"
                   </>
                 ) : (
-                  currentCategory?.name || categorySlug || "All Products"
+                  `🐾 ${currentCategory?.name || categorySlug || "All Products"}`
                 )}
               </h1>
               {error && currentCategory && (
-                <p className="text-sm text-yellow-600 mt-1">{error}</p>
+                <p className="text-sm text-orange-100 mt-1">{error}</p>
               )}
             </div>
           </div>
         </div>
       </div>
 
-      {/* Search and Filter */}
-      <div className="bg-white border-b sticky top-16 z-20">
+      {/* Modern Search and Filter */}
+      <div className="bg-white/95 backdrop-blur-sm border-b sticky top-16 z-20 shadow-sm">
         <div className="max-w-4xl mx-auto p-4">
           <form onSubmit={handleSearch} className="relative flex items-center">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-orange-500 w-5 h-5" />
             <input
               type="search"
-              placeholder={`Search in ${currentCategory?.name || "products"}...`}
-              className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-yellow-400 focus:border-transparent"
+              placeholder={`🐕 Search in ${currentCategory?.name || "products"}...`}
+              className="w-full pl-12 pr-4 py-3 border-2 border-orange-200 rounded-2xl focus:ring-2 focus:ring-orange-400 focus:border-orange-400 bg-white/90 backdrop-blur-sm transition-all duration-200"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
             <button 
-              className="filter-button ml-3 p-2 bg-gray-100 rounded-lg hover:bg-gray-200 relative"
+              className="filter-button ml-3 p-3 bg-gradient-to-r from-orange-100 to-yellow-100 rounded-2xl hover:from-orange-200 hover:to-yellow-200 relative transition-all duration-200 active:scale-95 shadow-md"
               type="button"
               onClick={() => setShowFilterPanel(!showFilterPanel)}
             >
-              <SlidersHorizontal className="w-5 h-5 text-gray-600" />
+              <SlidersHorizontal className="w-5 h-5 text-orange-600" />
               {activeFilterCount > 0 && (
-                <span className="absolute -top-1 -right-1 w-5 h-5 bg-yellow-400 text-white text-xs rounded-full flex items-center justify-center">
+                <span className="absolute -top-1 -right-1 w-6 h-6 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-bold animate-pulse">
                   {activeFilterCount}
                 </span>
               )}
             </button>
             
-            {/* Filter Panel */}
+            {/* Modern Filter Panel */}
             {showFilterPanel && (
               <div 
                 ref={filterPanelRef}
-                className="absolute right-0 top-full mt-2 w-80 bg-white rounded-lg shadow-lg border border-gray-200 z-40"
+                className="absolute right-0 top-full mt-2 w-80 bg-white/95 backdrop-blur-sm rounded-2xl shadow-xl border-2 border-orange-200 z-40"
               >
-                <div className="p-4">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="font-medium text-lg">Filters</h3>
+                <div className="p-6">
+                  <div className="flex items-center justify-between mb-6">
+                    <h3 className="font-bold text-lg text-gray-800 flex items-center">
+                      🎯 Filters
+                    </h3>
                     <button
                       onClick={() => setShowFilterPanel(false)}
-                      className="text-gray-500 hover:text-gray-700"
+                      className="text-gray-500 hover:text-orange-600 p-2 hover:bg-orange-50 rounded-xl transition-all duration-200"
                     >
                       <X className="w-5 h-5" />
                     </button>
@@ -628,19 +634,19 @@ const CategoryPage = () => {
                     )}
                   </div>
                   
-                  {/* Filter Actions */}
-                  <div className="flex justify-between pt-2">
+                  {/* Modern Filter Actions */}
+                  <div className="flex gap-3 pt-4">
                     <button
-                      className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200"
+                      className="flex-1 px-4 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 font-medium transition-all duration-200 active:scale-95"
                       onClick={resetFilters}
                     >
-                      Reset All
+                      🔄 Reset All
                     </button>
                     <button
-                      className="px-4 py-2 bg-yellow-400 text-white rounded-md hover:bg-yellow-500"
+                      className="flex-1 px-4 py-3 bg-gradient-to-r from-orange-500 to-yellow-500 text-white rounded-xl hover:from-orange-600 hover:to-yellow-600 font-medium transition-all duration-200 active:scale-95 shadow-lg"
                       onClick={applyFilters}
                     >
-                      Apply Filters
+                      ✨ Apply Filters
                     </button>
                   </div>
                 </div>
@@ -648,13 +654,13 @@ const CategoryPage = () => {
             )}
           </form>
           
-          {/* Active Filters Display */}
+          {/* Modern Active Filters Display */}
           {activeFilterCount > 0 && (
-            <div className="mt-3 flex flex-wrap gap-2">
+            <div className="mt-4 flex flex-wrap gap-2">
               {selectedProductGroup && (
-                <div className="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-sm flex items-center">
-                  <span className="mr-1">
-                    {productGroups.find(group => group.id === selectedProductGroup)?.name || 'Product Group'}
+                <div className="bg-gradient-to-r from-orange-100 to-yellow-100 text-orange-800 px-4 py-2 rounded-xl text-sm flex items-center shadow-sm border border-orange-200">
+                  <span className="mr-2 font-medium">
+                    🏷️ {productGroups.find(group => group.id === selectedProductGroup)?.name || 'Product Group'}
                   </span>
                   <button 
                     onClick={() => {
@@ -664,7 +670,7 @@ const CategoryPage = () => {
                         return rest;
                       });
                     }}
-                    className="ml-1"
+                    className="ml-1 hover:bg-orange-200 rounded-full p-1 transition-colors duration-200"
                   >
                     <X className="w-3 h-3" />
                   </button>
@@ -744,9 +750,9 @@ const CategoryPage = () => {
         </div>
       </div>
 
-      {/* Category Navigation */}
-      <div className="bg-white border-b relative z-10">
-        <div className="max-w-4xl mx-auto px-4 py-3">
+      {/* Modern Category Navigation */}
+      <div className="bg-white/90 backdrop-blur-sm border-b relative z-10 shadow-sm">
+        <div className="max-w-4xl mx-auto px-4 py-4">
           <div className="flex overflow-x-auto scrollbar-hide gap-3 pb-1">
             {categories.map(category => {
               // Check if this category is one of our matched categories
@@ -757,19 +763,19 @@ const CategoryPage = () => {
               return (
                 <button
                   key={category.id}
-                  className={`px-4 py-1.5 text-sm font-medium whitespace-nowrap rounded-full transition-colors
+                  className={`px-5 py-2.5 text-sm font-semibold whitespace-nowrap rounded-2xl transition-all duration-200 active:scale-95 shadow-sm
                     ${category.id === currentCategory?.id 
-                      ? 'bg-yellow-400 text-white' 
+                      ? 'bg-gradient-to-r from-orange-500 to-yellow-500 text-white shadow-lg' 
                       : isMatchingCategory 
-                        ? 'bg-yellow-200 text-yellow-800 border border-yellow-400'
-                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        ? 'bg-gradient-to-r from-orange-100 to-yellow-100 text-orange-700 border-2 border-orange-300'
+                        : 'bg-white text-gray-700 hover:bg-gradient-to-r hover:from-orange-50 hover:to-yellow-50 border border-gray-200 hover:border-orange-200'
                     }`}
                   onClick={() => navigate(`/category/${category.name.toLowerCase().replace(/\s+/g, '-')}`)}
                 >
                   {shouldHighlight ? (
                     <span className={isMatchingCategory ? "relative" : ""}>
                       {category.name}
-                      {isMatchingCategory && <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-yellow-500"></span>}
+                      {isMatchingCategory && <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-orange-500 rounded-full"></span>}
                     </span>
                   ) : (
                     category.name
@@ -788,16 +794,25 @@ const CategoryPage = () => {
             <div className="animate-spin rounded-full h-8 w-8 border-2 border-yellow-400 border-t-transparent"></div>
           </div>
         ) : filteredProducts.length === 0 ? (
-          <div className="bg-white rounded-lg p-8 text-center">
-            <p className="text-gray-500">No products found with the current filters.</p>
-            <p className="text-gray-400 mt-2">Try adjusting your search criteria or clearing some filters.</p>
+          <div className="bg-white rounded-2xl p-8 text-center shadow-lg border border-orange-100">
+            <div className="text-6xl mb-4">🐾</div>
+            <p className="text-gray-600 font-medium text-lg">No products found with the current filters.</p>
+            <p className="text-gray-500 mt-2">Try adjusting your search criteria or clearing some filters.</p>
+            <button 
+              onClick={resetFilters}
+              className="mt-4 px-6 py-3 bg-gradient-to-r from-orange-500 to-yellow-500 text-white rounded-xl hover:from-orange-600 hover:to-yellow-600 font-medium transition-all duration-200 active:scale-95 shadow-lg"
+            >
+              🔄 Clear All Filters
+            </button>
           </div>
         ) : productsByCategory.length > 0 ? (
           // Show products grouped by category when we have multiple categories
           <>
-            <p className="text-gray-500 mb-4">
-              {filteredProducts.length} product{filteredProducts.length !== 1 ? 's' : ''} found in {productsByCategory.length} categories
-            </p>
+            <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-4 mb-6 border border-orange-200">
+              <p className="text-gray-700 font-medium flex items-center">
+                🎯 <span className="ml-2">{filteredProducts.length} product{filteredProducts.length !== 1 ? 's' : ''} found in {productsByCategory.length} categories</span>
+              </p>
+            </div>
             {productsByCategory.map((categoryData, categoryIndex) => {
                 // Highlight matching part of the category name if we have a search term
                 const categoryName = categoryData.category.name;
